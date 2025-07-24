@@ -52,7 +52,7 @@ const classmates = [
   {name:"孟静",city:"德强高中",words:"漂酿の英语老师",img:"images/孟静.png"},
   {name:"宦爱彬",city:"德强高中",words:"美腻の物理老师",img:"images/宦爱彬.png"},
   {name:"孙静",city:"德强高中",words:"亲切の化学老师",img:"images/孙静.png"},
-  {name:"刘含英",city:"德强高中",words:"和蔼の语文老师",img:"images/刘含英.png"}
+  {name:"刘含英",city:"德强高中",words:"和蔼の生物老师",img:"images/刘含英.png"}
 ];
 
 // 渲染留言卡片
