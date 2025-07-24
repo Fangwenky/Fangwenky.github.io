@@ -46,7 +46,7 @@ const classmates = [
   {name:"马铭浩",city:"大连理工大学",words:"人工智能（未来技术班）（本硕）",img:"images/马铭浩.png"},
   {name:"蔡杰聪",city:"浙江工业大学",words:"智能制造",img:"images/蔡杰聪.png"},
   {name:"孙健博",city:"华北水利水电大学",words:"能源与动力工程",img:"images/孙健博.png"},
-  {name:"张晨曦",city:"",words:"",img:"images/张晨曦.png"},
+  {name:"张晨曦",city:"东北大学",words:"生物医学工程",img:"images/张晨曦.png"},
   {name:"纪顺",city:"德强高中",words:"英俊の语文老师",img:"images/纪顺.png"},
   {name:"王爽",city:"德强高中",words:"可爱の数学老师",img:"images/王爽.png"},
   {name:"孟静",city:"德强高中",words:"漂酿の英语老师",img:"images/孟静.png"},
