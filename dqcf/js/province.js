@@ -68,7 +68,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // 渲染同学卡片
     cards.innerHTML = filteredClassmates.map(c => `
       <div class="card">
-        <img src="${c.img}" alt="${c.name}" class="classmate-img" style="height: 420px;">
+        <img src="${c.img}" alt="${c.name}" class="classmate-img" style="height: 500px;">
         <strong>${c.name} · ${c.city}</strong>
         <p>${c.words}</p>
       </div>
