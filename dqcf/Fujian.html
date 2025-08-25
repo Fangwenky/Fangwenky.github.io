@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>福建 - 蹭饭地图</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .province-title {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+    
+    .province-title h1 {
+      font-size: 42px;
+      margin-bottom: 10px;
+    }
+    
+    .province-title p {
+      color: #666;
+      font-size: 18px;
+    }
+    
+    .classmates-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 30px;
+      max-width: 1200px;
+      width: 100%;
+      margin: 0 auto;
+    }
+    
+    .classmate-card {
+      background-color: #fff;
+      border-radius: 12px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+      overflow: hidden;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .classmate-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+    }
+    
+    .classmate-img {
+      width: 100%;
+      height: 500px;
+      object-fit: cover;
+    }
+    
+    .classmate-info {
+      padding: 20px;
+    }
+    
+    .classmate-name {
+      font-size: 20px;
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+    
+    .classmate-school {
+      font-size: 16px;
+      color: #ff6b6b;
+      margin-bottom: 10px;
+    }
+    
+    .classmate-major {
+      font-size: 14px;
+      color: #666;
+      line-height: 1.4;
+    }
+  </style>
+</head>
+<body>
+  <nav class="navbar">
+    <div class="nav-container">
+      <a href="index.html" class="nav-item">WE我们</a>
+      <div class="dropdown">
+        <a href="map.html" class="nav-item active">我们去往何方</a>
+        <div class="dropdown-content">
+          <a href="Beijing.html" class="dropdown-item">北京</a>
+          <a href="Shanghai.html" class="dropdown-item">上海</a>
+          <a href="Heilongjiang.html" class="dropdown-item">黑龙江</a>
+          <a href="Jiangsu.html" class="dropdown-item">江苏</a>
+          <a href="Zhejiang.html" class="dropdown-item">浙江</a>
+          <a href="Fujian.html" class="dropdown-item">福建</a>
+          <a href="Henan.html" class="dropdown-item">河南</a>
+          <a href="Liaoning.html" class="dropdown-item">辽宁</a>
+          <a href="Anhui.html" class="dropdown-item">安徽</a>
+          <a href="Tianjin.html" class="dropdown-item">天津</a>
+          <a href="Guangdong.html" class="dropdown-item">广东</a>
+        </div>
+      </div>
+      <a href="words.html" class="nav-item">聆听我们的声音</a>
+    </div>
+  </nav>
+  
+  <section>
+    <div class="province-title">
+      <h1>福建</h1>
+      <p>在福建的同学们</p>
+    </div>
+    
+    <div class="cards classmates-grid">
+      <!-- 这里的内容将由JavaScript动态生成 -->
+    </div>
+  </section>
+  
+  <footer>
+    <p>© 2025 2021级1班 · 纪念站</p>
+  </footer>
+  
+  <script src="js/province.js"></script>
+</body>
+</html>

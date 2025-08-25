@@ -5,15 +5,56 @@
   <title>2021级1班 · 纪念站</title>
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <link rel="stylesheet" href="style.css">
+  <script src="js/api.js" defer></script>
 </head>
 <body>
+  <nav class="navbar">
+    <div class="nav-container">
+      <a href="index.html" class="nav-item active">WE我们</a>
+      <div class="dropdown">
+        <a href="map.html" class="nav-item">我们去往何方</a>
+        <div class="dropdown-content">
+          <a href="Beijing.html" class="dropdown-item">北京</a>
+          <a href="Shanghai.html" class="dropdown-item">上海</a>
+          <a href="Heilongjiang.html" class="dropdown-item">黑龙江</a>
+          <a href="Jiangsu.html" class="dropdown-item">江苏</a>
+          <a href="Zhejiang.html" class="dropdown-item">浙江</a>
+          <a href="Fujian.html" class="dropdown-item">福建</a>
+          <a href="Henan.html" class="dropdown-item">河南</a>
+          <a href="Liaoning.html" class="dropdown-item">辽宁</a>
+        </div>
+      </div>
+      <a href="words.html" class="nav-item">聆听我们的声音</a>
+    </div>
+  </nav>
   <section id="hero">
     <h1>2021级1班</h1>
     <p>欢迎来到我们的毕业纪念站</p>
-    <div class="btn-group">
-      <a class="hero-btn" href="map.html">我们去往何方</a>
-      <a class="hero-btn" href="words.html">留给你们的一些话</a>
+  </section>
+  
+  <section id="about">
+    <h2>关于我们</h2>
+    <div class="about-content">
+      <p>这是2021级1班的毕业纪念站，我们记录了同学们的去向和留言，希望能够成为我们美好回忆的载体。</p>
+      <p>无论我们身在何方，心永远连在一起。</p>
     </div>
   </section>
+  
+  <footer>
+    <p>© 2024 大桥初复 - 2021级1班毕业纪念站</p>
+  </footer>
+  
+  <script>
+    // 检查是否有管理员登录状态，如果有则显示管理入口
+    document.addEventListener('DOMContentLoaded', function() {
+      const token = localStorage.getItem('admin_token');
+      if (token) {
+        const footer = document.querySelector('footer');
+        const adminLink = document.createElement('p');
+        adminLink.innerHTML = '<a href="admin.html" style="color:#888;text-decoration:underline;">管理后台</a>';
+        footer.appendChild(adminLink);
+      }
+    });
+  </script>
 </body>
 </html>

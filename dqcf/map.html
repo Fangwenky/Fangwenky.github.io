@@ -2,28 +2,57 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
-  <title>蹭饭地图 & 留言墙</title>
+  <title>蹭饭地图</title>
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
+  <nav class="navbar">
+    <div class="nav-container">
+      <a href="index.html" class="nav-item">WE我们</a>
+      <div class="dropdown">
+        <a href="map.html" class="nav-item active">我们去往何方</a>
+        <div class="dropdown-content">
+          <a href="Beijing.html" class="dropdown-item">北京</a>
+          <a href="Shanghai.html" class="dropdown-item">上海</a>
+          <a href="Heilongjiang.html" class="dropdown-item">黑龙江</a>
+          <a href="Jiangsu.html" class="dropdown-item">江苏</a>
+          <a href="Zhejiang.html" class="dropdown-item">浙江</a>
+          <a href="Fujian.html" class="dropdown-item">福建</a>
+          <a href="Henan.html" class="dropdown-item">河南</a>
+          <a href="Liaoning.html" class="dropdown-item">辽宁</a>
+          <a href="Anhui.html" class="dropdown-item">安徽</a>
+          <a href="Tianjin.html" class="dropdown-item">天津</a>
+          <a href="Guangdong.html" class="dropdown-item">广东</a>
+        </div>
+      </div>
+      <a href="words.html" class="nav-item">聆听我们的声音</a>
+    </div>
+  </nav>
   <!-- 蹭饭地图 -->
   <section id="map">
     <h2>蹭饭地图</h2>
+    <p>可以点击对应省份的按钮进行跳转</p>
     <div class="map-wrapper">
       <img src="images/map.png" alt="地图">
     </div>
-    <p class="tip">请继续向下</p>
-  </section>
-
-  <!-- 留言墙 -->
-  <section id="message">
-    <h2>我们与你同在</h2>
-    <div class="cards"></div>
+    <div class="province-buttons">
+      <a href="Beijing.html" class="map-btn-new">北京</a>
+      <a href="Shanghai.html" class="map-btn-new">上海</a>
+      <a href="Heilongjiang.html" class="map-btn-new">黑龙江</a>
+      <a href="Jiangsu.html" class="map-btn-new">江苏</a>
+      <a href="Zhejiang.html" class="map-btn-new">浙江</a>
+      <a href="Fujian.html" class="map-btn-new">福建</a>
+      <a href="Henan.html" class="map-btn-new">河南</a>
+      <a href="Liaoning.html" class="map-btn-new">辽宁</a>
+      <a href="Anhui.html" class="map-btn-new">安徽</a>
+      <a href="Tianjin.html" class="map-btn-new">天津</a>
+      <a href="Guangdong.html" class="map-btn-new">广东</a>
+    </div>
   </section>
 
   <footer>
-    <a class="hero-btn" href="index.html">← 返回首页</a>
+    <p>© 2025 2021级1班 · 纪念站</p>
   </footer>
 
   <script src="script.js"></script>
