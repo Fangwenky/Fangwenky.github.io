@@ -1,0 +1,911 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>管理后台 - 高中纪念站</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    body {
+      font-family: 'Microsoft YaHei', sans-serif;
+      background-color: #f5f5f5;
+      margin: 0;
+      padding: 0;
+    }
+    
+    .admin-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    
+    .admin-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 30px;
+      padding-bottom: 15px;
+      border-bottom: 1px solid #ddd;
+    }
+    
+    .admin-title {
+      font-size: 24px;
+      font-weight: bold;
+      color: #333;
+    }
+    
+    .admin-user {
+      display: flex;
+      align-items: center;
+    }
+    
+    .admin-username {
+      margin-right: 15px;
+      font-weight: bold;
+    }
+    
+    .admin-logout {
+      background-color: #f44336;
+      color: white;
+      border: none;
+      padding: 8px 15px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    
+    .admin-tabs {
+      display: flex;
+      margin-bottom: 20px;
+      border-bottom: 1px solid #ddd;
+    }
+    
+    .admin-tab {
+      padding: 10px 20px;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      margin-right: 10px;
+    }
+    
+    .admin-tab.active {
+      border-bottom: 2px solid #4CAF50;
+      font-weight: bold;
+    }
+    
+    .admin-content {
+      background-color: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      padding: 20px;
+    }
+    
+    .admin-section {
+      display: none;
+    }
+    
+    .admin-section.active {
+      display: block;
+    }
+    
+    .admin-form {
+      margin-bottom: 20px;
+    }
+    
+    .form-group {
+      margin-bottom: 15px;
+    }
+    
+    .form-group label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+    
+    .form-control {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      box-sizing: border-box;
+    }
+    
+    .btn {
+      padding: 10px 15px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    
+    .btn-primary {
+      background-color: #4CAF50;
+      color: white;
+    }
+    
+    .btn-danger {
+      background-color: #f44336;
+      color: white;
+    }
+    
+    .btn-warning {
+      background-color: #ff9800;
+      color: white;
+    }
+    
+    .btn-success {
+      background-color: #4CAF50;
+      color: white;
+    }
+    
+    .item-list {
+      margin-top: 20px;
+    }
+    
+    .item-card {
+      background-color: #f9f9f9;
+      border-radius: 4px;
+      padding: 15px;
+      margin-bottom: 15px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    
+    .item-header {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+    
+    .item-title {
+      font-weight: bold;
+    }
+    
+    .item-actions {
+      display: flex;
+      gap: 10px;
+    }
+    
+    .item-content {
+      margin-bottom: 10px;
+      line-height: 1.5;
+    }
+    
+    .item-meta {
+      font-size: 12px;
+      color: #666;
+    }
+    
+    .status-badge {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 12px;
+      font-size: 12px;
+      color: white;
+    }
+    
+    .status-显示 {
+      background-color: #4CAF50;
+    }
+    
+    .status-不显示 {
+      background-color: #f44336;
+    }
+    
+    .status-未审核 {
+      background-color: #ff9800;
+    }
+    
+    .search-bar {
+      margin-bottom: 20px;
+    }
+    
+    .filter-group {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    
+    .filter-btn {
+      padding: 8px 15px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      background-color: white;
+      cursor: pointer;
+    }
+    
+    .filter-btn.active {
+      background-color: #4CAF50;
+      color: white;
+      border-color: #4CAF50;
+    }
+    
+    .login-container {
+      max-width: 400px;
+      margin: 100px auto;
+      padding: 30px;
+      background-color: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 20px rgba(0,0,0,0.1);
+    }
+    
+    .login-title {
+      text-align: center;
+      margin-bottom: 30px;
+      font-size: 24px;
+      color: #333;
+    }
+    
+    .error-message {
+      color: #f44336;
+      margin-bottom: 15px;
+      padding: 10px;
+      background-color: #ffebee;
+      border-radius: 4px;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div id="login-page" class="login-container">
+    <h2 class="login-title">管理员登录</h2>
+    <div id="login-error" class="error-message"></div>
+    <form id="login-form" class="admin-form">
+      <div class="form-group">
+        <label for="username">用户名</label>
+        <input type="text" id="username" class="form-control" required>
+      </div>
+      <div class="form-group">
+        <label for="password">密码</label>
+        <input type="password" id="password" class="form-control" required>
+      </div>
+      <button type="submit" class="btn btn-primary" style="width: 100%;">登录</button>
+    </form>
+  </div>
+  
+  <div id="admin-page" style="display: none;">
+    <div class="admin-container">
+      <div class="admin-header">
+        <div class="admin-title">高中纪念站 - 管理后台</div>
+        <div class="admin-user">
+          <span class="admin-username" id="admin-username"></span>
+          <button id="logout-btn" class="admin-logout">退出登录</button>
+        </div>
+      </div>
+      
+      <div class="admin-tabs">
+        <div class="admin-tab active" data-tab="provinces">省份管理</div>
+        <div class="admin-tab" data-tab="classmates">同学管理</div>
+        <div class="admin-tab" data-tab="messages">留言管理</div>
+        <div class="admin-tab" data-tab="comments">评论管理</div>
+        <div class="admin-tab" data-tab="settings">账户设置</div>
+      </div>
+      
+      <div class="admin-content">
+        <!-- 省份管理 -->
+        <div id="provinces-section" class="admin-section active">
+          <h3>省份管理</h3>
+          <form id="province-form" class="admin-form">
+            <div class="form-group">
+              <label for="province-name">省份名称</label>
+              <input type="text" id="province-name" class="form-control" required>
+            </div>
+            <div class="form-group">
+              <label for="province-english">英文名称</label>
+              <input type="text" id="province-english" class="form-control" required>
+            </div>
+            <div class="form-group">
+              <label for="province-description">描述</label>
+              <textarea id="province-description" class="form-control" rows="3"></textarea>
+            </div>
+            <div class="form-group">
+              <label>地图位置</label>
+              <div style="display: flex; gap: 10px;">
+                <input type="number" id="position-x" class="form-control" placeholder="X坐标" required>
+                <input type="number" id="position-y" class="form-control" placeholder="Y坐标" required>
+              </div>
+            </div>
+            <button type="submit" class="btn btn-primary">添加省份</button>
+          </form>
+          
+          <div class="item-list" id="province-list">
+            <!-- 省份列表将通过JavaScript动态生成 -->
+          </div>
+        </div>
+        
+        <!-- 同学管理 -->
+        <div id="classmates-section" class="admin-section">
+          <h3>同学管理</h3>
+          <form id="classmate-form" class="admin-form">
+            <div class="form-group">
+              <label for="classmate-name">姓名</label>
+              <input type="text" id="classmate-name" class="form-control" required>
+            </div>
+            <div class="form-group">
+              <label for="classmate-province">所在省份</label>
+              <select id="classmate-province" class="form-control" required>
+                <!-- 省份选项将通过JavaScript动态生成 -->
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="classmate-school">学校</label>
+              <input type="text" id="classmate-school" class="form-control" required>
+            </div>
+            <div class="form-group">
+              <label for="classmate-major">专业/备注</label>
+              <input type="text" id="classmate-major" class="form-control" required>
+            </div>
+            <div class="form-group">
+              <label for="classmate-image">照片</label>
+              <input type="file" id="classmate-image" class="form-control" accept="image/*" required>
+            </div>
+            <button type="submit" class="btn btn-primary">添加同学</button>
+          </form>
+          
+          <div class="search-bar">
+            <input type="text" id="classmate-search" class="form-control" placeholder="搜索同学...">
+          </div>
+          
+          <div class="filter-group">
+            <button class="filter-btn active" data-province="all">全部</button>
+            <!-- 省份筛选按钮将通过JavaScript动态生成 -->
+          </div>
+          
+          <div class="item-list" id="classmate-list">
+            <!-- 同学列表将通过JavaScript动态生成 -->
+          </div>
+        </div>
+        
+        <!-- 留言管理 -->
+        <div id="messages-section" class="admin-section">
+          <h3>留言管理</h3>
+          
+          <div class="search-bar">
+            <input type="text" id="message-search" class="form-control" placeholder="搜索留言...">
+          </div>
+          
+          <div class="filter-group">
+            <button class="filter-btn active" data-status="all">全部</button>
+            <button class="filter-btn" data-status="显示">显示</button>
+            <button class="filter-btn" data-status="不显示">不显示</button>
+            <button class="filter-btn" data-status="未审核">未审核</button>
+          </div>
+          
+          <div class="item-list" id="message-list">
+            <!-- 留言列表将通过JavaScript动态生成 -->
+          </div>
+        </div>
+        
+        <!-- 评论管理 -->
+        <div id="comments-section" class="admin-section">
+          <h3>评论管理</h3>
+          
+          <div class="search-bar">
+            <input type="text" id="comment-search" class="form-control" placeholder="搜索评论...">
+          </div>
+          
+          <div class="filter-group">
+            <button class="filter-btn active" data-status="all">全部</button>
+            <button class="filter-btn" data-status="显示">显示</button>
+            <button class="filter-btn" data-status="不显示">不显示</button>
+            <button class="filter-btn" data-status="未审核">未审核</button>
+          </div>
+          
+          <div class="item-list" id="comment-list">
+            <!-- 评论列表将通过JavaScript动态生成 -->
+          </div>
+        </div>
+        
+        <!-- 账户设置 -->
+        <div id="settings-section" class="admin-section">
+          <h3>修改密码</h3>
+          <div id="password-error" class="error-message"></div>
+          <form id="password-form" class="admin-form">
+            <div class="form-group">
+              <label for="current-password">当前密码</label>
+              <input type="password" id="current-password" class="form-control" required>
+            </div>
+            <div class="form-group">
+              <label for="new-password">新密码</label>
+              <input type="password" id="new-password" class="form-control" required>
+            </div>
+            <div class="form-group">
+              <label for="confirm-password">确认新密码</label>
+              <input type="password" id="confirm-password" class="form-control" required>
+            </div>
+            <button type="submit" class="btn btn-primary">修改密码</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <script src="js/api.js"></script>
+  <script>
+    // 全局变量
+    let token = localStorage.getItem('adminToken');
+    let currentAdmin = null;
+    
+    // 页面加载完成后执行
+    document.addEventListener('DOMContentLoaded', function() {
+      // 检查是否已登录
+      checkAuth();
+      
+      // 登录表单提交
+      document.getElementById('login-form').addEventListener('submit', handleLogin);
+      
+      // 退出登录
+      document.getElementById('logout-btn').addEventListener('click', handleLogout);
+      
+      // 标签切换
+      document.querySelectorAll('.admin-tab').forEach(tab => {
+        tab.addEventListener('click', function() {
+          // 移除所有标签的active类
+          document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
+          // 给当前标签添加active类
+          this.classList.add('active');
+          
+          // 隐藏所有内容区域
+          document.querySelectorAll('.admin-section').forEach(section => section.classList.remove('active'));
+          // 显示对应的内容区域
+          document.getElementById(`${this.dataset.tab}-section`).classList.add('active');
+        });
+      });
+      
+      // 省份表单提交
+      document.getElementById('province-form').addEventListener('submit', handleProvinceSubmit);
+      
+      // 同学表单提交
+      document.getElementById('classmate-form').addEventListener('submit', handleClassmateSubmit);
+      
+      // 密码修改表单提交
+      document.getElementById('password-form').addEventListener('submit', handlePasswordChange);
+    });
+    
+    // 检查认证状态
+    async function checkAuth() {
+      if (!token) {
+        showLoginPage();
+        return;
+      }
+      
+      try {
+        currentAdmin = await API.Admin.getCurrentAdmin(token);
+        document.getElementById('admin-username').textContent = currentAdmin.username;
+        showAdminPage();
+        loadInitialData();
+      } catch (error) {
+        console.error('认证失败:', error);
+        localStorage.removeItem('adminToken');
+        token = null;
+        showLoginPage();
+      }
+    }
+    
+    // 显示登录页面
+    function showLoginPage() {
+      document.getElementById('login-page').style.display = 'block';
+      document.getElementById('admin-page').style.display = 'none';
+    }
+    
+    // 显示管理页面
+    function showAdminPage() {
+      document.getElementById('login-page').style.display = 'none';
+      document.getElementById('admin-page').style.display = 'block';
+    }
+    
+    // 处理登录
+    async function handleLogin(event) {
+      event.preventDefault();
+      
+      const username = document.getElementById('username').value;
+      const password = document.getElementById('password').value;
+      
+      try {
+        const result = await API.Admin.login(username, password);
+        token = result.token;
+        localStorage.setItem('adminToken', token);
+        currentAdmin = result.admin;
+        document.getElementById('admin-username').textContent = currentAdmin.username;
+        showAdminPage();
+        loadInitialData();
+      } catch (error) {
+        const errorElement = document.getElementById('login-error');
+        errorElement.textContent = '登录失败：用户名或密码错误';
+        errorElement.style.display = 'block';
+      }
+    }
+    
+    // 处理退出登录
+    function handleLogout() {
+      localStorage.removeItem('adminToken');
+      token = null;
+      currentAdmin = null;
+      showLoginPage();
+    }
+    
+    // 加载初始数据
+    async function loadInitialData() {
+      try {
+        // 加载省份数据
+        const provinces = await API.Province.getAll();
+        renderProvinceList(provinces);
+        populateProvinceDropdown(provinces);
+        
+        // 加载留言数据
+        const messages = await fetchAdminMessages('all');
+        renderMessageList(messages);
+        
+        // 加载评论数据
+        const comments = await fetchAdminComments('all');
+        renderCommentList(comments);
+      } catch (error) {
+        console.error('加载数据失败:', error);
+      }
+    }
+    
+    // 渲染省份列表
+    function renderProvinceList(provinces) {
+      const provinceList = document.getElementById('province-list');
+      provinceList.innerHTML = '';
+      
+      provinces.forEach(province => {
+        const provinceCard = document.createElement('div');
+        provinceCard.className = 'item-card';
+        provinceCard.innerHTML = `
+          <div class="item-header">
+            <div class="item-title">${province.name} (${province.englishName})</div>
+            <div class="item-actions">
+              <button class="btn btn-warning btn-sm" onclick="editProvince('${province._id}')">编辑</button>
+              <button class="btn btn-danger btn-sm" onclick="deleteProvince('${province._id}')">删除</button>
+            </div>
+          </div>
+          <div class="item-content">${province.description || '无描述'}</div>
+          <div class="item-meta">位置: X=${province.position.x}, Y=${province.position.y}</div>
+        `;
+        provinceList.appendChild(provinceCard);
+      });
+    }
+    
+    // 填充省份下拉菜单
+    function populateProvinceDropdown(provinces) {
+      const provinceSelect = document.getElementById('classmate-province');
+      provinceSelect.innerHTML = '<option value="">选择省份</option>';
+      
+      provinces.forEach(province => {
+        const option = document.createElement('option');
+        option.value = province._id;
+        option.textContent = province.name;
+        provinceSelect.appendChild(option);
+      });
+    }
+    
+    // 处理省份表单提交
+    async function handleProvinceSubmit(event) {
+      event.preventDefault();
+      
+      const provinceData = {
+        name: document.getElementById('province-name').value,
+        englishName: document.getElementById('province-english').value,
+        description: document.getElementById('province-description').value,
+        position: {
+          x: parseInt(document.getElementById('position-x').value),
+          y: parseInt(document.getElementById('position-y').value)
+        }
+      };
+      
+      try {
+        // 发送API请求创建省份
+        const response = await fetch(`${API_BASE_URL}/provinces`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify(provinceData)
+        });
+        
+        if (!response.ok) throw new Error('创建省份失败');
+        
+        // 重新加载省份数据
+        const provinces = await API.Province.getAll();
+        renderProvinceList(provinces);
+        populateProvinceDropdown(provinces);
+        
+        // 清空表单
+        document.getElementById('province-form').reset();
+      } catch (error) {
+        console.error('提交省份错误:', error);
+        alert('创建省份失败，请重试');
+      }
+    }
+    
+    // 处理同学表单提交
+    async function handleClassmateSubmit(event) {
+      event.preventDefault();
+      
+      const formData = new FormData();
+      formData.append('name', document.getElementById('classmate-name').value);
+      formData.append('province', document.getElementById('classmate-province').value);
+      formData.append('school', document.getElementById('classmate-school').value);
+      formData.append('major', document.getElementById('classmate-major').value);
+      formData.append('image', document.getElementById('classmate-image').files[0]);
+      
+      try {
+        // 发送API请求创建同学
+        const response = await fetch(`${API_BASE_URL}/classmates`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          },
+          body: formData
+        });
+        
+        if (!response.ok) throw new Error('创建同学信息失败');
+        
+        // 清空表单
+        document.getElementById('classmate-form').reset();
+        alert('同学信息添加成功');
+      } catch (error) {
+        console.error('提交同学信息错误:', error);
+        alert('创建同学信息失败，请重试');
+      }
+    }
+    
+    // 获取管理员留言列表
+    async function fetchAdminMessages(status) {
+      try {
+        let url = `${API_BASE_URL}/messages/admin/all`;
+        if (status !== 'all') {
+          url = `${API_BASE_URL}/messages/admin/status/${status}`;
+        }
+        
+        const response = await fetch(url, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        
+        if (!response.ok) throw new Error('获取留言失败');
+        return await response.json();
+      } catch (error) {
+        console.error('获取留言错误:', error);
+        throw error;
+      }
+    }
+    
+    // 渲染留言列表
+    function renderMessageList(messages) {
+      const messageList = document.getElementById('message-list');
+      messageList.innerHTML = '';
+      
+      messages.forEach(message => {
+        const messageCard = document.createElement('div');
+        messageCard.className = 'item-card';
+        
+        const date = new Date(message.createdAt).toLocaleString('zh-CN');
+        
+        messageCard.innerHTML = `
+          <div class="item-header">
+            <div class="item-title">
+              ${message.author}
+              <span class="status-badge status-${message.status}">${message.status}</span>
+              ${message.isPinned ? '<span style="color: #ff9800; margin-left: 5px;">[置顶]</span>' : ''}
+            </div>
+            <div class="item-actions">
+              ${message.status !== '显示' ? `<button class="btn btn-success btn-sm" onclick="updateMessageStatus('${message._id}', '显示')">显示</button>` : ''}
+              ${message.status !== '不显示' ? `<button class="btn btn-danger btn-sm" onclick="updateMessageStatus('${message._id}', '不显示')">不显示</button>` : ''}
+              ${!message.isPinned ? `<button class="btn btn-warning btn-sm" onclick="pinMessage('${message._id}', true)">置顶</button>` : 
+                `<button class="btn btn-warning btn-sm" onclick="pinMessage('${message._id}', false)">取消置顶</button>`}
+              <button class="btn btn-danger btn-sm" onclick="deleteMessage('${message._id}')">删除</button>
+            </div>
+          </div>
+          <div class="item-content">${message.content}</div>
+          <div class="item-meta">
+            发布时间: ${date} | 点赞数: ${message.likes}
+          </div>
+        `;
+        messageList.appendChild(messageCard);
+      });
+    }
+    
+    // 获取管理员评论列表
+    async function fetchAdminComments(status) {
+      try {
+        let url = `${API_BASE_URL}/comments/admin/all`;
+        if (status !== 'all') {
+          url = `${API_BASE_URL}/comments/admin/status/${status}`;
+        }
+        
+        const response = await fetch(url, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        
+        if (!response.ok) throw new Error('获取评论失败');
+        return await response.json();
+      } catch (error) {
+        console.error('获取评论错误:', error);
+        throw error;
+      }
+    }
+    
+    // 渲染评论列表
+    function renderCommentList(comments) {
+      const commentList = document.getElementById('comment-list');
+      commentList.innerHTML = '';
+      
+      comments.forEach(comment => {
+        const commentCard = document.createElement('div');
+        commentCard.className = 'item-card';
+        
+        const date = new Date(comment.createdAt).toLocaleString('zh-CN');
+        
+        commentCard.innerHTML = `
+          <div class="item-header">
+            <div class="item-title">
+              ${comment.author}
+              <span class="status-badge status-${comment.status}">${comment.status}</span>
+            </div>
+            <div class="item-actions">
+              ${comment.status !== '显示' ? `<button class="btn btn-success btn-sm" onclick="updateCommentStatus('${comment._id}', '显示')">显示</button>` : ''}
+              ${comment.status !== '不显示' ? `<button class="btn btn-danger btn-sm" onclick="updateCommentStatus('${comment._id}', '不显示')">不显示</button>` : ''}
+              <button class="btn btn-danger btn-sm" onclick="deleteComment('${comment._id}')">删除</button>
+            </div>
+          </div>
+          <div class="item-content">${comment.content}</div>
+          <div class="item-meta">
+            发布时间: ${date} | 点赞数: ${comment.likes} | 留言ID: ${comment.messageId}
+          </div>
+        `;
+        commentList.appendChild(commentCard);
+      });
+    }
+    
+    // 更新留言状态
+    async function updateMessageStatus(messageId, status) {
+      try {
+        const response = await fetch(`${API_BASE_URL}/messages/admin/${messageId}/status`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({ status })
+        });
+        
+        if (!response.ok) throw new Error('更新留言状态失败');
+        
+        // 重新加载留言数据
+        const messages = await fetchAdminMessages('all');
+        renderMessageList(messages);
+      } catch (error) {
+        console.error('更新留言状态错误:', error);
+        alert('更新留言状态失败，请重试');
+      }
+    }
+    
+    // 置顶/取消置顶留言
+    async function pinMessage(messageId, isPinned) {
+      try {
+        const response = await fetch(`${API_BASE_URL}/messages/admin/${messageId}/pin`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({ isPinned })
+        });
+        
+        if (!response.ok) throw new Error(isPinned ? '置顶留言失败' : '取消置顶失败');
+        
+        // 重新加载留言数据
+        const messages = await fetchAdminMessages('all');
+        renderMessageList(messages);
+      } catch (error) {
+        console.error('置顶留言错误:', error);
+        alert(isPinned ? '置顶留言失败，请重试' : '取消置顶失败，请重试');
+      }
+    }
+    
+    // 删除留言
+    async function deleteMessage(messageId) {
+      if (!confirm('确定要删除这条留言吗？这将同时删除该留言下的所有评论！')) {
+        return;
+      }
+      
+      try {
+        const response = await fetch(`${API_BASE_URL}/messages/admin/${messageId}`, {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        
+        if (!response.ok) throw new Error('删除留言失败');
+        
+        // 重新加载留言数据
+        const messages = await fetchAdminMessages('all');
+        renderMessageList(messages);
+      } catch (error) {
+        console.error('删除留言错误:', error);
+        alert('删除留言失败，请重试');
+      }
+    }
+    
+    // 更新评论状态
+    async function updateCommentStatus(commentId, status) {
+      try {
+        const response = await fetch(`${API_BASE_URL}/comments/admin/${commentId}/status`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({ status })
+        });
+        
+        if (!response.ok) throw new Error('更新评论状态失败');
+        
+        // 重新加载评论数据
+        const comments = await fetchAdminComments('all');
+        renderCommentList(comments);
+      } catch (error) {
+        console.error('更新评论状态错误:', error);
+        alert('更新评论状态失败，请重试');
+      }
+    }
+    
+    // 删除评论
+    async function deleteComment(commentId) {
+      if (!confirm('确定要删除这条评论吗？')) {
+        return;
+      }
+      
+      try {
+        const response = await fetch(`${API_BASE_URL}/comments/admin/${commentId}`, {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        
+        if (!response.ok) throw new Error('删除评论失败');
+        
+        // 重新加载评论数据
+        const comments = await fetchAdminComments('all');
+        renderCommentList(comments);
+      } catch (error) {
+        console.error('删除评论错误:', error);
+        alert('删除评论失败，请重试');
+      }
+    }
+    
+    // 处理密码修改
+    async function handlePasswordChange(event) {
+      event.preventDefault();
+      
+      const currentPassword = document.getElementById('current-password').value;
+      const newPassword = document.getElementById('new-password').value;
+      const confirmPassword = document.getElementById('confirm-password').value;
+      
+      // 验证新密码和确认密码是否一致
+      if (newPassword !== confirmPassword) {
+        const errorElement = document.getElementById('password-error');
+        errorElement.textContent = '新密码和确认密码不一致';
+        errorElement.style.display = 'block';
+        return;
+      }
+      
+      try {
+        await API.Admin.changePassword(token, currentPassword, newPassword);
+        alert('密码修改成功');
+        document.getElementById('password-form').reset();
+        document.getElementById('password-error').style.display = 'none';
+      } catch (error) {
+        const errorElement = document.getElementById('password-error');
+        errorElement.textContent = '密码修改失败：当前密码错误';
+        errorElement.style.display = 'block';
+      }
+    }
+  </script>
+</body>
+</html>

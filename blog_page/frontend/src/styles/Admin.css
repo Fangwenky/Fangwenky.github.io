@@ -1,0 +1,201 @@
+.admin-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  padding: 20px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.admin-header h1 {
+  color: #333;
+  margin: 0;
+}
+
+.admin-tabs {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 30px;
+}
+
+.admin-tabs button {
+  padding: 12px 24px;
+  border: 1px solid #ddd;
+  background: white;
+  cursor: pointer;
+  border-radius: 6px;
+  font-size: 16px;
+  transition: all 0.3s;
+}
+
+.admin-tabs button.active {
+  background-color: #007bff;
+  color: white;
+  border-color: #007bff;
+}
+
+.admin-tabs button:hover:not(.active) {
+  background-color: #f8f9fa;
+}
+
+.admin-content {
+  display: grid;
+  gap: 30px;
+}
+
+.posts-list {
+  background: white;
+  padding: 30px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.posts-list h2 {
+  color: #333;
+  margin-bottom: 20px;
+  font-size: 1.5rem;
+}
+
+.post-item {
+  padding: 20px;
+  border: 1px solid #eee;
+  border-radius: 6px;
+  margin-bottom: 15px;
+}
+
+.post-item h3 {
+  color: #333;
+  margin-bottom: 10px;
+}
+
+.post-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 15px;
+}
+
+.post-form,
+.profile-form {
+  background: white;
+  padding: 30px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.post-form h2,
+.profile-form h2 {
+  color: #333;
+  margin-bottom: 20px;
+  font-size: 1.5rem;
+}
+
+.login-container {
+  max-width: 400px;
+  margin: 50px auto;
+}
+
+.login-title {
+  text-align: center;
+  margin-bottom: 30px;
+  color: #333;
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.error-message {
+  background-color: #f8d7da;
+  color: #721c24;
+  padding: 12px;
+  border-radius: 6px;
+  margin-bottom: 20px;
+  border: 1px solid #f5c6cb;
+}
+
+.post-detail {
+  max-width: 800px;
+  margin: 0 auto;
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.post-header {
+  padding: 40px;
+  border-bottom: 1px solid #eee;
+}
+
+.post-title {
+  font-size: 2.5rem;
+  margin-bottom: 20px;
+  color: #333;
+  line-height: 1.2;
+}
+
+.post-content {
+  padding: 40px;
+  line-height: 1.8;
+  color: #333;
+}
+
+.post-content h1,
+.post-content h2,
+.post-content h3 {
+  color: #333;
+  margin: 30px 0 15px 0;
+}
+
+.post-content p {
+  margin-bottom: 20px;
+}
+
+.comments-section {
+  padding: 40px;
+  border-top: 1px solid #eee;
+}
+
+.comments-section h3 {
+  color: #333;
+  margin-bottom: 20px;
+  font-size: 1.5rem;
+}
+
+.page-title {
+  font-size: 2.5rem;
+  margin-bottom: 40px;
+  color: #333;
+  text-align: center;
+}
+
+@media (max-width: 768px) {
+  .admin-header {
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  .admin-tabs {
+    justify-content: center;
+  }
+  
+  .post-form,
+  .profile-form,
+  .posts-list {
+    padding: 20px;
+  }
+  
+  .post-title {
+    font-size: 2rem;
+  }
+  
+  .post-header,
+  .post-content,
+  .comments-section {
+    padding: 20px;
+  }
+}

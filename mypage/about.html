@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>关于我 - 我的个人主页</title>
+    <link rel="icon" href="images/avatar.jpg">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+</head>
+<body id="about-page">
+    <!-- 加载动画 -->
+    <div class="loading-screen">
+        <div class="loader"></div>
+    </div>
+
+    <!-- 导航栏 -->
+    <header class="header">
+        <nav class="nav">
+            <div class="nav-logo">
+                <a href="about.html" class="logo-link">
+                    <img src="images/avatar.jpg" alt="头像" class="avatar">
+                    <span>F_wenky的个人主页</span>
+                </a>
+            </div>
+
+            <div class="nav-links">
+                <a href="index.html">首页</a>
+                <a href="articles.html">文章</a>
+                <a href="projects.html">项目</a>
+                <a href="about.html" class="active">关于我</a>
+                <a href="search.html">搜索</a>
+            </div>
+            <div class="nav-toggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </nav>
+    </header>
+
+    <!-- 搜索结果遮罩层 -->
+    <div id="searchOverlay" class="search-overlay">
+        <div class="search-content">
+            <button id="closeSearch" class="close-search"><i class="fas fa-times"></i></button>
+            <h2>搜索结果</h2>
+            <div id="searchResults" class="search-results"></div>
+        </div>
+    </div>
+
+    <!-- 主要内容 -->
+    <main class="main-content">
+        <!-- 个人简介部分 -->
+        <section class="about-section" id="about">
+            <div class="about-header">
+                <div class="about-image">
+                </div>
+                <div class="about-text">
+                </div>
+            </div>
+
+            <div class="about-content">
+                <div class="experience-section">
+                    <h2>工作经历</h2>
+                    <div class="timeline">
+                    </div>
+                </div>
+
+                <div class="interests-section">
+                    <h2>兴趣爱好</h2>
+                    <div class="interests-grid">
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- 页脚 -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>联系方式</h3>
+                <div class="social-links">
+                </div>
+            </div>
+            <div class="footer-section">
+                <h3>快速链接</h3>
+                <ul>
+                    <li><a href="articles.html">所有文章</a></li>
+                    <li><a href="projects.html">项目展示</a></li>
+                    <li><a href="#about">关于我</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; F_wenky 的个人主页. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script type="module" src="script.js"></script>
+</body>
+</html>

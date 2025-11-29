@@ -1,0 +1,85 @@
+<svg width="750" height="300" viewBox="0 0 750 300" xmlns="http://www.w3.org/2000/svg">
+    <style>
+        .layer-box { stroke: #334155; stroke-width: 1; fill-opacity: 0.8; }
+        .conn-line { stroke: #94a3b8; stroke-width: 1; stroke-dasharray: 4; opacity: 0.5; }
+        .text-label { font-family: sans-serif; font-size: 12px; fill: #475569; text-anchor: middle; }
+        .arrow { stroke: #64748b; stroke-width: 2; fill: none; marker-end: url(#arrowhead); }
+    </style>
+    <defs>
+        <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" fill="#64748b" />
+        </marker>
+    </defs>
+
+    <!-- 1. Input Image (32x32x3) -->
+    <g transform="translate(50, 100)">
+        <rect x="0" y="0" width="60" height="60" fill="#e2e8f0" stroke="#94a3b8"/>
+        <text x="30" y="80" class="text-label">Input</text>
+        <text x="30" y="95" class="text-label">32x32x3</text>
+    </g>
+
+    <!-- Arrow -->
+    <path d="M120 130 L150 130" class="arrow"/>
+
+    <!-- 2. Conv1 + Pool (16x16x32) -->
+    <g transform="translate(160, 90)">
+        <!-- 绘制多个重叠矩形模拟深度 -->
+        <rect x="20" y="-10" width="40" height="40" fill="#bfdbfe" class="layer-box"/>
+        <rect x="10" y="-5" width="40" height="40" fill="#93c5fd" class="layer-box"/>
+        <rect x="0" y="0" width="40" height="40" fill="#60a5fa" class="layer-box"/>
+        <text x="30" y="60" class="text-label">Conv+Pool</text>
+        <text x="30" y="75" class="text-label">16x16x32</text>
+    </g>
+
+    <!-- Arrow -->
+    <path d="M230 130 L260 130" class="arrow"/>
+
+    <!-- 3. Conv2 + Pool (8x8x64) -->
+    <g transform="translate(270, 100)">
+        <!-- 更小但更厚 -->
+        <rect x="30" y="-15" width="25" height="25" fill="#fca5a5" class="layer-box"/>
+        <rect x="20" y="-10" width="25" height="25" fill="#fca5a5" class="layer-box"/>
+        <rect x="10" y="-5" width="25" height="25" fill="#f87171" class="layer-box"/>
+        <rect x="0" y="0" width="25" height="25" fill="#ef4444" class="layer-box"/>
+        <text x="30" y="50" class="text-label">Conv+Pool</text>
+        <text x="30" y="65" class="text-label">8x8x64</text>
+    </g>
+
+    <!-- Arrow -->
+    <path d="M340 130 L370 130" class="arrow"/>
+
+    <!-- 4. Flatten (Vector) -->
+    <g transform="translate(380, 50)">
+        <rect x="0" y="0" width="10" height="160" fill="#1e293b" rx="2"/>
+        <text x="5" y="180" class="text-label">Flatten</text>
+    </g>
+
+    <!-- Arrow -->
+    <path d="M400 130 L430 130" class="arrow"/>
+
+    <!-- 5. FC Layers -->
+    <g transform="translate(440, 80)">
+        <rect x="0" y="0" width="10" height="100" fill="#1e293b" rx="2"/>
+        <text x="5" y="120" class="text-label">FC</text>
+    </g>
+
+    <!-- Arrow -->
+    <path d="M460 130 L490 130" class="arrow"/>
+
+    <!-- 6. Output (Softmax) -->
+    <g transform="translate(500, 100)">
+        <rect x="0" y="0" width="10" height="60" fill="#10b981" rx="2"/>
+        <!-- Output Classes -->
+        <text x="40" y="10" font-family="sans-serif" font-size="10" fill="#64748b">Airplane</text>
+        <text x="40" y="25" font-family="sans-serif" font-size="10" fill="#64748b">Cat</text>
+        <text x="40" y="40" font-family="sans-serif" font-size="10" fill="#64748b">...</text>
+        <text x="40" y="55" font-family="sans-serif" font-size="10" fill="#64748b">Truck</text>
+        <text x="5" y="80" class="text-label">Output</text>
+    </g>
+
+    <!-- 装饰连线 -->
+    <line x1="510" y1="10" x2="530" y2="10" stroke="#cbd5e1"/>
+    <line x1="510" y1="25" x2="530" y2="25" stroke="#cbd5e1"/>
+    <line x1="510" y1="55" x2="530" y2="55" stroke="#cbd5e1"/>
+
+</svg>

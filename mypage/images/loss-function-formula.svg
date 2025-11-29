@@ -1,0 +1,62 @@
+<svg width="500" height="120" viewBox="0 0 500 120" xmlns="http://www.w3.org/2000/svg">
+    <style>
+        .math-text { font-family: "Times New Roman", Times, serif; fill: #1e293b; }
+        .symbol { font-family: "Times New Roman", Times, serif; fill: #1e293b; }
+        .italic { font-style: italic; }
+    </style>
+
+    <!-- Loss = -->
+    <text x="20" y="70" font-size="30" class="math-text italic">Loss</text>
+    <text x="90" y="70" font-size="30" class="math-text">=</text>
+
+    <!-- 1/n -->
+    <g transform="translate(130, 0)">
+        <text x="10" y="45" font-size="24" class="math-text">1</text>
+        <line x1="5" y1="55" x2="35" y2="55" stroke="#1e293b" stroke-width="2"/>
+        <text x="10" y="85" font-size="24" class="math-text italic">n</text>
+    </g>
+
+    <!-- 修正后的求和符号 Sigma -->
+    <g transform="translate(180, 0)">
+        <!-- 
+           修正逻辑：
+           1. (60,35) 起点：右上
+           2. (20,35) 往左画：左上
+           3. (40,60) 往中间折：中心点
+           4. (20,85) 往左下折：左下
+           5. (60,85) 往右画：右下
+        -->
+        <polyline points="60,35 20,35 40,60 20,85 60,85" fill="none" stroke="#1e293b" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+        
+        <!-- 上标下标 -->
+        <text x="40" y="25" font-size="14" text-anchor="middle" class="math-text italic">n</text>
+        <text x="40" y="110" font-size="14" text-anchor="middle" class="math-text italic">i=1</text>
+    </g>
+
+    <!-- 公式主体 (y - y_hat)^2 -->
+    <g transform="translate(265, 0)">
+        <text x="0" y="70" font-size="40" class="symbol">(</text>
+        
+        <!-- yi -->
+        <text x="20" y="70" font-size="30" class="math-text italic">y</text>
+        <text x="32" y="78" font-size="18" class="math-text italic">i</text>
+        
+        <!-- - -->
+        <text x="50" y="70" font-size="30" class="math-text">-</text>
+        
+        <!-- (wx + b) -->
+        <text x="80" y="70" font-size="40" class="symbol">(</text>
+        <text x="100" y="70" font-size="30" class="math-text italic">w</text>
+        <text x="122" y="70" font-size="30" class="math-text italic">x</text>
+        <text x="135" y="78" font-size="18" class="math-text italic">i</text>
+        <text x="150" y="70" font-size="30" class="math-text">+</text>
+        <text x="180" y="70" font-size="30" class="math-text italic">b</text>
+        <text x="200" y="70" font-size="40" class="symbol">)</text>
+
+        <!-- ) -->
+        <text x="220" y="70" font-size="40" class="symbol">)</text>
+        
+        <!-- 平方 -->
+        <text x="240" y="45" font-size="24" class="math-text">2</text>
+    </g>
+</svg>

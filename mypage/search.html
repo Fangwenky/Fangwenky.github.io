@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>搜索 - 个人主页</title>
+    <link rel="icon" href="images/avatar.jpg">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+</head>
+<body id="search-page">
+    <div class="loading-screen">
+        <div class="loader"></div>
+    </div>
+
+    <header class="header">
+        <nav class="nav">
+            <div class="nav-logo">
+                <a href="index.html" class="logo-link">
+                    <img src="images/avatar.jpg" alt="头像" class="avatar">
+                    <span>F_wenky的个人主页</span>
+                </a>
+            </div>
+
+            <div class="nav-links">
+                <a href="index.html">首页</a>
+                <a href="articles.html">文章</a>
+                <a href="projects.html">项目</a>
+                <a href="about.html">关于我</a>
+                <a href="search.html" class="active">搜索</a>
+            </div>
+            <div class="nav-toggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        <section class="articles-section">
+            <h2>搜索</h2>
+            <div class="search-bar" style="margin: 0 0 1rem 0;">
+                <input type="text" id="searchPageInput" placeholder="请输入关键词..." style="width:100%;padding:12px;border:1px solid #ddd;border-radius:6px;">
+            </div>
+            <div id="searchResults" class="search-results"></div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>联系方式</h3>
+                <div class="social-links">
+                    <a href="#" class="social-link"><i class="fab fa-github"></i></a>
+                    <a href="#" class="social-link"><i class="fab fa-twitter"></i></a>
+                    <a href="#" class="social-link"><i class="fab fa-linkedin"></i></a>
+                </div>
+            </div>
+            <div class="footer-section">
+                <h3>快速链接</h3>
+                <ul>
+                    <li><a href="articles.html">所有文章</a></li>
+                    <li><a href="projects.html">项目展示</a></li>
+                    <li><a href="about.html">关于我</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; F_wenky 的个人主页. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script type="module" src="script.js"></script>
+
+</body>
+</html>

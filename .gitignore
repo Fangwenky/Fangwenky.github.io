@@ -1,0 +1,6 @@
+# 忽略 macOS 系统文件
+.DS_Store
+
+# 忽略 SSH 相关本地文件
+eval "$(ssh-agent -s)"
+eval "$(ssh-agent -s)".pub

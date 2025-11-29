@@ -1,0 +1,48 @@
+<svg width="800" height="450" viewBox="0 0 800 450" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+        <linearGradient id="grid-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#334155"/>
+            <stop offset="100%" stop-color="#1e293b"/>
+        </linearGradient>
+        <filter id="shadow">
+            <feDropShadow dx="4" dy="4" stdDeviation="4" flood-opacity="0.3"/>
+        </filter>
+    </defs>
+    
+    <!-- 背景 -->
+    <rect width="100%" height="100%" fill="#0f172a"/>
+    
+    <!-- 装饰性背景网格 -->
+    <path d="M0 0 L800 450" stroke="#1e293b" stroke-width="1"/>
+    <path d="M800 0 L0 450" stroke="#1e293b" stroke-width="1"/>
+
+    <!-- 底层：输入图片 (Input Image) -->
+    <g transform="translate(150, 100) skewY(-10)">
+        <rect x="0" y="0" width="200" height="200" fill="#cbd5e1" stroke="#94a3b8" stroke-width="2"/>
+        <!-- 像素网格 -->
+        <path d="M0 50 L200 50 M0 100 L200 100 M0 150 L200 150" stroke="#94a3b8" stroke-width="1" opacity="0.5"/>
+        <path d="M50 0 L50 200 M100 0 L100 200 M150 0 L150 200" stroke="#94a3b8" stroke-width="1" opacity="0.5"/>
+        
+        <!-- 被扫描区域 (Receptive Field) -->
+        <rect x="50" y="50" width="50" height="50" fill="#3b82f6" opacity="0.4" stroke="#2563eb" stroke-width="2"/>
+    </g>
+
+    <!-- 卷积核连接线 -->
+    <path d="M200 140 L450 140" stroke="#60a5fa" stroke-width="1" stroke-dasharray="5,5" opacity="0.6"/>
+    <path d="M250 190 L500 190" stroke="#60a5fa" stroke-width="1" stroke-dasharray="5,5" opacity="0.6"/>
+
+    <!-- 顶层：特征图 (Feature Map) -->
+    <g transform="translate(400, 80) skewY(-10)">
+        <rect x="0" y="0" width="150" height="150" fill="#1e293b" stroke="#60a5fa" stroke-width="2" filter="url(#shadow)"/>
+        <!-- 激活像素 -->
+        <rect x="50" y="50" width="25" height="25" fill="#f43f5e" stroke="#fb7185" stroke-width="2"/>
+    </g>
+
+    <!-- 文字 -->
+    <text x="400" y="380" text-anchor="middle" font-family="'Segoe UI', sans-serif" font-weight="bold" font-size="40" fill="#f8fafc">
+        CONVOLUTIONAL
+    </text>
+    <text x="400" y="420" text-anchor="middle" font-family="monospace" font-size="20" fill="#94a3b8" letter-spacing="4">
+        NEURAL NETWORKS
+    </text>
+</svg>

@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI 灵魂画手 - Doodle Classifier</title>
+    <!-- 引入 Tailwind CSS 进行美化 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 引入 ONNX Runtime Web -->
+    <script src="https://cdn.jsdelivr.net/npm/onnxruntime-web/dist/ort.min.js"></script>
+</head>
+<body class="bg-slate-900 text-white min-h-screen flex flex-col items-center justify-center p-4">
+
+    <div class="max-w-md w-full text-center space-y-6">
+        <h1 class="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500">
+            AI 灵魂画手
+        </h1>
+        <p class="text-slate-400">请画出：苹果 (Apple), 眼睛 (Eye), 或 树 (Tree)</p>
+
+        <!-- 画板区域 -->
+        <div class="relative group">
+            <canvas id="canvas" width="280" height="280" 
+                    class="bg-black border-4 border-slate-700 rounded-lg shadow-2xl cursor-crosshair mx-auto touch-none">
+            </canvas>
+            
+            <!-- 预测结果悬浮窗 -->
+            <div id="result-box" class="hidden absolute top-4 right-4 bg-slate-800/90 p-3 rounded-lg backdrop-blur-sm border border-slate-600 text-left">
+                <div class="text-xs text-slate-400">AI 认为这是...</div>
+                <div id="prediction" class="text-2xl font-bold text-green-400">Waiting...</div>
+                <div id="confidence" class="text-xs text-slate-300">Conf: 0%</div>
+            </div>
+        </div>
+
+        <!-- 按钮组 -->
+        <div class="flex justify-center gap-4">
+            <button onclick="clearCanvas()" 
+                    class="px-6 py-2 bg-slate-700 hover:bg-slate-600 rounded-full transition font-medium">
+                🗑️ 清空画板
+            </button>
+            <button id="predict-btn" onclick="predict()" 
+                    class="px-6 py-2 bg-blue-600 hover:bg-blue-500 rounded-full transition font-medium animate-pulse">
+                🔮 开始识别
+            </button>
+        </div>
+
+        <div class="text-xs text-slate-500 mt-8">
+            模型运行在浏览器本地 (Edge AI) • Powered by ONNX Runtime
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>文章 - 个人主页</title>
+    <link rel="icon" href="images/avatar.jpg">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+</head>
+<body id="articles-page">
+    <div class="loading-screen">
+        <div class="loader"></div>
+    </div>
+
+    <header class="header">
+        <nav class="nav">
+            <div class="nav-logo">
+                <a href="index.html" class="logo-link">
+                    <img src="images/avatar.jpg" alt="头像" class="avatar">
+                    <span>F_wenky的个人主页</span>
+                </a>
+            </div>
+
+            <div class="nav-links">
+                <a href="index.html">首页</a>
+                <a href="articles.html" class="active">文章</a>
+                <a href="projects.html">项目</a>
+                <a href="about.html">关于我</a>
+                <a href="search.html">搜索</a>
+            </div>
+            <div class="nav-toggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        <section id="articles-list" class="articles-section">
+            <h2>所有文章</h2>
+            <div class="articles-grid">
+                <!-- 文章卡片将通过JavaScript动态添加 -->
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>联系方式</h3>
+                <div class="social-links">
+                    <a href="#" class="social-link"><i class="fab fa-github"></i></a>
+                    <a href="#" class="social-link"><i class="fab fa-twitter"></i></a>
+                    <a href="#" class="social-link"><i class="fab fa-linkedin"></i></a>
+                </div>
+            </div>
+            <div class="footer-section">
+                <h3>快速链接</h3>
+                <ul>
+                    <li><a href="articles.html">所有文章</a></li>
+                    <li><a href="projects.html">项目展示</a></li>
+                    <li><a href="#about">关于我</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2024 个人主页. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <div class="search-overlay" id="searchOverlay">
+        <div class="search-container">
+            <div class="search-header">
+                <h2>搜索结果</h2>
+                <button class="close-search" id="closeSearch">&times;</button>
+            </div>
+            <div class="search-results" id="searchResults">
+                <!-- 搜索结果将通过JavaScript动态添加 -->
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="script.js"></script>
+</body>
+</html>

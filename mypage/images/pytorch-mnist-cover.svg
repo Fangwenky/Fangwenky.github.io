@@ -1,0 +1,36 @@
+<svg width="800" height="450" viewBox="0 0 800 450" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+        <linearGradient id="torch-grad" x1="0%" y1="100%" x2="100%" y2="0%">
+            <stop offset="0%" stop-color="#ee4c2c"/>
+            <stop offset="100%" stop-color="#f3a43b"/>
+        </linearGradient>
+        <pattern id="grid-digits" x="0" y="0" width="40" height="40" patternUnits="userSpaceOnUse">
+            <text x="10" y="25" font-family="monospace" font-size="14" fill="#333" opacity="0.3">5</text>
+            <text x="30" y="10" font-family="monospace" font-size="14" fill="#333" opacity="0.3">3</text>
+        </pattern>
+    </defs>
+    
+    <!-- 背景 -->
+    <rect width="100%" height="100%" fill="#111"/>
+    <rect width="100%" height="100%" fill="url(#grid-digits)" opacity="0.4"/>
+
+    <!-- PyTorch 风格的火焰 Logo (抽象简化版) -->
+    <g transform="translate(400, 200) scale(3)">
+        <path d="M0 -30 Q 15 -10 10 10 Q 20 0 25 -10 Q 15 20 -5 30 Q -25 20 -20 -10 Q -15 0 -10 10 Q -15 -10 0 -30" fill="url(#torch-grad)" filter="drop-shadow(0 0 10px #ee4c2c)"/>
+    </g>
+
+    <!-- 标题文字 -->
+    <text x="400" y="340" text-anchor="middle" font-family="'Segoe UI', sans-serif" font-weight="bold" font-size="40" fill="white">
+        Hello PyTorch
+    </text>
+    <text x="400" y="380" text-anchor="middle" font-family="monospace" font-size="20" fill="#f3a43b">
+        From NumPy to Autograd
+    </text>
+
+    <!-- 装饰元素：张量形状 -->
+    <rect x="100" y="100" width="60" height="60" rx="5" stroke="#ee4c2c" stroke-width="2" fill="none" opacity="0.5"/>
+    <text x="130" y="135" text-anchor="middle" fill="#ee4c2c" opacity="0.8" font-size="12">Tensor</text>
+    
+    <circle cx="700" cy="130" r="30" stroke="#f3a43b" stroke-width="2" fill="none" opacity="0.5"/>
+    <text x="700" y="135" text-anchor="middle" fill="#f3a43b" opacity="0.8" font-size="12">Gradient</text>
+</svg>

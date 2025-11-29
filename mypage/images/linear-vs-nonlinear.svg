@@ -1,0 +1,55 @@
+<svg width="700" height="350" viewBox="0 0 700 350" xmlns="http://www.w3.org/2000/svg">
+    <!-- 背景 -->
+    <rect width="100%" height="100%" fill="#f8fafc"/>
+
+    <!-- 左侧：线性模型 -->
+    <g transform="translate(50, 50)">
+        <rect width="250" height="250" fill="white" stroke="#cbd5e1" rx="8"/>
+        <text x="125" y="-15" text-anchor="middle" font-family="sans-serif" font-weight="bold" fill="#475569">Linear Model (Fails XOR)</text>
+        
+        <!-- 数据点：异或分布 -->
+        <!-- (0,0) Blue, (1,1) Blue -->
+        <circle cx="60" cy="190" r="8" fill="#3b82f6" opacity="0.8"/>
+        <circle cx="190" cy="60" r="8" fill="#3b82f6" opacity="0.8"/>
+        
+        <!-- (0,1) Red, (1,0) Red -->
+        <circle cx="60" cy="60" r="8" fill="#ef4444" opacity="0.8"/>
+        <circle cx="190" cy="190" r="8" fill="#ef4444" opacity="0.8"/>
+
+        <!-- 尝试画一条直线分开它们 (失败) -->
+        <line x1="20" y1="20" x2="230" y2="230" stroke="#64748b" stroke-width="2" stroke-dasharray="5,5"/>
+        <text x="125" y="270" text-anchor="middle" font-family="sans-serif" font-size="12" fill="#94a3b8">Cannot separate Red from Blue</text>
+    </g>
+
+    <!-- 右侧：神经网络 -->
+    <g transform="translate(400, 50)">
+        <rect width="250" height="250" fill="white" stroke="#cbd5e1" rx="8"/>
+        <text x="125" y="-15" text-anchor="middle" font-family="sans-serif" font-weight="bold" fill="#475569">Neural Network (Success)</text>
+
+        <!-- 决策边界背景 (模拟非线性边界) -->
+        <path d="M0 0 L250 0 L250 250 L0 250 Z" fill="#eff6ff"/> <!-- 蓝色底 -->
+        <!-- 红色区域 -->
+        <path d="M40 40 Q 125 125 210 40 L 210 210 Q 125 125 40 210 Z" fill="#fef2f2" stroke="none"/>
+        <path d="M40 40 Q 125 125 210 40" fill="none" stroke="#fca5a5" stroke-width="2"/>
+        <path d="M210 210 Q 125 125 40 210" fill="none" stroke="#fca5a5" stroke-width="2"/>
+
+        <!-- 数据点：异或分布 -->
+        <!-- 蓝色在外部 -->
+        <circle cx="60" cy="190" r="8" fill="#3b82f6" stroke="white" stroke-width="2"/>
+        <circle cx="190" cy="60" r="8" fill="#3b82f6" stroke="white" stroke-width="2"/>
+        
+        <!-- 红色在内部包围圈 -->
+        <circle cx="60" cy="60" r="8" fill="#ef4444" stroke="white" stroke-width="2"/>
+        <circle cx="190" cy="190" r="8" fill="#ef4444" stroke="white" stroke-width="2"/>
+
+        <text x="125" y="270" text-anchor="middle" font-family="sans-serif" font-size="12" fill="#94a3b8">Non-linear boundary</text>
+    </g>
+
+    <!-- 中间箭头 -->
+    <path d="M320 175 L380 175" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrowhead)"/>
+    <defs>
+        <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" fill="#94a3b8" />
+        </marker>
+    </defs>
+</svg>

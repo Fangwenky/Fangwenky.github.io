@@ -1,0 +1,234 @@
+/* 重置 & 基础 */
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;color:#333;background:#fafafa;padding-top:60px;}
+section{min-height:100vh;padding:80px 20px;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+h1{font-size:48px;margin-bottom:10px;}
+h2{font-size:36px;margin-bottom:40px;}
+
+/* 导航栏 */
+.navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 60px;
+  background-color: #fff;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.nav-container {
+  display: flex;
+  justify-content: center;
+  gap: 30px;
+}
+
+.nav-item {
+  padding: 15px 20px;
+  border-radius: 30px;
+  text-decoration: none;
+  color: #333;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  height: 50px;
+  display: flex;
+  align-items: center;
+}
+
+.nav-item:hover {
+  background-color: #f0f0f0;
+}
+
+.nav-item.active {
+  background-color: #ff6b6b;
+  color: #fff;
+}
+
+/* 下拉菜单 */
+.dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.dropdown-content {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  background-color: #fff;
+  min-width: 160px;
+  box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+  border-radius: 8px;
+  padding: 10px 0;
+  z-index: 1001;
+}
+
+.dropdown:hover .dropdown-content {
+  display: block;
+}
+
+.dropdown-item {
+  display: block;
+  padding: 8px 20px;
+  text-decoration: none;
+  color: #333;
+  transition: all 0.2s ease;
+}
+
+.dropdown-item:hover {
+  background-color: #f0f0f0;
+}
+
+/* 首屏 */
+#hero{background:url('images/hero.png') center/cover no-repeat;color:#fff;text-align:center;justify-content:flex-start;padding-top:20vh;}
+#hero button{margin-top:30px;padding:12px 28px;border:none;border-radius:30px;background:#fff;color:#000;font-size:16px;cursor:pointer;transition:.3s;}
+#hero button:hover{transform:translateY(-3px);box-shadow:0 8px 20px rgba(0,0,0,.2);}
+
+/* 地图 */
+.map-wrapper{position:relative;max-width:900px;width:100%;}
+.map-wrapper img{width:100%;border-radius:10px;}
+.map-btn {
+  position: absolute;
+  padding: 8px 16px;
+  background-color: #ff6b6b;
+  color: white;
+  border-radius: 20px;
+  text-decoration: none;
+  font-weight: bold;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  transition: all 0.3s ease;
+  transform: translate(-50%, -50%);
+}
+.map-btn:hover {
+  transform: translate(-50%, -50%) scale(1.1);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+}
+.province-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 15px;
+  margin-top: 30px;
+}
+.map-btn-new {
+  padding: 10px 20px;
+  background-color: #ff6b6b;
+  color: white;
+  border-radius: 20px;
+  text-decoration: none;
+  font-weight: bold;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  transition: all 0.3s ease;
+}
+.map-btn-new:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+}
+.tip{margin-top:20px;font-size:14px;color:#888;}
+
+/* 留言墙 */
+#message{background:#fff;}
+/* ===== 留言卡片：大图在上，文字在下 ===== */
+/* 留言墙容器 */
+.cards{
+  display:grid;
+  /* 一行固定 3 列，宽度等分 */
+  grid-template-columns:repeat(3,1fr);
+  gap:30px;
+  max-width:1000px;   /* 也可以随需要加宽 */
+  width:100%;
+  margin:0 auto;      /* 水平居中 */
+}
+
+/* 响应式：屏幕窄于 768px 时变成 2 列，再窄 1 列 */
+@media(max-width:768px){
+  .cards{grid-template-columns:repeat(2,1fr);}
+}
+@media(max-width:480px){
+  .cards{grid-template-columns:1fr;}
+}
+
+.card img{
+  width:100%;
+  height:500px;             /* 大图高度，可按需要改 */
+  object-fit:cover;         /* 铺满不变形 */
+  display:block;
+}
+
+.card .info{
+  padding:18px 20px 22px;
+  display:flex;               /* 弹性布局 */
+  flex-direction:column;      /* 垂直排列 */
+  justify-content:center;     /* 垂直居中 */
+  align-items:center;         /* 水平居中 */
+  text-align:center;          /* 文本居中（保险） */
+}
+
+.card strong{
+  display:block;
+  margin-bottom:6px;
+  font-size:16px;
+  color:#333;
+}
+
+.card p{
+  font-size:14px;
+  color:#555;
+  line-height:1.5;
+}
+/* 关于我们 */
+#about {
+  background-color: #f8f9fa;
+  text-align: center;
+}
+
+.about-content {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.about-content p {
+  font-size: 18px;
+  line-height: 1.6;
+  margin-bottom: 20px;
+  color: #555;
+}
+
+/* 页脚 */
+footer{
+  padding: 30px 20px;
+  text-align: center;
+  font-size: 14px;
+  color: #888;
+  background-color: #f0f0f0;
+  min-height: auto;
+}
+
+/* 首屏双按钮横向排列 */
+.btn-group{
+  margin-top:30px;
+  display:flex;
+  gap:24px;
+  flex-wrap:wrap;
+  justify-content:center;
+}
+
+/* 按钮统一样式 */
+.hero-btn{
+  padding:12px 28px;
+  border:none;
+  border-radius:30px;
+  background:#fff;
+  color:#000;
+  font-size:16px;
+  cursor:pointer;
+  transition:.3s;
+  text-decoration:none;
+}
+.hero-btn:hover{
+  transform:translateY(-3px);
+  box-shadow:0 8px 20px rgba(0,0,0,.2);
+}
