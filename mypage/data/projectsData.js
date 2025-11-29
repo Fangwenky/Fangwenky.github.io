@@ -29,7 +29,7 @@ export const projects = [
         description: '一个“你画我猜”的网页应用。利用 PyTorch 训练 CNN 模型，通过 ONNX 部署到浏览器，实现零延迟实时识别。',
         image: 'images/project2_pic.svg',
         tags: ['PyTorch', 'ONNX', 'Computer Vision', 'Web AI'],
-        link: 'https://github.com/Fangwenky/ai-doodle-classifier', // 请替换为你的真实仓库或 Demo 地址
+        link: 'https://fangwenky.github.io/ai-doodle/index.html',
         category: 'AI 应用',
         date: '2025-11-20', 
         content: `
