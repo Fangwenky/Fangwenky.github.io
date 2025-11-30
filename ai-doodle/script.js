@@ -2,7 +2,7 @@
 const CANVAS_SIZE = 280;
 const MODEL_INPUT_SIZE = 28;
 // 必须和 train.py 里的顺序一致
-const CLASSES = ['Apple 🍎', 'Eye 👁️', 'Tree 🌲']; 
+const CLASSES = ['Apple 🍎', 'Eye 👁️', 'Tree 🌲', 'Bird 🐦‍', 'Bicycle 🚲']; 
 
 const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
