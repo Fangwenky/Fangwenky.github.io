@@ -203,12 +203,14 @@ section.visible {
     aspect-ratio: 16 / 9; /* 设置16:9的宽高比 */
     position: relative;
     max-width: 1400px; /* 限制最大宽度 */
+    margin: 0 auto;
 }
 
 .slider-wrapper {
     display: flex;
     height: 100%;
     transition: transform 0.5s ease-in-out;
+    touch-action: pan-y;
 }
 
 .slider-item {
@@ -401,10 +403,12 @@ section.visible {
 .slider-cards {
     flex: 1;
     display: flex;
-    gap: 2rem;
-    padding: 1rem;
+    gap: 0;
+    padding: 0;
     scrollbar-width: none;
     -ms-overflow-style: none;
+    transition: transform 0.5s ease-in-out;
+    width: 100%;
 }
 
 .slider-cards::-webkit-scrollbar {

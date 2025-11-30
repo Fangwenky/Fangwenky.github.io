@@ -66,7 +66,6 @@ function initSlider() {
         return null;
     }).filter(item => item !== null);
     let currentSlide = 0;
-    const itemsPerView = window.innerWidth <= 768 ? 1 : 3; // 移动端显示1个，桌面端显示3个
     const totalSlides = allItems.length;
 
     // 创建滑动项
@@ -103,20 +102,11 @@ function initSlider() {
     function updateSlider() {
         const sliderItems = document.querySelectorAll('.slider-item');
         if (sliderItems.length === 0) return;
-
-        const itemWidth = sliderItems[0].offsetWidth;
-        const gap = parseFloat(getComputedStyle(sliderCards).gap);
-        const totalItemWidth = itemWidth + gap;
-
-        // 计算每个视图的偏移量
-        const offset = -currentSlide * totalItemWidth;
-        sliderCards.style.transform = `translateX(${offset}px)`;
-        
+        const offsetPercent = -currentSlide * 100;
+        sliderCards.style.transform = `translateX(${offsetPercent}%)`;
         document.querySelectorAll('.dot').forEach((dot, index) => {
             dot.classList.toggle('active', index === currentSlide);
         });
-
-        // 更新按钮状态
         prevBtn.style.opacity = currentSlide === 0 ? '0.5' : '1';
         nextBtn.style.opacity = currentSlide === totalSlides - 1 ? '0.5' : '1';
     }
@@ -173,6 +163,37 @@ function initSlider() {
             updateSlider();
         }, 5000);
     });
+
+    let startX = 0;
+    let isTouching = false;
+    sliderWrapper.addEventListener('touchstart', (e) => {
+        if (e.touches && e.touches.length > 0) {
+            startX = e.touches[0].clientX;
+            isTouching = true;
+            clearInterval(autoSlideInterval);
+        }
+    }, { passive: true });
+    sliderWrapper.addEventListener('touchend', (e) => {
+        if (!isTouching) return;
+        const endX = e.changedTouches && e.changedTouches.length > 0 ? e.changedTouches[0].clientX : startX;
+        const deltaX = endX - startX;
+        if (Math.abs(deltaX) > 50) {
+            if (deltaX < 0) {
+                nextSlide();
+            } else {
+                prevSlide();
+            }
+        }
+        isTouching = false;
+        autoSlideInterval = setInterval(() => {
+            if (currentSlide >= totalSlides - 1) {
+                currentSlide = 0;
+            } else {
+                currentSlide++;
+            }
+            updateSlider();
+        }, 5000);
+    }, { passive: true });
 
     // 窗口大小改变时更新滑动
     window.addEventListener('resize', () => {
