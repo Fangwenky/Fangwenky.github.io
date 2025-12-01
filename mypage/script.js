@@ -2,6 +2,7 @@ import { articles } from './data/articlesData.js';
 import { projects } from './data/projectsData.js';
 import { skills } from './data/skillsData.js';
 import { aboutMe } from './data/aboutMeData.js';
+import { createTimeline } from './data/archiveData.js';
 
 // 页面加载动画
 document.addEventListener('DOMContentLoaded', () => {
@@ -14,7 +15,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 1000);
 
     // 根据当前页面加载内容
-    console.log('DOMContentLoaded: document.body.id =', document.body.id); // Add this line
     if (document.body.id === 'home-page') {
         initSlider();
         loadArticles();
@@ -33,6 +33,8 @@ document.addEventListener('DOMContentLoaded', () => {
         loadAboutMe();
     } else if (document.body.id === 'search-page') {
         initSearchPage();
+    } else if (document.body.id === 'archive-page') {
+        createTimeline();
     }
 });
 
