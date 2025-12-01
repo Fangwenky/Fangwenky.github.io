@@ -333,6 +333,9 @@ function loadArticleDetail() {
     const urlParams = new URLSearchParams(window.location.search);
     const articleId = urlParams.get('id');
     const article = articles.find(a => a.id === articleId);
+    if (article.type === 'md') {
+        article.content = marked.parse(article.content);
+    }
 
     if (!article) {
         document.querySelector('#article-detail').innerHTML = '<p>文章未找到。</p>';
