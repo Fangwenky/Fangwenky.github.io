@@ -522,21 +522,24 @@ function displaySearchResults(results) {
     }
 
     results.forEach(result => {
-        const resultItem = document.createElement('div');
-        resultItem.className = 'article-card search-card';
-        const desc = result.type === 'article' ? result.excerpt : (result.description || '');
+        const resultItem = document.createElement('article');
+        resultItem.className = 'article-card';
+        const isArticle = result.type === 'article';
+        const desc = isArticle ? result.excerpt : (result.description || '');
         const img = result.image || '';
+
         resultItem.innerHTML = `
-            <div class="article-content result-left">
-                <span class="result-type">${result.type === 'article' ? '文章' : '项目'}</span>
+            <img src="${img}" alt="${result.title}" class="article-image">
+            <div class="article-content">
+                <div class="article-meta">
+                    <span><i class="far fa-calendar"></i> ${result.date}</span>
+                    ${isArticle ? `<span><i class="far fa-clock"></i> ${result.readTime}</span>` : ''}
+                </div>
                 <h3 class="article-title">${result.title}</h3>
                 <p class="article-excerpt">${desc}</p>
                 <div class="article-tags">
                     ${result.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
                 </div>
-            </div>
-            <div class="result-right">
-                ${img ? `<img src="${img}" alt="${result.title}">` : ''}
             </div>
         `;
         resultItem.addEventListener('click', () => {
