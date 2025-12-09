@@ -1007,7 +1007,7 @@ section.visible {
 .timeline {
     position: relative;
     list-style: none;
-    padding: 1rem 0;
+    padding: 1rem 0 1rem 3rem; /* Add left padding for content */
 }
 
 .timeline::before {
@@ -1017,12 +1017,11 @@ section.visible {
     bottom: 0;
     width: 3px;
     background: #007bff;
-    left: 50%;
-    margin-left: -1.5px;
+    left: 10px; /* Position timeline on the left */
 }
 
 .timeline-item {
-    margin-bottom: 3rem;
+    margin-bottom: 2rem; /* Reduce margin */
     position: relative;
     cursor: pointer;
 }
@@ -1035,8 +1034,8 @@ section.visible {
 
 .timeline-item-content {
     position: relative;
-    width: 45%;
-    padding: 1.5rem 2rem;
+    width: 100%; /* Full width */
+    padding: 1rem 1.5rem; /* Reduce padding */
     background: #fff;
     border-radius: 8px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.1);
@@ -1048,17 +1047,6 @@ section.visible {
     box-shadow: 0 8px 20px rgba(0,0,0,0.15);
 }
 
-.timeline-item:nth-child(odd) .timeline-item-content {
-    float: left;
-    text-align: right;
-    clear: both;
-}
-
-.timeline-item:nth-child(even) .timeline-item-content {
-    float: right;
-    clear: both;
-}
-
 .timeline-item::before {
     content: '';
     position: absolute;
@@ -1068,10 +1056,10 @@ section.visible {
     background: #fff;
     border: 5px solid #007bff;
     border-radius: 50%;
-    left: 50%;
-    margin-left: -10px;
+    left: 0px; /* Align with timeline */
     z-index: 1;
 }
+
 
 .timeline-date {
     font-size: 0.9rem;
@@ -1099,11 +1087,6 @@ section.visible {
     display: flex;
     flex-wrap: wrap;
     gap: 0.5rem;
-    justify-content: flex-end;
-}
-
-.timeline-item:nth-child(even) .timeline-item-content .article-tags {
-    justify-content: flex-start;
 }
 
 .timeline-item-content {
