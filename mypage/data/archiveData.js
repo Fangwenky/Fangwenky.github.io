@@ -27,32 +27,33 @@ function createTimeline() {
         const yearSection = document.createElement('div');
         yearSection.className = 'timeline-year-section';
         yearSection.innerHTML = `<h3>${year}</h3>`;
-        const grid = document.createElement('div');
-        grid.className = 'articles-grid';
+        const timeline = document.createElement('div');
+        timeline.className = 'timeline';
         groupedItems[year].forEach(item => {
             const isArticle = 'excerpt' in item;
-            const card = document.createElement('article');
-            card.className = 'article-card';
-            card.innerHTML = `
-                <img src="${item.image}" alt="${item.title}" class="article-image">
-                <div class="article-content">
-                    <div class="article-meta">
-                        <span><i class="far fa-calendar"></i> ${item.date}</span>
-                        ${isArticle ? `<span><i class="far fa-clock"></i> ${item.readTime}</span>` : ''}
+            const timelineItem = document.createElement('div');
+            timelineItem.className = 'timeline-item';
+            timelineItem.innerHTML = `
+                <div class="timeline-item-content">
+                    <div class="timeline-item-left">
+                        <span class="timeline-date">${item.date}</span>
+                        <h4 class="timeline-title">${item.title}</h4>
+                        <p class="timeline-excerpt">${isArticle ? item.excerpt : item.description}</p>
+                        <div class="article-tags">
+                            ${item.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
+                        </div>
                     </div>
-                    <h3 class="article-title">${item.title}</h3>
-                    <p class="article-excerpt">${isArticle ? item.excerpt : item.description}</p>
-                    <div class="article-tags">
-                        ${item.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
+                    <div class="timeline-item-right">
+                        <img src="${item.image}" alt="${item.title}">
                     </div>
                 </div>
             `;
-            card.addEventListener('click', () => {
+            timelineItem.addEventListener('click', () => {
                 window.location.href = isArticle ? `article-detail.html?id=${item.id}` : `project-detail.html?id=${item.id}`;
             });
-            grid.appendChild(card);
+            timeline.appendChild(timelineItem);
         });
-        yearSection.appendChild(grid);
+        yearSection.appendChild(timeline);
         timelineContainer.appendChild(yearSection);
     });
 }

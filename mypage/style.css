@@ -1105,3 +1105,31 @@ section.visible {
 .timeline-item:nth-child(even) .timeline-item-content .article-tags {
     justify-content: flex-start;
 }
+
+.timeline-item-content {
+    display: flex;
+    gap: 1.5rem;
+    align-items: center;
+}
+
+.timeline-item-left {
+    flex: 1;
+}
+
+.timeline-item-right {
+    flex-basis: 150px;
+}
+
+.timeline-item-right img {
+    width: 100%;
+    border-radius: 8px;
+    object-fit: cover;
+}
+
+.timeline-excerpt {
+    font-size: 0.9rem;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+    overflow: hidden;
+}
