@@ -1007,7 +1007,7 @@ section.visible {
 .timeline {
     position: relative;
     list-style: none;
-    padding: 1rem 0 1rem 20px; /* Adjust left padding */
+    padding: 1rem 0 1rem 40px; /* Adjust left padding */
 }
 
 .timeline::before {
@@ -1056,7 +1056,7 @@ section.visible {
     background: #fff;
     border: 5px solid #007bff;
     border-radius: 50%;
-    left: -10px; /* Align with timeline */
+    left: -30px; /* Align with timeline */
     z-index: 1;
 }
 
