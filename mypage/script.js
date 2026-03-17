@@ -336,7 +336,7 @@ function loadArticleDetail() {
     const articleId = urlParams.get('id');
     const article = articles.find(a => a.id === articleId);
     if (article.type === 'md') {
-        article.content = marked.parse(article.content);
+        article.content = window.marked.parse(article.content);
     }
 
     if (!article) {
