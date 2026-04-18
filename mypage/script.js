@@ -21,6 +21,12 @@ document.addEventListener('DOMContentLoaded', () => {
         loadProjects();
         loadSkills();
         loadAboutMe();
+        // 首页标签旋转
+        setTimeout(() => {
+            document.querySelectorAll('.articles-grid, .projects-grid').forEach(grid => {
+                applyTagRotation(grid);
+            });
+        }, 100);
     } else if (document.body.id === 'articles-page') {
         loadArticles('.articles-grid', articles);
     } else if (document.body.id === 'projects-page') {
@@ -100,6 +106,8 @@ function initSlider() {
         dotsContainer.appendChild(dot);
     }
 
+    const polaroidCaption = document.querySelector('.polaroid-caption');
+
     // 更新滑动位置和导航点状态
     function updateSlider() {
         const sliderItems = document.querySelectorAll('.slider-item');
@@ -111,6 +119,11 @@ function initSlider() {
         });
         prevBtn.style.opacity = currentSlide === 0 ? '0.5' : '1';
         nextBtn.style.opacity = currentSlide === totalSlides - 1 ? '0.5' : '1';
+        // 更新拍立得底部 caption
+        if (polaroidCaption && allItems[currentSlide]) {
+            const typeLabel = allItems[currentSlide].type === 'article' ? '📝 文章' : '🚀 项目';
+            polaroidCaption.textContent = `${typeLabel} · ${allItems[currentSlide].title}`;
+        }
     }
 
     function goToSlide(index) {
@@ -249,6 +262,25 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
 
 // 技能标签
 
+// 卡片随机旋转 — 便签纸效果
+function applyRandomRotation(cards) {
+    cards.forEach((card, index) => {
+        // 移动端不旋转
+        if (window.innerWidth <= 768) return;
+        const angle = (Math.random() - 0.5) * 2.5; // -1.25deg ~ +1.25deg
+        card.style.transform = `rotate(${angle}deg)`;
+    });
+}
+
+// 标签贴纸随机旋转
+function applyTagRotation(container) {
+    if (window.innerWidth <= 768) return;
+    const tags = container.querySelectorAll('.tag');
+    tags.forEach(tag => {
+        const angle = (Math.random() - 0.5) * 5; // -2.5deg ~ +2.5deg
+        tag.style.transform = `rotate(${angle}deg)`;
+    });
+}
 
 // 加载文章列表
 function loadArticles(container = '.articles-grid', articlesList = articles) {
@@ -285,6 +317,8 @@ function loadArticles(container = '.articles-grid', articlesList = articles) {
         });
         grid.appendChild(articleCard);
     });
+    applyRandomRotation(grid.querySelectorAll('.article-card'));
+    applyTagRotation(grid);
 }
 
 // 加载项目列表
@@ -328,6 +362,8 @@ function loadProjects(container = '.projects-grid', projectsList = projects) {
         });
         grid.appendChild(projectCard);
     });
+    applyRandomRotation(grid.querySelectorAll('.article-card'));
+    applyTagRotation(grid);
 }
 
 // 加载文章详情
@@ -551,6 +587,8 @@ function displaySearchResults(results) {
         });
         searchResults.appendChild(resultItem);
     });
+    applyRandomRotation(searchResults.querySelectorAll('.article-card'));
+    applyTagRotation(searchResults);
 }
 
 searchButton?.addEventListener('click', () => {

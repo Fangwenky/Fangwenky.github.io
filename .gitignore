@@ -8,3 +8,7 @@ eval "$(ssh-agent -s)".pub
 
 AGENTS.md
 GEMENI.md
+
+claude/
+
+docs/
