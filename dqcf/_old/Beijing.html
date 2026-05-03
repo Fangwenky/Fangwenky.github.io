@@ -3,6 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <title>北京 - 蹭饭地图</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=Noto+Sans+SC:wght@300;400;500;600&display=swap" rel="stylesheet">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <link rel="stylesheet" href="style.css">
   <style>
@@ -73,26 +75,18 @@
   </style>
 </head>
 <body>
-  <nav class="navbar">
+    <nav class="navbar">
     <div class="nav-container">
-      <a href="index.html" class="nav-item">WE我们</a>
-      <div class="dropdown">
-        <a href="map.html" class="nav-item active">我们去往何方</a>
-        <div class="dropdown-content">
-          <a href="Beijing.html" class="dropdown-item">北京</a>
-          <a href="Shanghai.html" class="dropdown-item">上海</a>
-          <a href="Heilongjiang.html" class="dropdown-item">黑龙江</a>
-          <a href="Jiangsu.html" class="dropdown-item">江苏</a>
-          <a href="Zhejiang.html" class="dropdown-item">浙江</a>
-          <a href="Fujian.html" class="dropdown-item">福建</a>
-          <a href="Henan.html" class="dropdown-item">河南</a>
-          <a href="Liaoning.html" class="dropdown-item">辽宁</a>
-          <a href="Anhui.html" class="dropdown-item">安徽</a>
-          <a href="Tianjin.html" class="dropdown-item">天津</a>
-          <a href="Guangdong.html" class="dropdown-item">广东</a>
-        </div>
+      <a href="index.html" class="logo">2021级1班</a>
+      <div class="nav-links">
+        <a href="index.html" class="nav-item">首页</a>
+        <a href="index.html#destinations" class="nav-item">毕业去向</a>
+        <a href="map.html" class="nav-item">蹭饭地图</a>
+        <a href="words.html" class="nav-item">留言墙</a>
       </div>
-      <a href="words.html" class="nav-item">聆听我们的声音</a>
+      <button class="mobile-menu-btn" onclick="toggleMobileMenu()">
+        <span></span><span></span><span></span>
+      </button>
     </div>
   </nav>
   
@@ -112,5 +106,10 @@
   </footer>
   
   <script src="js/province.js"></script>
+  <script>
+    function toggleMobileMenu() {
+      document.querySelector('.nav-links').classList.toggle('open');
+    }
+  </script>
 </body>
 </html>
