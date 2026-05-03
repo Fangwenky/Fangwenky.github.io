@@ -2,62 +2,118 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
-  <title>2021级1班 · 纪念站</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>2021级1班 · 毕业纪念站</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
   <link rel="stylesheet" href="style.css">
-  <script src="js/api.js" defer></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=Noto+Sans+SC:wght@300;400;500;600&display=swap" rel="stylesheet">
 </head>
 <body>
-  <nav class="navbar">
-    <div class="nav-container">
-      <a href="index.html" class="nav-item active">WE我们</a>
-      <div class="dropdown">
-        <a href="map.html" class="nav-item">我们去往何方</a>
-        <div class="dropdown-content">
-          <a href="Beijing.html" class="dropdown-item">北京</a>
-          <a href="Shanghai.html" class="dropdown-item">上海</a>
-          <a href="Heilongjiang.html" class="dropdown-item">黑龙江</a>
-          <a href="Jiangsu.html" class="dropdown-item">江苏</a>
-          <a href="Zhejiang.html" class="dropdown-item">浙江</a>
-          <a href="Fujian.html" class="dropdown-item">福建</a>
-          <a href="Henan.html" class="dropdown-item">河南</a>
-          <a href="Liaoning.html" class="dropdown-item">辽宁</a>
-          <a href="Anhui.html" class="dropdown-item">安徽</a>
-          <a href="Tianjin.html" class="dropdown-item">天津</a>
-          <a href="Guangdong.html" class="dropdown-item">广东</a>
-        </div>
-      </div>
-      <a href="words.html" class="nav-item">聆听我们的声音</a>
+  <!-- 阅读进度条 -->
+  <div class="read-progress" id="readProgress"></div>
+
+  <!-- 导航 -->
+  <nav class="navbar" id="navbar">
+    <div class="nav-inner">
+      <a href="#" class="nav-logo">2021级1班</a>
+      <ul class="nav-menu">
+        <li><a href="#hero" class="nav-link active">首页</a></li>
+        <li><a href="#destinations" class="nav-link">毕业去向</a></li>
+        <li><a href="#map" class="nav-link">蹭饭地图</a></li>
+        <li><a href="words.html" class="nav-link">留言墙</a></li>
+      </ul>
+      <button class="nav-toggle" aria-label="菜单">
+        <span></span><span></span><span></span>
+      </button>
     </div>
   </nav>
-  <section id="hero">
-    <h1>2021级1班</h1>
-    <p>欢迎来到我们的毕业纪念站</p>
-  </section>
-  
-  <section id="about">
-    <h2>关于我们</h2>
-    <div class="about-content">
-      <p>这是2021级1班的毕业纪念站，我们记录了同学们的去向和留言，希望能够成为我们美好回忆的载体。</p>
-      <p>无论我们身在何方，心永远连在一起。</p>
+
+  <!-- 首屏 -->
+  <section id="hero" class="hero">
+    <div class="hero-bg"></div>
+    <div class="hero-content">
+      <p class="hero-label">2021级1班</p>
+      <h1 class="hero-title">我们毕业啦</h1>
+      <p class="hero-desc">无论身在何方，心永远连在一起</p>
+      <div class="hero-stats">
+        <div class="hero-stat">
+          <span class="hero-stat-num" data-target="55">0</span>
+          <span class="hero-stat-label">位师生</span>
+        </div>
+        <div class="hero-stat">
+          <span class="hero-stat-num" data-target="11">0</span>
+          <span class="hero-stat-label">个省市</span>
+        </div>
+        <div class="hero-stat">
+          <span class="hero-stat-num" data-target="30">0</span>
+          <span class="hero-stat-label">所高校</span>
+        </div>
+      </div>
+      <a href="#destinations" class="hero-cta">
+        <span>查看去向</span>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
+      </a>
+    </div>
+    <div class="hero-scrollhint">
+      <span>向下滚动</span>
+      <div class="hero-scrollline"></div>
     </div>
   </section>
-  
-  <footer>
-    <p>© 2024 大桥初复 - 2021级1班毕业纪念站</p>
+
+  <!-- 省份快捷导航 -->
+  <div class="province-nav" id="provinceNav">
+    <div class="province-nav-inner">
+      <button class="province-nav-btn active" data-province="all">全部</button>
+      <!-- JS 填充 -->
+    </div>
+  </div>
+
+  <!-- 毕业去向 -->
+  <section id="destinations" class="destinations">
+    <div class="section-head reveal">
+      <h2 class="section-title">毕业去向</h2>
+      <p class="section-subtitle">天南地北，各自精彩</p>
+    </div>
+    <div id="destinationsContent">
+      <!-- JS 按省份+学校分组填充 -->
+    </div>
+  </section>
+
+  <!-- 蹭饭地图 -->
+  <section id="map" class="map-section">
+    <div class="section-head reveal">
+      <h2 class="section-title">蹭饭地图</h2>
+      <p class="section-subtitle">点击省份标签，快速定位同学</p>
+    </div>
+    <div class="map-wrap reveal">
+      <img src="images/map.png" alt="蹭饭地图" loading="lazy">
+    </div>
+  </section>
+
+  <!-- 留言 -->
+  <section id="message" class="message-section">
+    <div class="section-head reveal">
+      <h2 class="section-title">聆听我们的声音</h2>
+      <p class="section-subtitle">留下你想说的话，让回忆永不褪色</p>
+    </div>
+    <div class="message-card reveal">
+      <div class="message-quote">"</div>
+      <p class="message-text">写下这些话的时候，正是又一年高考录取的季节……我们都有着光耀的青春和前程，祝你们诸事顺遂，前程似锦。</p>
+      <p class="message-author">—— 房砖砖</p>
+      <a href="words.html" class="btn-outline">进入留言墙</a>
+    </div>
+  </section>
+
+  <!-- 页脚 -->
+  <footer class="site-footer">
+    <p>© 2025 2021级1班毕业纪念站</p>
+    <p class="site-footer-sub">青春不散场，我们更高处见</p>
   </footer>
-  
-  <script>
-    // 检查是否有管理员登录状态，如果有则显示管理入口
-    document.addEventListener('DOMContentLoaded', function() {
-      const token = localStorage.getItem('admin_token');
-      if (token) {
-        const footer = document.querySelector('footer');
-        const adminLink = document.createElement('p');
-        adminLink.innerHTML = '<a href="admin.html" style="color:#888;text-decoration:underline;">管理后台</a>';
-        footer.appendChild(adminLink);
-      }
-    });
-  </script>
+
+  <a href="#hero" class="backtop" id="backtop" aria-label="回到顶部">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 15l-6-6-6 6"/></svg>
+  </a>
+
+  <script src="script.js"></script>
 </body>
 </html>
