@@ -28,12 +28,12 @@
         <nav class="nav">
             <div class="nav-logo">
                 <a href="about.html" class="logo-link">
-                    <img src="images/avatar.jpg" alt="头像" class="avatar">
+                    <img src="images/avatar.jpg" alt="头像" class="avatar" width="42" height="42">
                     <span>F_wenky的个人主页</span>
                 </a>
             </div>
 
-            <div class="nav-links">
+            <div class="nav-links" id="primaryNav">
                 <a href="#home" class="active">首页</a>
                 <a href="articles.html">文章</a>
                 <a href="projects.html">项目</a>
@@ -41,11 +41,11 @@
                 <a href="about.html">关于我</a>
                 <a href="search.html">搜索</a>
             </div>
-            <div class="nav-toggle">
+            <button class="nav-toggle" type="button" aria-label="打开导航菜单" aria-expanded="false" aria-controls="primaryNav">
                 <span></span>
                 <span></span>
                 <span></span>
-            </div>
+            </button>
         </nav>
     </header>
 
@@ -57,11 +57,11 @@
                     </div>
                 </div>
                 <div class="slider-nav">
-                    <button class="prev-btn"><i class="fas fa-chevron-left"></i></button>
+                    <button class="prev-btn" type="button" aria-label="上一张精选内容"><i class="fas fa-chevron-left" aria-hidden="true"></i></button>
                     <div class="slider-dots">
                         <!-- 点将通过JavaScript动态添加 -->
                     </div>
-                    <button class="next-btn"><i class="fas fa-chevron-right"></i></button>
+                    <button class="next-btn" type="button" aria-label="下一张精选内容"><i class="fas fa-chevron-right" aria-hidden="true"></i></button>
                 </div>
                 <div class="polaroid-caption">📸 精选内容</div>
             </div>
@@ -116,9 +116,6 @@
             <div class="footer-section">
                 <h3>联系方式</h3>
                 <div class="social-links">
-                    <a href="#" class="social-link"><i class="fab fa-github"></i></a>
-                    <a href="#" class="social-link"><i class="fab fa-twitter"></i></a>
-                    <a href="#" class="social-link"><i class="fab fa-linkedin"></i></a>
                 </div>
             </div>
             <div class="footer-section">
@@ -139,7 +136,7 @@
         <div class="search-container">
             <div class="search-header">
                 <h2>搜索结果</h2>
-                <button class="close-search" id="closeSearch">&times;</button>
+                <button class="close-search" id="closeSearch" type="button" aria-label="关闭搜索结果">&times;</button>
             </div>
             <div class="search-results" id="searchResults">
                 <!-- 搜索结果将通过JavaScript动态添加 -->

@@ -27,12 +27,12 @@
         <nav class="nav">
             <div class="nav-logo">
                 <a href="index.html" class="logo-link">
-                    <img src="images/avatar.jpg" alt="头像" class="avatar">
+                    <img src="images/avatar.jpg" alt="头像" class="avatar" width="42" height="42">
                     <span>F_wenky的个人主页</span>
                 </a>
             </div>
 
-            <div class="nav-links">
+            <div class="nav-links" id="primaryNav">
                 <a href="index.html">首页</a>
                 <a href="articles.html">文章</a>
                 <a href="projects.html">项目</a>
@@ -40,11 +40,11 @@
                 <a href="about.html">关于我</a>
                 <a href="search.html">搜索</a>
             </div>
-            <div class="nav-toggle">
+            <button class="nav-toggle" type="button" aria-label="打开导航菜单" aria-expanded="false" aria-controls="primaryNav">
                 <span></span>
                 <span></span>
                 <span></span>
-            </div>
+            </button>
         </nav>
     </header>
 
@@ -59,9 +59,6 @@
             <div class="footer-section">
                 <h3>联系方式</h3>
                 <div class="social-links">
-                    <a href="#" class="social-link"><i class="fab fa-github"></i></a>
-                    <a href="#" class="social-link"><i class="fab fa-twitter"></i></a>
-                    <a href="#" class="social-link"><i class="fab fa-linkedin"></i></a>
                 </div>
             </div>
             <div class="footer-section">
@@ -69,12 +66,12 @@
                 <ul>
                     <li><a href="articles.html">所有文章</a></li>
                     <li><a href="projects.html">项目展示</a></li>
-                    <li><a href="#about">关于我</a></li>
+                    <li><a href="about.html">关于我</a></li>
                 </ul>
             </div>
         </div>
         <div class="footer-bottom">
-            <p>&copy; 2025 个人主页. All rights reserved.</p>
+            <p>&copy; F_wenky 的个人主页. All rights reserved.</p>
         </div>
     </footer>
 
@@ -82,7 +79,7 @@
         <div class="search-container">
             <div class="search-header">
                 <h2>搜索结果</h2>
-                <button class="close-search" id="closeSearch">&times;</button>
+                <button class="close-search" id="closeSearch" type="button" aria-label="关闭搜索结果">&times;</button>
             </div>
             <div class="search-results" id="searchResults">
                 <!-- 搜索结果将通过JavaScript动态添加 -->
