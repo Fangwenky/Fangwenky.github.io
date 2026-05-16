@@ -16,7 +16,7 @@ function groupAndSortByYear(items) {
     return grouped;
 }
 
-function createTimeline() {
+function createTimeline(prefersReducedMotion = false) {
     const allItems = [...articles, ...projects];
     const groupedItems = groupAndSortByYear(allItems);
     const timelineContainer = document.querySelector('.timeline-container');
@@ -31,8 +31,12 @@ function createTimeline() {
         timeline.className = 'timeline';
         groupedItems[year].forEach(item => {
             const isArticle = 'excerpt' in item;
-            const timelineItem = document.createElement('div');
+            const timelineItem = document.createElement('a');
             timelineItem.className = 'timeline-item';
+            timelineItem.href = isArticle ? `article-detail.html?id=${item.id}` : `project-detail.html?id=${item.id}`;
+            if (prefersReducedMotion) {
+                timelineItem.style.transform = 'none';
+            }
             timelineItem.innerHTML = `
                 <div class="timeline-item-content">
                     <div class="timeline-item-left">
@@ -44,13 +48,10 @@ function createTimeline() {
                         </div>
                     </div>
                     <div class="timeline-item-right">
-                        <img src="${item.image}" alt="${item.title}">
+                        <img src="${item.image}" alt="${item.title}" width="320" height="180" loading="lazy">
                     </div>
                 </div>
             `;
-            timelineItem.addEventListener('click', () => {
-                window.location.href = isArticle ? `article-detail.html?id=${item.id}` : `project-detail.html?id=${item.id}`;
-            });
             timeline.appendChild(timelineItem);
         });
         yearSection.appendChild(timeline);

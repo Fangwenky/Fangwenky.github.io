@@ -4,45 +4,82 @@ import { skills } from './data/skillsData.js';
 import { aboutMe } from './data/aboutMeData.js';
 import { createTimeline } from './data/archiveData.js';
 
-// 页面加载动画
-document.addEventListener('DOMContentLoaded', () => {
-    setTimeout(() => {
-        const loadingScreen = document.querySelector('.loading-screen');
+const prefersReducedMotion = window.matchMedia
+    ? window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    : false;
+const header = document.querySelector('.header');
+const navToggle = document.querySelector('.nav-toggle');
+const navLinks = document.querySelector('.nav-links');
+const searchInput = document.getElementById('searchInput');
+const searchButton = document.getElementById('searchButton');
+const searchOverlay = document.getElementById('searchOverlay');
+const closeSearch = document.getElementById('closeSearch');
+
+function getItemHref(item) {
+    return item.type === 'project'
+        ? `project-detail.html?id=${encodeURIComponent(item.id)}`
+        : `article-detail.html?id=${encodeURIComponent(item.id)}`;
+}
+
+function getSocialLabel(link) {
+    if (link.url.startsWith('mailto:')) return 'Email';
+    if (link.url.includes('github.com')) return 'GitHub';
+    if (link.url.includes('bilibili.com')) return 'Bilibili';
+    return '社交链接';
+}
+
+function renderTags(tags = []) {
+    return tags.map(tag => `<span class="tag">${tag}</span>`).join('');
+}
+
+function createContentCard(item, type) {
+    const isArticle = type === 'article';
+    const href = isArticle
+        ? `article-detail.html?id=${encodeURIComponent(item.id)}`
+        : `project-detail.html?id=${encodeURIComponent(item.id)}`;
+    const description = isArticle ? item.excerpt : item.description;
+    const meta = isArticle
+        ? `<span><i class="far fa-calendar" aria-hidden="true"></i> ${item.date}</span>
+           <span><i class="far fa-clock" aria-hidden="true"></i> ${item.readTime}</span>`
+        : `<span><i class="far fa-calendar" aria-hidden="true"></i> ${item.date || ''}</span>`;
+
+    const card = document.createElement('a');
+    card.className = 'article-card';
+    card.href = href;
+    card.innerHTML = `
+        <img src="${item.image}" alt="${item.title}" class="article-image" width="640" height="360" loading="lazy">
+        <div class="article-content">
+            <div class="article-meta">
+                ${meta}
+            </div>
+            <h3 class="article-title">${item.title}</h3>
+            <p class="article-excerpt">${description}</p>
+            <div class="article-tags" aria-label="标签">
+                ${renderTags(item.tags)}
+            </div>
+        </div>
+    `;
+    return card;
+}
+
+function hideLoadingScreen() {
+    const loadingScreen = document.querySelector('.loading-screen');
+    if (!loadingScreen) return;
+
+    const hide = () => {
         loadingScreen.style.opacity = '0';
         setTimeout(() => {
             loadingScreen.style.display = 'none';
-        }, 500);
-    }, 1000);
+        }, prefersReducedMotion ? 0 : 500);
+    };
 
-    // 根据当前页面加载内容
-    if (document.body.id === 'home-page') {
-        initSlider();
-        loadArticles();
-        loadProjects();
-        loadSkills();
-        loadAboutMe();
-        // 首页标签旋转
-        setTimeout(() => {
-            document.querySelectorAll('.articles-grid, .projects-grid').forEach(grid => {
-                applyTagRotation(grid);
-            });
-        }, 100);
-    } else if (document.body.id === 'articles-page') {
-        loadArticles('.articles-grid', articles);
-    } else if (document.body.id === 'projects-page') {
-        loadProjects('.projects-grid', projects);
-    } else if (document.body.id === 'article-detail-page') {
-        loadArticleDetail();
-    } else if (document.body.id === 'project-detail-page') {
-        loadProjectDetail();
-    } else if (document.body.id === 'about-page') {
-        loadAboutMe();
-    } else if (document.body.id === 'search-page') {
-        initSearchPage();
-    } else if (document.body.id === 'archive-page') {
-        createTimeline();
+    if (prefersReducedMotion) {
+        hide();
+        return;
     }
-});
+
+    setTimeout(hide, 1000);
+}
 
 // 滑动模块功能
 function initSlider() {
@@ -51,77 +88,78 @@ function initSlider() {
     const prevBtn = document.querySelector('.prev-btn');
     const nextBtn = document.querySelector('.next-btn');
     const dotsContainer = document.querySelector('.slider-dots');
-    
-    // 合并文章和项目数据，并按日期降序排序
-    // 定义特色文章和项目的ID
+    if (!sliderWrapper || !sliderCards || !prevBtn || !nextBtn || !dotsContainer) return;
+
     const featuredItems = [
         { type: 'project', id: 'project2' },
         { type: 'article', id: 'pytorch-cnn-cifar' },
-        { type: 'article', id: 'hello-pytorch-mnist'},
+        { type: 'article', id: 'hello-pytorch-mnist' },
         { type: 'article', id: 'numpy-neural-network' },
         { type: 'article', id: 'numpy-linear-regression' },
     ];
-    
-    // 根据 featuredItems 筛选和排序文章和项目数据
+
     const allItems = featuredItems.map(featuredItem => {
         if (featuredItem.type === 'article') {
             const article = articles.find(article => article.id === featuredItem.id);
             return article ? { ...article, type: 'article' } : null;
-        } else if (featuredItem.type === 'project') {
-            const project = projects.find(project => project.id === featuredItem.id);
-            return project ? { ...project, type: 'project' } : null;
         }
-        return null;
-    }).filter(item => item !== null);
+        const project = projects.find(project => project.id === featuredItem.id);
+        return project ? { ...project, type: 'project' } : null;
+    }).filter(Boolean);
+
     let currentSlide = 0;
     const totalSlides = allItems.length;
+    let autoSlideInterval = null;
 
-    // 创建滑动项
-    allItems.forEach((item, index) => {
-        const sliderItem = document.createElement('div');
+    function startAutoSlide() {
+        if (prefersReducedMotion || totalSlides < 2) return;
+        stopAutoSlide();
+        autoSlideInterval = setInterval(nextSlide, 5000);
+    }
+
+    function stopAutoSlide() {
+        if (autoSlideInterval) {
+            clearInterval(autoSlideInterval);
+            autoSlideInterval = null;
+        }
+    }
+
+    allItems.forEach(item => {
+        const sliderItem = document.createElement('a');
         sliderItem.className = 'slider-item';
+        sliderItem.href = getItemHref(item);
         sliderItem.innerHTML = `
-            <img src="${item.image}" alt="${item.title}">
+            <img src="${item.image}" alt="${item.title}" width="900" height="506">
             <h3 class="slider-title">${item.title}</h3>
             <p class="slider-description">${item.description || item.excerpt}</p>
         `;
         sliderCards.appendChild(sliderItem);
-
-        // 添加点击事件
-        sliderItem.addEventListener('click', () => {
-            console.log('Clicked item type:', item.type, 'id:', item.id);
-            if (item.type === 'article') {
-                window.location.href = `article-detail.html?id=${item.id}`;
-            } else if (item.type === 'project') {
-                window.location.href = `project-detail.html?id=${item.id}`;
-            }
-        });
     });
 
-    // 创建导航点
     for (let i = 0; i < totalSlides; i++) {
-        const dot = document.createElement('span');
+        const dot = document.createElement('button');
+        dot.type = 'button';
         dot.className = 'dot' + (i === 0 ? ' active' : '');
+        dot.setAttribute('aria-label', `查看第 ${i + 1} 张精选内容`);
         dot.addEventListener('click', () => goToSlide(i));
         dotsContainer.appendChild(dot);
     }
 
     const polaroidCaption = document.querySelector('.polaroid-caption');
 
-    // 更新滑动位置和导航点状态
     function updateSlider() {
-        const sliderItems = document.querySelectorAll('.slider-item');
-        if (sliderItems.length === 0) return;
+        if (totalSlides === 0) return;
         const offsetPercent = -currentSlide * 100;
         sliderCards.style.transform = `translateX(${offsetPercent}%)`;
         document.querySelectorAll('.dot').forEach((dot, index) => {
-            dot.classList.toggle('active', index === currentSlide);
+            const isActive = index === currentSlide;
+            dot.classList.toggle('active', isActive);
+            dot.setAttribute('aria-current', isActive ? 'true' : 'false');
         });
         prevBtn.style.opacity = currentSlide === 0 ? '0.5' : '1';
         nextBtn.style.opacity = currentSlide === totalSlides - 1 ? '0.5' : '1';
-        // 更新拍立得底部 caption
         if (polaroidCaption && allItems[currentSlide]) {
-            const typeLabel = allItems[currentSlide].type === 'article' ? '📝 文章' : '🚀 项目';
+            const typeLabel = allItems[currentSlide].type === 'article' ? '文章' : '项目';
             polaroidCaption.textContent = `${typeLabel} · ${allItems[currentSlide].title}`;
         }
     }
@@ -132,52 +170,19 @@ function initSlider() {
     }
 
     function nextSlide() {
-        if (currentSlide < totalSlides - 1) {
-            currentSlide++;
-        } else {
-            currentSlide = 0; // 循环到第一个
-        }
+        currentSlide = currentSlide < totalSlides - 1 ? currentSlide + 1 : 0;
         updateSlider();
     }
 
     function prevSlide() {
-        if (currentSlide > 0) {
-            currentSlide--;
-        } else {
-            currentSlide = totalSlides - 1; // 循环到最后一个
-        }
+        currentSlide = currentSlide > 0 ? currentSlide - 1 : totalSlides - 1;
         updateSlider();
     }
 
-    // 绑定按钮事件
     prevBtn.addEventListener('click', prevSlide);
     nextBtn.addEventListener('click', nextSlide);
-
-    // 自动滑动
-    let autoSlideInterval = setInterval(() => {
-        if (currentSlide >= totalSlides - 1) {
-            currentSlide = 0;
-        } else {
-            currentSlide++;
-        }
-        updateSlider();
-    }, 5000);
-
-    // 鼠标悬停时暂停自动滑动
-    sliderWrapper.addEventListener('mouseenter', () => {
-        clearInterval(autoSlideInterval);
-    });
-
-    sliderWrapper.addEventListener('mouseleave', () => {
-        autoSlideInterval = setInterval(() => {
-            if (currentSlide >= totalSlides - 1) {
-                currentSlide = 0;
-            } else {
-                currentSlide++;
-            }
-            updateSlider();
-        }, 5000);
-    });
+    sliderWrapper.addEventListener('mouseenter', stopAutoSlide);
+    sliderWrapper.addEventListener('mouseleave', startAutoSlide);
 
     let startX = 0;
     let isTouching = false;
@@ -185,99 +190,82 @@ function initSlider() {
         if (e.touches && e.touches.length > 0) {
             startX = e.touches[0].clientX;
             isTouching = true;
-            clearInterval(autoSlideInterval);
+            stopAutoSlide();
         }
     }, { passive: true });
+
     sliderWrapper.addEventListener('touchend', (e) => {
         if (!isTouching) return;
         const endX = e.changedTouches && e.changedTouches.length > 0 ? e.changedTouches[0].clientX : startX;
         const deltaX = endX - startX;
         if (Math.abs(deltaX) > 50) {
-            if (deltaX < 0) {
-                nextSlide();
-            } else {
-                prevSlide();
-            }
+            deltaX < 0 ? nextSlide() : prevSlide();
         }
         isTouching = false;
-        autoSlideInterval = setInterval(() => {
-            if (currentSlide >= totalSlides - 1) {
-                currentSlide = 0;
-            } else {
-                currentSlide++;
-            }
-            updateSlider();
-        }, 5000);
+        startAutoSlide();
     }, { passive: true });
 
-    // 窗口大小改变时更新滑动
-    window.addEventListener('resize', () => {
-        updateSlider();
-    });
-
-    updateSlider(); // 初始化滑动位置
+    window.addEventListener('resize', updateSlider);
+    updateSlider();
+    startAutoSlide();
 }
 
-// 导航栏效果
-const header = document.querySelector('.header');
-const navToggle = document.querySelector('.nav-toggle');
-const navLinks = document.querySelector('.nav-links');
-
-window.addEventListener('scroll', () => {
-    if (window.scrollY > 50) {
-        header.style.backgroundColor = 'rgba(255, 255, 255, 0.95)';
-        header.style.boxShadow = '0 2px 10px rgba(0, 0, 0, 0.1)';
-    } else {
-        header.style.backgroundColor = 'rgba(255, 255, 255, 0.8)';
-        header.style.boxShadow = 'none';
+function initNavigation() {
+    if (header) {
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 50) {
+                header.style.backgroundColor = 'rgba(255, 255, 255, 0.95)';
+                header.style.boxShadow = '0 2px 10px rgba(0, 0, 0, 0.1)';
+            } else {
+                header.style.backgroundColor = 'rgba(255, 255, 255, 0.8)';
+                header.style.boxShadow = 'none';
+            }
+        });
     }
-});
 
-navToggle?.addEventListener('click', () => {
-    navLinks.classList.toggle('active');
-    navToggle.classList.toggle('active');
-});
-
-// 点击导航链接时关闭菜单
-navLinks?.querySelectorAll('a').forEach(link => {
-    link.addEventListener('click', () => {
-        navLinks.classList.remove('active');
-        navToggle.classList.remove('active');
+    navToggle?.addEventListener('click', () => {
+        const isOpen = navLinks?.classList.toggle('active') || false;
+        navToggle.classList.toggle('active', isOpen);
+        navToggle.setAttribute('aria-expanded', String(isOpen));
+        navToggle.setAttribute('aria-label', isOpen ? '关闭导航菜单' : '打开导航菜单');
     });
-});
 
-// 平滑滚动
-document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-    anchor.addEventListener('click', function (e) {
-        e.preventDefault();
-        const target = document.querySelector(this.getAttribute('href'));
-        if (target) {
+    navLinks?.querySelectorAll('a').forEach(link => {
+        link.addEventListener('click', () => {
+            navLinks.classList.remove('active');
+            navToggle?.classList.remove('active');
+            navToggle?.setAttribute('aria-expanded', 'false');
+            navToggle?.setAttribute('aria-label', '打开导航菜单');
+        });
+    });
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+            const target = document.querySelector(this.getAttribute('href'));
+            if (!target) return;
+            e.preventDefault();
             target.scrollIntoView({
-                behavior: 'smooth',
+                behavior: prefersReducedMotion ? 'auto' : 'smooth',
                 block: 'start'
             });
-        }
+        });
     });
-});
-
-// 技能标签
+}
 
 // 卡片随机旋转 — 便签纸效果
 function applyRandomRotation(cards) {
-    cards.forEach((card, index) => {
-        // 移动端不旋转
-        if (window.innerWidth <= 768) return;
-        const angle = (Math.random() - 0.5) * 2.5; // -1.25deg ~ +1.25deg
+    if (prefersReducedMotion || window.innerWidth <= 768) return;
+    cards.forEach(card => {
+        const angle = (Math.random() - 0.5) * 2.5;
         card.style.transform = `rotate(${angle}deg)`;
     });
 }
 
 // 标签贴纸随机旋转
 function applyTagRotation(container) {
-    if (window.innerWidth <= 768) return;
-    const tags = container.querySelectorAll('.tag');
-    tags.forEach(tag => {
-        const angle = (Math.random() - 0.5) * 5; // -2.5deg ~ +2.5deg
+    if (prefersReducedMotion || window.innerWidth <= 768 || !container) return;
+    container.querySelectorAll('.tag').forEach(tag => {
+        const angle = (Math.random() - 0.5) * 5;
         tag.style.transform = `rotate(${angle}deg)`;
     });
 }
@@ -287,7 +275,6 @@ function loadArticles(container = '.articles-grid', articlesList = articles) {
     const grid = document.querySelector(container);
     if (!grid) return;
 
-    // 按照日期降序排序文章列表
     const sortedArticles = [...articlesList].sort((a, b) => {
         const dateA = new Date(a.date || '1970-01-01');
         const dateB = new Date(b.date || '1970-01-01');
@@ -296,26 +283,7 @@ function loadArticles(container = '.articles-grid', articlesList = articles) {
 
     grid.innerHTML = '';
     sortedArticles.forEach(article => {
-        const articleCard = document.createElement('article');
-        articleCard.className = 'article-card';
-        articleCard.innerHTML = `
-            <img src="${article.image}" alt="${article.title}" class="article-image">
-            <div class="article-content">
-                <div class="article-meta">
-                    <span><i class="far fa-calendar"></i> ${article.date}</span>
-                    <span><i class="far fa-clock"></i> ${article.readTime}</span>
-                </div>
-                <h3 class="article-title">${article.title}</h3>
-                <p class="article-excerpt">${article.excerpt}</p>
-                <div class="article-tags">
-                    ${article.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
-                </div>
-            </div>
-        `;
-        articleCard.addEventListener('click', () => {
-            window.location.href = `article-detail.html?id=${article.id}`;
-        });
-        grid.appendChild(articleCard);
+        grid.appendChild(createContentCard(article, 'article'));
     });
     applyRandomRotation(grid.querySelectorAll('.article-card'));
     applyTagRotation(grid);
@@ -323,17 +291,9 @@ function loadArticles(container = '.articles-grid', articlesList = articles) {
 
 // 加载项目列表
 function loadProjects(container = '.projects-grid', projectsList = projects) {
-    console.log('loadProjects function called.');
-    console.log('Container selector:', container);
-    console.log('Projects list:', projectsList);
     const grid = document.querySelector(container);
-    console.log('Grid element:', grid);
-    if (!grid) {
-        console.error('Projects grid element not found:', container);
-        return;
-    }
+    if (!grid) return;
 
-    // 按照日期降序排序项目列表
     const sortedProjects = [...projectsList].sort((a, b) => {
         const dateA = new Date(a.date || a.createdAt || '1970-01-01');
         const dateB = new Date(b.date || b.createdAt || '1970-01-01');
@@ -342,25 +302,7 @@ function loadProjects(container = '.projects-grid', projectsList = projects) {
 
     grid.innerHTML = '';
     sortedProjects.forEach(project => {
-        const projectCard = document.createElement('article');
-        projectCard.className = 'article-card';
-        projectCard.innerHTML = `
-            <img src="${project.image}" alt="${project.title}" class="article-image">
-            <div class="article-content">
-                <div class="article-meta">
-                    <span><i class="far fa-calendar"></i> ${project.date || ''}</span>
-                </div>
-                <h3 class="article-title">${project.title}</h3>
-                <p class="article-excerpt">${project.description}</p>
-                <div class="article-tags">
-                    ${project.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
-                </div>
-            </div>
-        `;
-        projectCard.addEventListener('click', () => {
-            window.location.href = `project-detail.html?id=${project.id}`;
-        });
-        grid.appendChild(projectCard);
+        grid.appendChild(createContentCard(project, 'project'));
     });
     applyRandomRotation(grid.querySelectorAll('.article-card'));
     applyTagRotation(grid);
@@ -371,32 +313,36 @@ function loadArticleDetail() {
     const urlParams = new URLSearchParams(window.location.search);
     const articleId = urlParams.get('id');
     const article = articles.find(a => a.id === articleId);
-    if (article.type === 'md') {
-        article.content = window.marked.parse(article.content);
-    }
+    const detailContainer = document.querySelector('#article-detail');
+    if (!detailContainer) return;
 
     if (!article) {
-        document.querySelector('#article-detail').innerHTML = '<p>文章未找到。</p>';
+        detailContainer.innerHTML = '<p class="not-found">文章未找到。</p>';
         return;
     }
 
-    const detailContainer = document.querySelector('#article-detail');
+    const content = article.type === 'md' && window.marked
+        ? window.marked.parse(article.content)
+        : article.content;
+
     detailContainer.innerHTML = `
         <div class="article-detail-wrapper">
             <h1 class="article-detail-title">${article.title}</h1>
-            <div class="article-detail-tags">
-                ${article.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
+            <div class="article-detail-tags" aria-label="标签">
+                ${renderTags(article.tags)}
             </div>
             <div class="article-detail-meta">
-                <span><i class="far fa-calendar"></i> ${article.date}</span>
-                <span><i class="far fa-clock"></i> ${article.readTime}</span>
+                <span><i class="far fa-calendar" aria-hidden="true"></i> ${article.date}</span>
+                <span><i class="far fa-clock" aria-hidden="true"></i> ${article.readTime}</span>
             </div>
-            <img src="${article.image}" alt="${article.title}" class="article-detail-image">
+            <img src="${article.image}" alt="${article.title}" class="article-detail-image" width="860" height="484" loading="lazy">
             <div class="article-detail-content">
-                ${article.content}
+                ${content}
             </div>
         </div>
     `;
+
+    window.MathJax?.typesetPromise?.();
 }
 
 // 加载项目详情
@@ -404,27 +350,28 @@ function loadProjectDetail() {
     const urlParams = new URLSearchParams(window.location.search);
     const projectId = urlParams.get('id');
     const project = projects.find(p => p.id === projectId);
+    const detailContainer = document.querySelector('#project-detail');
+    if (!detailContainer) return;
 
     if (!project) {
-        document.querySelector('#project-detail').innerHTML = '<p>项目未找到。</p>';
+        detailContainer.innerHTML = '<p class="not-found">项目未找到。</p>';
         return;
     }
 
-    const detailContainer = document.querySelector('#project-detail');
     detailContainer.innerHTML = `
         <div class="article-detail-wrapper">
             <h1 class="article-detail-title">${project.title}</h1>
-            <div class="article-detail-tags">
-                ${project.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
+            <div class="article-detail-tags" aria-label="标签">
+                ${renderTags(project.tags)}
             </div>
             <div class="article-detail-meta">
-                <span><i class="far fa-calendar"></i> ${project.date}</span>
+                <span><i class="far fa-calendar" aria-hidden="true"></i> ${project.date}</span>
             </div>
-            <img src="${project.image}" alt="${project.title}" class="article-detail-image">
+            <img src="${project.image}" alt="${project.title}" class="article-detail-image" width="860" height="484" loading="lazy">
             <div class="article-detail-content">
                 ${project.content}
             </div>
-            <p><a href="${project.link}" target="_blank" class="button">查看项目</a></p>
+            <p><a href="${project.link}" target="_blank" rel="noopener noreferrer" class="button">查看项目</a></p>
         </div>
     `;
 }
@@ -434,13 +381,13 @@ function loadSkills() {
     const skillTags = document.querySelector('.skill-tags');
     if (!skillTags) return;
 
-    skillTags.innerHTML = ''; // Clear existing skill tags
+    skillTags.innerHTML = '';
     skills.forEach(skill => {
         const skillTag = document.createElement('div');
         skillTag.className = 'skill-tag';
         skillTag.innerHTML = `
             <span>${skill.name}</span>
-            <div class="skill-level-bar">
+            <div class="skill-level-bar" aria-hidden="true">
                 <div class="skill-level" style="width: ${skill.level}%;"></div>
             </div>
         `;
@@ -448,41 +395,46 @@ function loadSkills() {
     });
 }
 
+function renderSocialLinks() {
+    return aboutMe.socialLinks.map(link => {
+        const externalAttrs = link.url.startsWith('mailto:')
+            ? ''
+            : ' target="_blank" rel="noopener noreferrer"';
+        return `
+        <a href="${link.url}"${externalAttrs} class="social-link" aria-label="${getSocialLabel(link)}">
+            <i class="${link.icon}" aria-hidden="true"></i>
+        </a>
+    `;
+    }).join('');
+}
+
 // 加载关于我信息
 function loadAboutMe() {
-    console.log('loadAboutMe function called.');
     const aboutSection = document.getElementById('about');
-    console.log('aboutSection:', aboutSection);
     if (!aboutSection) return;
 
     const aboutTextDiv = aboutSection.querySelector('.about-header .about-text');
-    console.log('aboutTextDiv:', aboutTextDiv);
     const aboutImageDiv = aboutSection.querySelector('.about-header .about-image');
-    console.log('aboutImageDiv:', aboutImageDiv);
     const experienceTimeline = aboutSection.querySelector('.experience-section .timeline');
-    console.log('experienceTimeline:', experienceTimeline);
     const interestsGrid = aboutSection.querySelector('.interests-section .interests-grid');
-    console.log('interestsGrid:', interestsGrid);
-    console.log('aboutMe data:', aboutMe);
 
     if (aboutTextDiv) {
         aboutTextDiv.innerHTML = `
             <h2>${aboutMe.name}</h2>
             <p>${aboutMe.bio}</p>
             <div class="social-links">
-                ${aboutMe.socialLinks.map(link => `<a href="${link.url}" target="_blank"><i class="${link.icon}"></i></a>`).join('')}
+                ${renderSocialLinks()}
             </div>
-            <div class="skill-tags"></div> <!-- Add this line -->
+            <div class="skill-tags"></div>
         `;
     }
 
     if (aboutImageDiv) {
         aboutImageDiv.innerHTML = `
-            <img src="${aboutMe.avatar}" alt="${aboutMe.name}" class="about-avatar">
+            <img src="${aboutMe.avatar}" alt="${aboutMe.name}" class="about-avatar" width="130" height="130" loading="lazy">
         `;
     }
 
-    // 加载工作经历
     if (experienceTimeline && aboutMe.experience) {
         experienceTimeline.innerHTML = aboutMe.experience.map(exp => `
             <div class="timeline-item">
@@ -493,57 +445,40 @@ function loadAboutMe() {
         `).join('');
     }
 
-    // 加载兴趣爱好
     if (interestsGrid && aboutMe.interests) {
         interestsGrid.innerHTML = aboutMe.interests.map(interest => `
             <div class="interest-item">${interest}</div>
         `).join('');
     }
 
-    // 重新加载技能标签
     loadSkills();
 }
-
-// 搜索功能
-const searchInput = document.getElementById('searchInput');
-const searchButton = document.getElementById('searchButton');
-const searchOverlay = document.getElementById('searchOverlay');
-const closeSearch = document.getElementById('closeSearch');
-const searchResults = document.getElementById('searchResults');
 
 function stripHTML(html = '') {
     return String(html).replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
 }
 
 function performSearch(query) {
-    query = query.toLowerCase();
+    const normalizedQuery = query.toLowerCase();
     const results = [];
 
-    // 搜索文章
     articles.forEach(article => {
         const contentText = stripHTML(article.content || '');
-        if (article.title.toLowerCase().includes(query) ||
-            article.excerpt.toLowerCase().includes(query) ||
-            contentText.toLowerCase().includes(query) ||
-            article.tags.some(tag => tag.toLowerCase().includes(query))) {
-            results.push({
-                type: 'article',
-                ...article
-            });
+        if (article.title.toLowerCase().includes(normalizedQuery) ||
+            article.excerpt.toLowerCase().includes(normalizedQuery) ||
+            contentText.toLowerCase().includes(normalizedQuery) ||
+            article.tags.some(tag => tag.toLowerCase().includes(normalizedQuery))) {
+            results.push({ type: 'article', ...article });
         }
     });
 
-    // 搜索项目
     projects.forEach(project => {
         const contentText = stripHTML(project.content || '');
-        if (project.title.toLowerCase().includes(query) ||
-            (project.description || '').toLowerCase().includes(query) ||
-            contentText.toLowerCase().includes(query) ||
-            project.tags.some(tag => tag.toLowerCase().includes(query))) {
-            results.push({
-                type: 'project',
-                ...project
-            });
+        if (project.title.toLowerCase().includes(normalizedQuery) ||
+            (project.description || '').toLowerCase().includes(normalizedQuery) ||
+            contentText.toLowerCase().includes(normalizedQuery) ||
+            project.tags.some(tag => tag.toLowerCase().includes(normalizedQuery))) {
+            results.push({ type: 'project', ...project });
         }
     });
 
@@ -551,6 +486,9 @@ function performSearch(query) {
 }
 
 function displaySearchResults(results) {
+    const searchResults = document.getElementById('searchResults');
+    if (!searchResults) return;
+
     searchResults.innerHTML = '';
     if (results.length === 0) {
         searchResults.innerHTML = '<p class="no-results">未找到相关内容</p>';
@@ -558,60 +496,35 @@ function displaySearchResults(results) {
     }
 
     results.forEach(result => {
-        const resultItem = document.createElement('article');
-        resultItem.className = 'article-card';
         const isArticle = result.type === 'article';
-        const desc = isArticle ? result.excerpt : (result.description || '');
-        const img = result.image || '';
-
-        resultItem.innerHTML = `
-            <img src="${img}" alt="${result.title}" class="article-image">
-            <div class="article-content">
-                <div class="article-meta">
-                    <span><i class="far fa-calendar"></i> ${result.date}</span>
-                    ${isArticle ? `<span><i class="far fa-clock"></i> ${result.readTime}</span>` : ''}
-                </div>
-                <h3 class="article-title">${result.title}</h3>
-                <p class="article-excerpt">${desc}</p>
-                <div class="article-tags">
-                    ${result.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
-                </div>
-            </div>
-        `;
-        resultItem.addEventListener('click', () => {
-            if (result.type === 'article') {
-                window.location.href = `article-detail.html?id=${result.id}`;
-            } else {
-                window.location.href = `project-detail.html?id=${result.id}`;
-            }
-        });
-        searchResults.appendChild(resultItem);
+        searchResults.appendChild(createContentCard(result, isArticle ? 'article' : 'project'));
     });
     applyRandomRotation(searchResults.querySelectorAll('.article-card'));
     applyTagRotation(searchResults);
 }
 
-searchButton?.addEventListener('click', () => {
-    const query = searchInput.value.trim();
-    if (query) {
-        // 如果存在独立搜索页，则跳转携带参数
+function initSearchControls() {
+    searchButton?.addEventListener('click', () => {
+        const query = searchInput?.value.trim();
+        if (!query) return;
+
         const searchPageExists = !!document.querySelector('body#search-page');
         if (!searchPageExists) {
             window.location.href = `search.html?q=${encodeURIComponent(query)}`;
             return;
         }
-        const results = performSearch(query);
-        displaySearchResults(results);
-    }
-});
+        displaySearchResults(performSearch(query));
+    });
 
-closeSearch?.addEventListener('click', () => {
-    searchOverlay.classList.remove('active');
-    setTimeout(() => {
-        searchOverlay.style.display = 'none';
-        searchResults.innerHTML = '';
-    }, 300);
-});
+    closeSearch?.addEventListener('click', () => {
+        searchOverlay?.classList.remove('active');
+        setTimeout(() => {
+            if (searchOverlay) searchOverlay.style.display = 'none';
+            const searchResults = document.getElementById('searchResults');
+            if (searchResults) searchResults.innerHTML = '';
+        }, prefersReducedMotion ? 0 : 300);
+    });
+}
 
 function initSearchPage() {
     const input = document.getElementById('searchPageInput') || document.getElementById('searchInput');
@@ -634,66 +547,47 @@ function initSearchPage() {
                 resultsEl.innerHTML = '';
                 return;
             }
-            const results = performSearch(value);
-            displaySearchResults(results);
+            displaySearchResults(performSearch(value));
         }, 150);
     });
 }
 
-// 页面滚动动画
-const observerOptions = {
-    threshold: 0.1
-};
+function initSectionObserver() {
+    const sections = document.querySelectorAll('section');
+    if (prefersReducedMotion || !('IntersectionObserver' in window)) {
+        sections.forEach(section => section.classList.add('visible'));
+        return;
+    }
 
-const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-        if (entry.isIntersecting) {
-            entry.target.classList.add('visible');
-        }
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('visible');
+            }
+        });
+    }, { threshold: 0.1 });
+
+    sections.forEach(section => {
+        observer.observe(section);
     });
-}, observerOptions);
-document.querySelectorAll('section').forEach(section => {
-    observer.observe(section);
-});
-
-// 初始化页面
-// document.addEventListener('DOMContentLoaded', () => {
-//     loadArticles();
-//     loadProjects();
-//     loadSkills();
-//     loadAboutMe();
-// });
-
-// 页面加载时根据URL参数加载文章或项目详情
-// document.addEventListener('DOMContentLoaded', () => {
-//     if (document.body.id === 'articles-page') {
-//         loadArticles();
-//     } else if (document.body.id === 'projects-page') {
-//         loadProjects();
-//     } else if (document.body.id === 'article-detail-page') {
-//         loadArticleDetail();
-//     } else if (document.body.id === 'project-detail-page') {
-//         loadProjectDetail();
-//     }
-// });
+}
 
 function loadFooterSocialLinks() {
     const footerSocialLinksDiv = document.querySelector('footer .social-links');
-    console.log('loadFooterSocialLinks: footerSocialLinksDiv =', footerSocialLinksDiv);
-    console.log('loadFooterSocialLinks: aboutMe.socialLinks =', aboutMe.socialLinks);
     if (footerSocialLinksDiv && aboutMe.socialLinks) {
-        footerSocialLinksDiv.innerHTML = aboutMe.socialLinks.map(link => `
-            <a href="${link.url}" target="_blank"><i class="${link.icon}"></i></a>
-        `).join('');
+        footerSocialLinksDiv.innerHTML = renderSocialLinks();
     }
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+    hideLoadingScreen();
+    initNavigation();
+    initSearchControls();
+
     if (document.body.id === 'home-page') {
         initSlider();
         loadArticles();
         loadProjects();
-        loadSkills();
         loadAboutMe();
     } else if (document.body.id === 'articles-page') {
         loadArticles('.articles-grid', articles);
@@ -705,6 +599,12 @@ document.addEventListener('DOMContentLoaded', () => {
         loadProjectDetail();
     } else if (document.body.id === 'about-page') {
         loadAboutMe();
+    } else if (document.body.id === 'search-page') {
+        initSearchPage();
+    } else if (document.body.id === 'archive-page') {
+        createTimeline(prefersReducedMotion);
     }
-    loadFooterSocialLinks(); // Call the new function here
+
+    loadFooterSocialLinks();
+    initSectionObserver();
 });

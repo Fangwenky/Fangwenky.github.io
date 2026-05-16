@@ -25,7 +25,12 @@
     --shadow-note: 3px 4px 0px var(--color-border);
     --shadow-note-hover: 6px 8px 24px rgba(231, 111, 81, 0.18);
     --shadow-float: 0 8px 24px rgba(93, 64, 55, 0.12);
-    --transition: all 0.35s cubic-bezier(0.25, 0.8, 0.25, 1);
+    --transition: color 0.35s cubic-bezier(0.25, 0.8, 0.25, 1),
+        background-color 0.35s cubic-bezier(0.25, 0.8, 0.25, 1),
+        border-color 0.35s cubic-bezier(0.25, 0.8, 0.25, 1),
+        box-shadow 0.35s cubic-bezier(0.25, 0.8, 0.25, 1),
+        opacity 0.35s cubic-bezier(0.25, 0.8, 0.25, 1),
+        transform 0.35s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
 /* ---------- 基础重置 ---------- */
@@ -47,7 +52,20 @@ body {
     color: var(--color-text);
     line-height: 1.7;
     min-height: 100vh;
+    overflow-x: hidden;
     -webkit-font-smoothing: antialiased;
+}
+
+.visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
 }
 
 /* 标题统一使用手写体 */
@@ -86,6 +104,13 @@ a {
 
 a:hover {
     color: var(--color-secondary);
+}
+
+a:focus-visible,
+button:focus-visible,
+input:focus-visible {
+    outline: 3px solid rgba(231, 111, 81, 0.45);
+    outline-offset: 4px;
 }
 
 img {
@@ -231,6 +256,9 @@ img {
     gap: 5px;
     cursor: pointer;
     padding: 5px;
+    background: transparent;
+    border: 0;
+    border-radius: 8px;
 }
 
 .nav-toggle span {
@@ -315,6 +343,7 @@ section.visible {
     color: #fff;
     padding: 1.5rem;
     cursor: pointer;
+    text-decoration: none;
 }
 
 .slider-item img {
@@ -329,6 +358,10 @@ section.visible {
 }
 
 .slider-item:hover img {
+    transform: scale(1.05);
+}
+
+.slider-item:focus-visible img {
     transform: scale(1.05);
 }
 
@@ -359,6 +392,10 @@ section.visible {
     transform: translateY(-8px);
 }
 
+.slider-item:focus-visible .slider-title {
+    transform: translateY(-8px);
+}
+
 .slider-description {
     font-family: var(--font-body);
     font-size: 0.9rem;
@@ -375,6 +412,12 @@ section.visible {
 }
 
 .slider-item:hover .slider-description {
+    opacity: 1;
+    max-height: 100px;
+    transform: translateY(-6px);
+}
+
+.slider-item:focus-visible .slider-description {
     opacity: 1;
     max-height: 100px;
     transform: translateY(-6px);
@@ -449,6 +492,10 @@ section.visible {
     background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 2C13.1 2 14 2.9 14 4C14 5.1 13.1 6 12 6C10.9 6 10 5.1 10 4C10 2.9 10.9 2 12 2M12 18C13.1 18 14 18.9 14 20C14 21.1 13.1 22 12 22C10.9 22 10 21.1 10 20C10 18.9 10.9 18 12 18M4 12C4 10.9 4.9 10 6 10C7.1 10 8 10.9 8 12C8 13.1 7.1 14 6 14C4.9 14 4 13.1 4 12M20 12C20 10.9 20.9 10 22 10C23.1 10 24 10.9 24 12C24 13.1 23.1 14 22 14C20.9 14 20 13.1 20 12' fill='%23D7CCC8'/%3E%3C/svg%3E") no-repeat center;
     background-size: contain;
     opacity: 0.6;
+    border: 0;
+    padding: 0;
+    background-color: transparent;
+    appearance: none;
 }
 
 .dot.active {
@@ -478,7 +525,10 @@ section.visible {
 .article-card,
 .project-card,
 .search-card {
+    display: block;
     background: var(--color-card);
+    color: inherit;
+    text-decoration: none;
     border-radius: var(--radius-card);
     overflow: hidden;
     box-shadow: var(--shadow-note);
@@ -540,6 +590,7 @@ section.visible {
 }
 
 .article-card:hover .article-title,
+.article-card:focus-visible .article-title,
 .project-card:hover .project-title {
     color: var(--color-primary);
 }
@@ -875,7 +926,7 @@ section.visible {
     position: relative;
     transform: translateY(-50px);
     opacity: 0;
-    transition: all 0.4s ease;
+    transition: opacity 0.4s ease, transform 0.4s ease;
     box-shadow: var(--shadow-float);
 }
 
@@ -933,7 +984,6 @@ section.visible {
     color: var(--color-text);
     background: var(--color-bg);
     transition: var(--transition);
-    outline: none;
 }
 
 #searchPageInput:focus,
@@ -998,6 +1048,9 @@ section.visible {
     position: relative;
     width: 45%;
     transition: var(--transition);
+    display: block;
+    color: inherit;
+    text-decoration: none;
 }
 
 /* 左右交替 */
@@ -1392,6 +1445,41 @@ section.visible {
     .article-detail-title,
     .project-detail-title {
         font-size: 1.7rem;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        scroll-behavior: auto !important;
+        transition-duration: 0.01ms !important;
+    }
+
+    section {
+        opacity: 1;
+        transform: none;
+    }
+
+    .article-card,
+    .project-card,
+    .search-card,
+    .timeline-item,
+    .tag,
+    .slider-item:hover img,
+    .slider-item:focus-visible img,
+    .slider-item:hover .slider-title,
+    .slider-item:focus-visible .slider-title,
+    .slider-item:hover .slider-description,
+    .slider-item:focus-visible .slider-description {
+        transform: none !important;
+    }
+
+    .slider-description {
+        opacity: 1;
+        max-height: none;
     }
 }
 
