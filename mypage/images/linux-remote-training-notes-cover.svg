@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 540" role="img" aria-labelledby="title desc">
+  <title id="title">Linux Remote Training Notes Cover</title>
+  <desc id="desc">A terminal window for remote deep learning training with GPU and tmux notes.</desc>
+  <rect width="960" height="540" fill="#fff8f3"/>
+  <rect x="86" y="82" width="788" height="376" rx="18" fill="#263238" stroke="#5d4037" stroke-width="4"/>
+  <rect x="86" y="82" width="788" height="48" rx="18" fill="#5d4037"/>
+  <circle cx="124" cy="106" r="8" fill="#e76f51"/>
+  <circle cx="152" cy="106" r="8" fill="#e9c46a"/>
+  <circle cx="180" cy="106" r="8" fill="#2a9d8f"/>
+  <g font-family="SF Mono, Menlo, Consolas, monospace" font-size="22">
+    <text x="126" y="178" fill="#e9c46a">$ ssh ai-server</text>
+    <text x="126" y="220" fill="#a7f3d0">$ tmux new -s train</text>
+    <text x="126" y="262" fill="#fef3c7">$ nvidia-smi</text>
+    <text x="126" y="304" fill="#c7d2fe">$ python train.py | tee logs/run.log</text>
+    <text x="126" y="364" fill="#fff8f3">GPU 0  [██████████░░]  82%</text>
+    <text x="126" y="406" fill="#fff8f3">loss: 0.342  acc: 88.7%</text>
+  </g>
+  <text x="610" y="414" font-family="Noto Sans SC, Arial, sans-serif" font-size="34" font-weight="700" fill="#fff8f3">Remote Training</text>
+</svg>

@@ -562,4 +562,672 @@ export const articles = [
 *   若 $X_i$ 独立且 $E[X_i]=1$，则 $Z_n = \\prod_{i=1}^n X_i$ 是鞅。
         `
     },  
+    {
+        id: 'transformer-attention-notes',
+        title: '读懂 Transformer 的第一步：从 Attention 公式开始拆解',
+        excerpt: 'Transformer 总被说成是大模型时代的地基，但第一次看 Attention 公式时很容易只记住 Q、K、V 三个字母。本文从直觉、矩阵形状和代码实现三个角度，记录我第一次真正读懂注意力机制的过程。',
+        date: '2025-12-14',
+        tags: ['Transformer', 'Attention', 'NLP', '论文精读'],
+        image: 'images/transformer-attention-notes-cover.svg',
+        readTime: '9 分钟阅读',
+        category: '论文精读',
+        type: 'html',
+        content: `
+            <h2>为什么 Attention 这么重要？</h2>
+            <p>学深度学习时，总会在某个节点遇到 Transformer。无论是 ChatGPT、BERT、ViT，还是各种多模态模型，最后都会绕回那个看起来很简洁的公式：</p>
+            <pre><code>Attention(Q, K, V) = softmax(QK^T / sqrt(d_k))V</code></pre>
+            <p>这行公式第一次看非常像咒语：Q 是什么，K 是什么，为什么要除以根号 d，最后为什么又乘 V？如果只是背下来，其实很快就会忘掉。我这次的目标不是“能说出 Transformer 很强”，而是把这个公式拆到自己能用 NumPy 写出来。</p>
+
+            <h2>先从直觉理解：在一堆信息里找重点</h2>
+            <p>Attention 的核心想法可以粗暴理解成：当前这个 token 想知道“我应该重点看谁”。比如句子“我把书放进书包，因为它很重”里，“它”到底指书还是书包？模型需要根据上下文分配注意力权重。</p>
+            <p>Query 可以看成“我想找什么”，Key 可以看成“我这里有什么特征”，Value 则是“如果你关注我，就从我这里拿走的信息”。Q 和 K 做点积，就是在算“需求”和“特征”有多匹配；softmax 把匹配分数变成概率；最后用这些概率去加权 V。</p>
+
+            <h2>矩阵形状比公式更重要</h2>
+            <p>我以前看公式总是卡住，后来发现最有效的方法是盯住 shape。假设一个句子有 6 个 token，每个 token 的向量维度是 64，那么输入矩阵可以记作：</p>
+            <pre><code>X: [6, 64]
+W_q, W_k, W_v: [64, 64]
+Q = XW_q: [6, 64]
+K = XW_k: [6, 64]
+V = XW_v: [6, 64]</code></pre>
+            <p>接下来 <code>QK^T</code> 的形状是 <code>[6, 6]</code>。这张 6×6 的表非常关键：第 i 行代表第 i 个 token 对所有 token 的关注程度。也就是说，Attention 并不是某种玄学，它首先是一张“token 之间互相关注的关系表”。</p>
+
+            <h2>为什么要除以 sqrt(d_k)？</h2>
+            <p>这个细节我卡过一会儿。直觉上，向量维度越大，点积的数值波动也会越大。如果不做缩放，softmax 前的分数可能特别极端，导致输出概率过早接近 0 或 1，梯度变得不好训练。</p>
+            <p>除以 <code>sqrt(d_k)</code> 本质上是在稳定数值范围，让 softmax 不至于太“自信”。这和很多深度学习技巧的气质很像：不是改变表达能力，而是让训练更稳。</p>
+
+            <h2>用 NumPy 写一个最小版 Self-Attention</h2>
+            <p>理解 Attention 后，我试着写了一个最小版本。代码没有考虑 batch 和多头，只保留最核心的计算过程：</p>
+            <pre><code class="language-python">import numpy as np
+
+def softmax(x):
+    x = x - np.max(x, axis=-1, keepdims=True)
+    exp_x = np.exp(x)
+    return exp_x / np.sum(exp_x, axis=-1, keepdims=True)
+
+def self_attention(X, W_q, W_k, W_v):
+    Q = X @ W_q
+    K = X @ W_k
+    V = X @ W_v
+    d_k = Q.shape[-1]
+    scores = Q @ K.T / np.sqrt(d_k)
+    weights = softmax(scores)
+    output = weights @ V
+    return output, weights</code></pre>
+            <p>写完之后再回头看公式，感觉就完全不一样了。公式不是在描述某个不可触碰的黑箱，而是在写一个非常具体的矩阵计算流程。</p>
+
+            <h2>Multi-Head Attention 到底多了什么？</h2>
+            <p>多头注意力并不是把 Attention 变复杂，而是让模型从多个角度看同一段文本。有的头可能关注语法关系，有的头可能关注指代关系，有的头可能关注局部相邻信息。</p>
+            <p>从实现上看，就是把 hidden dimension 切成多个 head，每个 head 单独做一次 Attention，再拼接回来。它像是给模型配了多副不同焦距的眼镜，而不是只用一种相似度标准理解整句话。</p>
+
+            <h2>这次学习留下的三个结论</h2>
+            <ul>
+                <li><strong>先看 shape，再看公式。</strong> 对深度学习模型来说，shape 经常比符号本身更能解释问题。</li>
+                <li><strong>Q、K、V 不是神秘概念。</strong> 它们只是同一个输入经过三组不同线性变换得到的表示。</li>
+                <li><strong>Attention 的本质是动态加权。</strong> 模型不是固定抽取特征，而是根据当前 token 动态决定看哪里。</li>
+            </ul>
+            <h2>实现时最容易踩的几个坑</h2>
+            <p>真正写代码时，我发现 Attention 的难点不在公式，而在维度管理和 mask。训练语言模型时，当前位置不能看到未来 token，所以需要 causal mask；处理不同长度句子时，又需要 padding mask。两个 mask 的含义不同，但都会作用在 softmax 之前的 score 上。</p>
+            <pre><code class="language-python"># mask 的常见做法：在 softmax 前把禁止关注的位置变成很小的数
+scores = scores.masked_fill(mask == 0, -1e9)
+weights = softmax(scores)</code></pre>
+            <p>另一个坑是数值稳定。softmax 之前如果 score 太大，很容易出现溢出，所以实现 softmax 时通常会先减去最大值。很多框架帮我们做了这些细节，但自己写一遍后才知道“稳定训练”背后有很多小心思。</p>
+            <h2>我会如何检查自己是否真的懂了？</h2>
+            <p>我给自己设了三个检验标准：第一，能画出 Q、K、V 的 shape 流程；第二，能解释为什么输出是所有 value 的加权和；第三，能说清 mask 加在哪里以及为什么。只要其中任何一个说不清，就说明理解还停留在背公式阶段。</p>
+            <p>下一步我打算继续拆 Transformer 的 Feed Forward、残差连接和 LayerNorm。真正读懂一个模型，大概就是把每一块“看起来理所当然”的模块都重新问一遍为什么。</p>
+        `
+    },
+    {
+        id: 'training-debugging-diary',
+        title: '模型训练不动时，我通常按这个清单排查',
+        excerpt: '训练深度学习模型最痛苦的时刻，不是报错，而是 loss 一动不动。本文整理了我在 PyTorch 训练中常用的排查顺序：数据、标签、学习率、梯度、模型容量和验证集。',
+        date: '2025-12-29',
+        tags: ['PyTorch', '训练技巧', 'Debug', '深度学习'],
+        image: 'images/training-debugging-diary-cover.svg',
+        readTime: '8 分钟阅读',
+        category: '工程笔记',
+        type: 'html',
+        content: `
+            <h2>最可怕的 bug：它不报错</h2>
+            <p>写深度学习代码有一种很折磨人的情况：程序能跑，显存正常占用，进度条也很优雅地往前走，但 loss 像被钉住了一样，准确率也像随机猜测。它不报错，所以你甚至不知道该骂谁。</p>
+            <p>踩过几次坑之后，我逐渐整理出一套自己的排查顺序。它不保证能解决所有问题，但至少能让我不要在凌晨两点盯着 loss 曲线开始怀疑人生。</p>
+
+            <h2>第一步：先看数据，不要先怪模型</h2>
+            <p>很多训练问题最后都不是模型问题，而是数据问题。我的第一步永远是把一个 batch 取出来，直接打印或可视化。</p>
+            <pre><code class="language-python">images, labels = next(iter(train_loader))
+print(images.shape, labels.shape)
+print(images.min().item(), images.max().item())
+print(labels[:16])</code></pre>
+            <p>如果是图像任务，我会把图片画出来，确认增强没有把图弄坏；如果是文本任务，我会把 token decode 回文本，确认分词和截断没有离谱。不要小看这一步，我见过标签错位、图片全黑、归一化做了两次、类别编号从 1 开始但 loss 期望从 0 开始等各种问题。</p>
+
+            <h2>第二步：做一个 overfit 小实验</h2>
+            <p>这是我觉得最有用的检查方法：拿 16 或 32 条样本，让模型强行记住它们。如果模型连这点数据都拟合不了，那说明训练链路一定有问题。</p>
+            <pre><code class="language-python">small_dataset = torch.utils.data.Subset(train_dataset, range(32))
+small_loader = DataLoader(small_dataset, batch_size=32, shuffle=True)</code></pre>
+            <p>正常情况下，一个容量足够的模型应该能很快把这 32 条样本的 loss 打到很低。如果做不到，我就会继续检查 loss、optimizer、梯度和标签。</p>
+
+            <h2>第三步：检查 loss 和输出是否匹配</h2>
+            <p>PyTorch 里有些 loss 的输入要求非常具体。比如 <code>nn.CrossEntropyLoss</code> 期待的是未经过 softmax 的 logits，而不是概率。如果你手动做了 softmax，再送进 CrossEntropyLoss，训练可能就会变得很怪。</p>
+            <pre><code class="language-python"># 正确：model 输出 logits
+logits = model(x)
+loss = nn.CrossEntropyLoss()(logits, y)
+
+# 不推荐：先 softmax 再 CrossEntropyLoss
+probs = torch.softmax(logits, dim=1)
+loss = nn.CrossEntropyLoss()(probs, y)</code></pre>
+            <p>二分类、多标签分类、回归任务也各有不同的 loss 搭配。这里一旦错了，模型可能还能跑，但学到的东西完全不对。</p>
+
+            <h2>第四步：观察梯度，而不是只看 loss</h2>
+            <p>如果 loss 不动，我会打印几个关键层的梯度范数。梯度全是 0，可能是激活饱和、detach 断图、学习率太小；梯度特别大，可能是学习率太高或数据尺度有问题。</p>
+            <pre><code class="language-python">for name, param in model.named_parameters():
+    if param.grad is not None:
+        print(name, param.grad.norm().item())</code></pre>
+            <p>这一步能直接告诉我：模型到底有没有收到学习信号。很多时候我们以为模型在训练，其实梯度根本没传到某些层。</p>
+
+            <h2>第五步：学习率是第一嫌疑人</h2>
+            <p>学习率太大，loss 会震荡甚至爆炸；学习率太小，loss 像睡着一样。我现在一般会先尝试 <code>1e-3</code>、<code>3e-4</code>、<code>1e-4</code> 三档，再根据曲线微调。</p>
+            <p>如果训练前期完全不下降，我会先把学习率调大一点试试；如果 loss 上下乱跳，就降学习率。不要在模型结构上急着动刀，学习率往往比想象中更关键。</p>
+
+            <h2>第六步：区分“学不会”和“泛化差”</h2>
+            <p>训练集 loss 下不去，说明优化或模型容量有问题；训练集很好但验证集差，说明过拟合或数据分布有问题。这两个问题的解决方向完全不同。</p>
+            <ul>
+                <li>训练集也很差：检查数据、loss、学习率、模型容量。</li>
+                <li>训练集很好，验证集差：加数据增强、正则化、dropout，或者检查验证集分布。</li>
+                <li>训练和验证都忽上忽下：检查 batch size、学习率、随机种子和数据采样。</li>
+            </ul>
+            <h2>我现在会记录哪些训练信息？</h2>
+            <p>以前我只记得“这个模型好像跑到 80% 了”，过几天再回来完全不知道当时用了什么参数。现在我会强迫自己至少记录这些内容：数据版本、模型结构、学习率、batch size、随机种子、训练轮数、最好的验证指标和失败备注。</p>
+            <pre><code>run_name: cnn_cifar10_aug_v2
+lr: 3e-4
+batch_size: 128
+seed: 42
+best_val_acc: 78.4
+note: color jitter helps, random crop too strong hurts</code></pre>
+            <p>这件事看起来很笨，但它能避免大量重复试错。训练模型最怕的是“凭感觉调参”，因为感觉不会自动保存，也没法复盘。</p>
+            <h2>关于数据增强的一点经验</h2>
+            <p>数据增强不是越强越好。比如图像分类里随机裁剪、颜色扰动、翻转都很常见，但如果增强破坏了类别本身的关键特征，模型会学得更乱。我的做法是每加一种增强，都先可视化几十张增强后的图片，确认人眼还能判断标签。</p>
+
+            <h2>我的最终排查清单</h2>
+            <ol>
+                <li>可视化一个 batch，确认输入和标签正确。</li>
+                <li>用极小数据集做 overfit 测试。</li>
+                <li>确认 loss 输入格式与任务匹配。</li>
+                <li>打印梯度范数，确认反向传播没有断。</li>
+                <li>扫几档学习率，看 loss 曲线是否有响应。</li>
+                <li>分别观察训练集和验证集，判断是优化问题还是泛化问题。</li>
+            </ol>
+            <p>训练模型像排水管堵塞：不要一上来就拆整栋楼，先沿着水流一段段看哪里堵了。把这个过程清单化之后，debug 的痛苦会少很多。</p>
+        `
+    },
+    {
+        id: 'rag-first-principles',
+        title: 'RAG 到底在解决什么问题？从搜索增强生成开始理解大模型应用',
+        excerpt: 'RAG 不是简单地“把文档塞给大模型”，而是一套把检索、切分、向量化、排序和生成连接起来的工程流程。本文记录我从零理解 RAG 的过程。',
+        date: '2026-01-12',
+        tags: ['大模型', 'RAG', '向量数据库', '信息检索'],
+        image: 'images/rag-first-principles-cover.svg',
+        readTime: '11 分钟阅读',
+        category: '大模型应用',
+        type: 'html',
+        content: `
+            <h2>RAG 不是大模型的外挂记忆</h2>
+            <p>刚听到 RAG（Retrieval-Augmented Generation）时，我以为它就是“把资料丢给大模型，让它照着回答”。真正做了一点实验后才发现，这个理解太粗糙了。</p>
+            <p>RAG 更像是一套工程系统：先从知识库里找到相关信息，再把这些信息组织成上下文，最后交给大模型生成答案。它解决的核心问题不是“让模型更聪明”，而是让模型在回答时有可靠、可更新、可追溯的外部依据。</p>
+
+            <h2>为什么不能直接微调？</h2>
+            <p>如果只是让模型记住一些固定知识，微调看起来也能做到。但现实里知识经常变化，比如课程资料、项目文档、API 文档、实验记录。如果每次资料更新都重新训练模型，成本太高，也不灵活。</p>
+            <p>RAG 的优势在于知识库可以独立更新。模型本身负责理解和表达，知识库负责提供事实来源。这种分工非常适合个人知识库、课程问答、企业文档助手等场景。</p>
+
+            <h2>一个最小 RAG 系统包含什么？</h2>
+            <p>我把 RAG 拆成五个步骤：</p>
+            <ol>
+                <li><strong>文档加载：</strong> 读取 markdown、PDF、网页或代码文件。</li>
+                <li><strong>文本切分：</strong> 把长文档切成适合检索的小块。</li>
+                <li><strong>向量化：</strong> 用 embedding 模型把文本块转成向量。</li>
+                <li><strong>相似度检索：</strong> 根据用户问题找到最相关的若干文本块。</li>
+                <li><strong>生成回答：</strong> 把检索结果和问题一起交给大模型。</li>
+            </ol>
+            <p>其中最容易被忽略的是第二步：切分。切得太碎，信息不完整；切得太长，检索不精准，而且浪费上下文窗口。</p>
+
+            <h2>文本切分比想象中更重要</h2>
+            <p>我一开始按固定长度切，比如每 500 个字符一块。这样做简单，但经常把一个完整概念切断。后来我更倾向按标题、段落、代码块边界切分，再加一点 overlap。</p>
+            <pre><code class="language-python"># 伪代码：更偏向语义边界的切分思路
+chunks = []
+for section in split_by_markdown_headings(document):
+    for block in split_by_paragraphs(section):
+        chunks.append(block)</code></pre>
+            <p>好的 chunk 应该像一张自包含的小卡片：即使单独拿出来，也能让模型知道它在讲什么。</p>
+
+            <h2>向量检索不是关键词搜索的替代品</h2>
+            <p>Embedding 检索擅长语义相似，但并不总是比关键词搜索强。比如查函数名、参数名、论文里的专有缩写时，关键词反而更稳。很多成熟系统会把向量检索和关键词检索混合起来，再做 rerank。</p>
+            <p>这让我意识到：RAG 不是一个单一算法，而是一组信息检索技术和生成模型的组合。它更像搜索引擎和聊天机器人的混血。</p>
+
+            <h2>RAG 最常见的失败模式</h2>
+            <ul>
+                <li><strong>检索不到：</strong> 知识库里有答案，但 embedding 没把相关 chunk 找出来。</li>
+                <li><strong>检索太多：</strong> 上下文里塞了很多弱相关内容，模型反而被干扰。</li>
+                <li><strong>引用不准：</strong> 模型生成时混合了多个来源，导致看起来有依据但其实张冠李戴。</li>
+                <li><strong>问题太宽泛：</strong> 用户问得太大，检索结果分散，回答也会变虚。</li>
+            </ul>
+            <h2>一个更完整的 RAG 设计草图</h2>
+            <p>如果把 RAG 真正做成一个可用的小系统，我会把它拆成离线和在线两条链路。离线链路负责清洗资料、切分 chunk、生成 embedding、写入索引；在线链路负责理解问题、检索、重排、拼上下文、生成答案和返回引用。</p>
+            <pre><code>offline: documents -> clean -> chunk -> embed -> vector index
+online: question -> retrieve -> rerank -> prompt -> answer + citations</code></pre>
+            <p>这样拆分以后，问题也更容易定位。回答不好时，可以分别检查：是不是文档没进库，是不是 chunk 切坏了，是不是检索没召回，是不是 prompt 没约束，还是模型生成时没有忠实引用。</p>
+            <h2>引用比答案更重要</h2>
+            <p>学习型 RAG 里，我越来越觉得引用比漂亮回答更重要。如果一个回答不能指出依据来自哪段笔记，我就很难信任它。哪怕回答稍微笨一点，只要能把来源列出来，用户也可以自己判断。</p>
+            <p>因此我会让系统输出“答案 + 依据片段 + 不确定性说明”。这比单纯追求流畅自然更适合学习场景。</p>
+
+            <h2>我对 RAG 的新理解</h2>
+            <p>RAG 的难点不在“调用一个向量数据库”，而在如何把知识整理成可检索、可组合、可验证的形态。它需要一点 NLP，一点搜索系统，一点后端工程，还有很多对业务资料的理解。</p>
+            <p>如果以后我要做自己的学习助手，我会先从课程笔记和博客文章开始建知识库。因为这些内容结构清晰、更新频率适中，而且回答错了也容易验证。等这个小系统跑顺了，再考虑接入 PDF、代码仓库和实验记录。</p>
+        `
+    },
+    {
+        id: 'linux-remote-training-notes',
+        title: '第一次认真用 Linux 跑训练：服务器环境生存笔记',
+        excerpt: '从本地 Jupyter 到远程服务器，中间隔着 SSH、conda、tmux、CUDA、日志和显存管理。本文整理我第一次认真在 Linux 服务器上跑模型训练时踩过的坑。',
+        date: '2026-01-28',
+        tags: ['Linux', '深度学习', '服务器', '工程实践'],
+        image: 'images/linux-remote-training-notes-cover.svg',
+        readTime: '9 分钟阅读',
+        category: '工程笔记',
+        type: 'html',
+        content: `
+            <h2>从本地到服务器，不只是换一台电脑</h2>
+            <p>以前在自己电脑上跑实验，最常见的流程是打开 IDE，点运行，等结果。真正开始用服务器训练模型后，我才发现深度学习工程里有一大块技能叫“让实验稳定地在远程机器上活下来”。</p>
+            <p>服务器不会因为你关掉电脑而停止，但如果不会用 tmux、不会看日志、不会管理环境，那它也不会自动替你变得可靠。</p>
+
+            <h2>SSH：进入服务器的第一扇门</h2>
+            <p>最基础的连接命令是：</p>
+            <pre><code class="language-bash">ssh username@server_ip</code></pre>
+            <p>但频繁输入 IP 和用户名很麻烦，所以我把配置写进了 <code>~/.ssh/config</code>：</p>
+            <pre><code class="language-bash">Host ai-server
+    HostName 192.168.1.100
+    User wenky
+    Port 22</code></pre>
+            <p>之后只需要 <code>ssh ai-server</code> 就能连接。这个小配置非常提升幸福感。</p>
+
+            <h2>tmux：让训练不要死在断网里</h2>
+            <p>如果直接在 SSH 会话里跑训练，一旦网络断开，进程可能就没了。tmux 的作用是创建一个持久会话，让训练在后台继续跑。</p>
+            <pre><code class="language-bash">tmux new -s train
+python train.py
+
+# 退出但不终止会话：Ctrl-b 然后按 d
+tmux attach -t train</code></pre>
+            <p>这大概是我学服务器训练时最值得优先掌握的工具。它不复杂，但能救命。</p>
+
+            <h2>环境管理：不要污染 base</h2>
+            <p>我一开始喜欢直接在 base 环境里装包，后来很快就乱了。现在的习惯是每个项目单独建环境：</p>
+            <pre><code class="language-bash">conda create -n cv-exp python=3.10
+conda activate cv-exp
+pip install torch torchvision</code></pre>
+            <p>如果项目要长期维护，就把依赖写进 <code>requirements.txt</code> 或环境文件里。否则过两周回来，自己都不知道当时装了什么。</p>
+
+            <h2>CUDA 和 PyTorch 版本要对齐</h2>
+            <p>深度学习环境最容易炸的地方就是 CUDA。我的经验是不要凭感觉安装，先确认驱动和 CUDA 情况：</p>
+            <pre><code class="language-bash">nvidia-smi
+python -c "import torch; print(torch.cuda.is_available())"</code></pre>
+            <p>如果 <code>torch.cuda.is_available()</code> 是 False，不要急着改代码，先看 PyTorch 安装版本、CUDA runtime 和显卡驱动是否匹配。</p>
+
+            <h2>日志：训练过程要可回放</h2>
+            <p>远程训练不能只靠终端输出。我现在至少会把关键日志写到文件：</p>
+            <pre><code class="language-bash">python train.py 2>&1 | tee logs/train_20260128.log</code></pre>
+            <p>这样即使终端滚过去了，也能回头看 loss、准确率、报错和超参数。对于长时间训练来说，日志就是实验的记忆。</p>
+
+            <h2>显存管理：先看谁占了 GPU</h2>
+            <p>服务器经常多人共用，训练前先看显卡状态是一种礼貌：</p>
+            <pre><code class="language-bash">nvidia-smi</code></pre>
+            <p>如果显存被占满，不要随便 kill 别人的进程。确认是自己的残留进程后，再处理。很多时候显存没释放，是因为之前的 notebook 或训练进程还挂着。</p>
+            <h2>文件同步和结果备份</h2>
+            <p>另一个容易忽视的问题是文件同步。代码可以用 Git 管，但数据、日志、模型权重通常不会直接提交。我现在会把目录分清楚：<code>src/</code> 放代码，<code>configs/</code> 放配置，<code>logs/</code> 放日志，<code>checkpoints/</code> 放模型，避免训练几次后项目根目录变成垃圾场。</p>
+            <pre><code class="language-bash">project/
+  src/
+  configs/
+  logs/
+  checkpoints/
+  data/</code></pre>
+            <p>重要的实验结果要及时下载或同步。服务器不是永远可靠的，队列任务、磁盘清理、误删文件都有可能发生。工程上的“安全感”，很多时候来自朴素的备份习惯。</p>
+            <h2>配置文件比命令行参数更适合复现实验</h2>
+            <p>当参数越来越多时，一长串命令很难复现。我更喜欢把参数写成 yaml 或 json，再让训练脚本读取配置。这样每次实验都能保存一份完整配置，后面看到某个 checkpoint 时，也知道它是怎么训练出来的。</p>
+
+            <h2>我的服务器训练最小工作流</h2>
+            <ol>
+                <li>SSH 登录服务器。</li>
+                <li>进入项目目录，激活 conda 环境。</li>
+                <li>用 tmux 创建训练会话。</li>
+                <li>检查 GPU 状态。</li>
+                <li>运行训练，并把日志写入文件。</li>
+                <li>定期查看日志和显存，不直接盯终端发呆。</li>
+            </ol>
+            <p>服务器环境一开始很像黑盒，但把这些工具串起来之后，它就变成了一个稳定的实验平台。工程能力很多时候不是写更复杂的模型，而是让模型在正确的环境里可靠地跑完。</p>
+        `
+    },
+    {
+        id: 'resnet-skip-connection-notes',
+        title: '为什么 ResNet 能训练得更深？我对残差连接的理解',
+        excerpt: '深层网络并不是简单地“层数越多越强”。ResNet 的残差连接解决了深层网络退化问题，也给后来的大模型结构留下了很深的影响。',
+        date: '2026-02-16',
+        tags: ['ResNet', 'CNN', '计算机视觉', '深度学习'],
+        image: 'images/resnet-skip-connection-notes-cover.svg',
+        readTime: '10 分钟阅读',
+        category: '论文精读',
+        type: 'html',
+        content: `
+            <h2>层数越深，模型一定越好吗？</h2>
+            <p>刚学神经网络时，我很自然地以为：模型层数越多，表达能力越强，效果也应该越好。但 ResNet 论文告诉我，事情没有这么简单。</p>
+            <p>深层网络会遇到退化问题：不是过拟合，而是训练集误差本身变高。也就是说，模型明明更复杂，却连训练数据都拟合得更差。这说明问题出在优化过程，而不是模型容量不够。</p>
+
+            <h2>残差连接的核心想法</h2>
+            <p>普通网络学习的是一个映射 <code>H(x)</code>。ResNet 改成让网络学习残差 <code>F(x) = H(x) - x</code>，最后输出：</p>
+            <pre><code>y = F(x) + x</code></pre>
+            <p>如果某几层暂时学不到有用东西，最差也可以让 <code>F(x)</code> 接近 0，这样输出就接近输入。换句话说，残差连接给深层网络提供了一条“保底通道”。</p>
+
+            <h2>这条捷径为什么有用？</h2>
+            <p>我对 skip connection 的理解有三层：</p>
+            <ol>
+                <li><strong>信息更容易流动。</strong> 输入可以直接跨层传到后面，不必每一层都重新编码。</li>
+                <li><strong>梯度更容易回传。</strong> 反向传播时，梯度也有更短的路径传回浅层。</li>
+                <li><strong>优化目标更温和。</strong> 学一个“修改量”有时比学完整映射更容易。</li>
+            </ol>
+            <p>这让我想起写代码时的补丁：与其重写整个系统，不如在已有结果上学习一个增量修改。</p>
+
+            <h2>一个最小残差块</h2>
+            <p>用 PyTorch 写一个非常简化的残差块，大概是这样：</p>
+            <pre><code class="language-python">class ResidualBlock(nn.Module):
+    def __init__(self, channels):
+        super().__init__()
+        self.conv = nn.Sequential(
+            nn.Conv2d(channels, channels, 3, padding=1),
+            nn.BatchNorm2d(channels),
+            nn.ReLU(),
+            nn.Conv2d(channels, channels, 3, padding=1),
+            nn.BatchNorm2d(channels),
+        )
+        self.relu = nn.ReLU()
+
+    def forward(self, x):
+        return self.relu(self.conv(x) + x)</code></pre>
+            <p>真实 ResNet 会处理通道数变化、下采样、瓶颈结构等细节，但核心精神就是这句 <code>self.conv(x) + x</code>。</p>
+
+            <h2>残差思想不只属于 CNN</h2>
+            <p>后来我发现 Transformer 里也大量使用残差连接。Self-Attention 后面加 residual，Feed Forward 后面也加 residual。它已经变成深度网络的基础设计语言。</p>
+            <p>这说明残差连接解决的不是某个视觉任务的小问题，而是深层模型训练的普遍问题：如何让信息和梯度穿过很深的网络。</p>
+            <h2>BatchNorm 和残差块的配合</h2>
+            <p>读 ResNet 时我还注意到一个细节：残差块里经常搭配 BatchNorm。BatchNorm 可以稳定每层输入分布，让训练更容易；残差连接提供更顺畅的信息路径。两者一起出现，不是偶然。</p>
+            <p>后来很多新结构会把 BatchNorm 换成 LayerNorm、GroupNorm，或者改变归一化位置，但“归一化 + 残差”这个组合一直保留下来。这说明现代深度网络不仅靠表达能力，也靠一整套让优化变稳定的结构设计。</p>
+            <h2>如果要复现 ResNet，我会先做什么？</h2>
+            <p>我不会一上来复现 ResNet-50，而会先在 CIFAR-10 上写一个小型 ResNet：少量残差块、固定通道数、清晰的训练脚本。目标不是刷榜，而是确认残差网络确实比同等深度的普通 CNN 更容易训练。</p>
+            <p>这个实验如果能跑通，就可以进一步观察层数、学习率、数据增强对结果的影响。比起直接复制大型代码仓库，这种小复现更能建立直觉。</p>
+
+            <h2>读完后的收获</h2>
+            <p>ResNet 给我的启发是：深度学习里的很多突破并不是“堆更多计算”，而是改变优化路径。残差连接看起来只是加了一条线，但它让训练非常深的网络变得现实。</p>
+            <p>以后看模型结构时，我会更关注这些看似普通的连接方式。很多时候，真正决定模型能不能训练起来的，正是这些结构上的细节。</p>
+        `
+    },
+    {
+        id: 'paper-reading-method',
+        title: '我现在如何读一篇 AI 论文：三遍阅读法和复现清单',
+        excerpt: 'AI 论文第一次读经常像撞墙。后来我发现，读论文不能从头到尾硬啃，而应该分层阅读：先抓问题，再看方法，最后才进入公式和实验细节。',
+        date: '2026-03-08',
+        tags: ['论文阅读', '学习方法', 'AI', '科研入门'],
+        image: 'images/paper-reading-method-cover.svg',
+        readTime: '8 分钟阅读',
+        category: '学习方法',
+        type: 'html',
+        content: `
+            <h2>读论文不是逐字翻译</h2>
+            <p>第一次读 AI 论文时，我总想从 abstract 开始一路读到 conclusion，遇到不懂的公式就停下来查。结果经常读了两页就累了，而且读完也说不清论文到底贡献在哪里。</p>
+            <p>后来我意识到，论文不是教材。教材按学习顺序写，论文按说服读者的结构写。读论文更像拆一个技术方案，而不是背一篇英文文章。</p>
+
+            <h2>第一遍：只回答“它想解决什么问题”</h2>
+            <p>第一遍我只看标题、摘要、引言、图 1 和结论。目标不是理解所有细节，而是回答几个问题：</p>
+            <ul>
+                <li>这篇论文要解决什么任务？</li>
+                <li>之前的方法有什么痛点？</li>
+                <li>作者声称自己的核心贡献是什么？</li>
+                <li>实验结果主要证明了什么？</li>
+            </ul>
+            <p>如果第一遍结束后我还说不出这四点，说明我不该急着看公式，而应该回去重读 introduction。</p>
+
+            <h2>第二遍：画出方法的数据流</h2>
+            <p>第二遍重点看 method 部分，但我不会一上来抄公式。我会先画数据流：输入是什么，中间经过哪些模块，输出是什么，loss 怎么定义。</p>
+            <p>比如读一个视觉模型，我会写成：</p>
+            <pre><code>image -> backbone -> feature map -> attention module -> classifier -> loss</code></pre>
+            <p>这样做的好处是把论文从“自然语言描述”变成“可实现结构”。只要数据流清楚，公式就有了落脚点。</p>
+
+            <h2>第三遍：只精读关键公式</h2>
+            <p>不是所有公式都同等重要。有些公式只是符号定义，有些才是方法核心。第三遍我会挑出最关键的 2 到 4 个公式，逐项解释每个符号的 shape 和含义。</p>
+            <p>如果一个公式我能写出伪代码，基本就算真的理解了一半：</p>
+            <pre><code class="language-python"># 论文公式 -> 伪代码
+features = backbone(images)
+weights = attention(features)
+output = classifier(features * weights)
+loss = criterion(output, labels)</code></pre>
+
+            <h2>实验部分看什么？</h2>
+            <p>实验表格很多，但我现在重点看三类信息：</p>
+            <ol>
+                <li><strong>主结果：</strong> 是否真的比 baseline 好，提升幅度有多大。</li>
+                <li><strong>消融实验：</strong> 哪个模块贡献最大，去掉后会怎样。</li>
+                <li><strong>失败或限制：</strong> 哪些场景效果不明显，作者有没有诚实讨论。</li>
+            </ol>
+            <p>如果一篇论文只有主结果，没有消融，我会对它的结论更谨慎。因为不知道到底是哪部分带来了提升。</p>
+
+            <h2>复现前的清单</h2>
+            <p>如果我要尝试复现，会先列一个最小清单：</p>
+            <ul>
+                <li>数据集是否能拿到？预处理是否明确？</li>
+                <li>模型结构有没有关键超参数？</li>
+                <li>训练轮数、学习率、batch size 是否可查？</li>
+                <li>评价指标是否和论文一致？</li>
+                <li>有没有官方代码或第三方实现可以对照？</li>
+            </ul>
+            <p>复现最怕的是“看起来都写了，关键细节没写”。提前列清单可以避免做到一半才发现缺失条件。</p>
+            <h2>我会怎样做论文笔记？</h2>
+            <p>现在我不再把论文笔记写成大段翻译，而会写成固定模板：背景、问题、方法、关键公式、实验结论、我不理解的点、可以借鉴的想法。这个模板能迫使我主动加工信息，而不是把论文内容搬运一遍。</p>
+            <pre><code>Paper Note
+- Problem:
+- Core idea:
+- Method flow:
+- Key equation:
+- Strong evidence:
+- Weakness:
+- What I can reuse:</code></pre>
+            <p>其中“我不理解的点”很重要。读论文不需要假装自己全懂，把疑问留下来，后面学到相关知识时才能接上。</p>
+            <h2>读论文也要建立索引</h2>
+            <p>如果读过的论文没有索引，很快就会变成“好像看过”。我会给每篇论文打标签，比如 <code>attention</code>、<code>efficient-training</code>、<code>vision-backbone</code>。以后做项目时，可以按问题反查论文，而不是靠记忆硬找。</p>
+
+            <h2>读论文最后要产出什么？</h2>
+            <p>我现在读完一篇论文，会尽量留下三个产物：</p>
+            <ol>
+                <li>一段 200 字以内的总结。</li>
+                <li>一张方法流程图或伪代码。</li>
+                <li>一个“我能从这篇论文借走什么”的想法。</li>
+            </ol>
+            <p>读论文不是为了收藏 PDF，而是为了把别人的思路变成自己工具箱里的一件工具。能不能复述、能不能实现、能不能迁移，才是判断有没有读懂的标准。</p>
+        `
+    },
+    {
+        id: 'lora-finetuning-first-look',
+        title: '第一次理解 LoRA：为什么微调大模型不一定要改所有参数？',
+        excerpt: '全量微调听起来很直接，但代价太高。LoRA 的思路是冻结原模型，只训练低秩适配矩阵，用很少的参数让模型学会新任务。本文记录我第一次读懂 LoRA 的过程。',
+        date: '2026-03-27',
+        tags: ['大模型', 'LoRA', '微调', '深度学习'],
+        image: 'images/lora-finetuning-first-look-cover.svg',
+        readTime: '10 分钟阅读',
+        category: '大模型学习',
+        type: 'html',
+        content: `
+            <h2>为什么需要参数高效微调？</h2>
+            <p>刚开始接触大模型微调时，我的第一反应很朴素：既然模型要适应新任务，那就继续训练它的全部参数。这个想法在小模型上很自然，但到了大模型时代就变得昂贵了。</p>
+            <p>一个几十亿参数的模型，如果全量微调，不仅显存压力巨大，还需要保存一整份新的模型权重。对于个人学习和中小型项目来说，这几乎不可持续。于是就有了参数高效微调（PEFT）的思路：不要动所有参数，只在关键位置加少量可训练参数。</p>
+
+            <h2>LoRA 的核心直觉</h2>
+            <p>LoRA（Low-Rank Adaptation）的核心想法可以用一句话概括：<strong>冻结原来的大矩阵，只学习一个低秩的更新量。</strong></p>
+            <p>假设某一层原本有一个权重矩阵 <code>W</code>。全量微调会直接更新 <code>W</code>，而 LoRA 认为我们可以把更新量写成两个小矩阵的乘积：</p>
+            <pre><code>W' = W + BA</code></pre>
+            <p>其中 <code>A</code> 和 <code>B</code> 的秩很低，参数量远小于原始矩阵。训练时 <code>W</code> 不动，只训练 <code>A</code> 和 <code>B</code>。这就像不给整栋楼重建结构，只在关键位置加一些可调节的支架。</p>
+
+            <h2>为什么低秩更新可能够用？</h2>
+            <p>这点我一开始也觉得奇怪：这么少的参数，真的能让模型适应新任务吗？后来我的理解是，大模型原本已经学到了非常丰富的通用能力，微调很多时候不是从零学习，而是把已有能力重新组合、偏向某个任务分布。</p>
+            <p>如果任务不需要彻底改变模型的世界知识，只需要调整表达习惯、输出格式或某类领域模式，那么一个低维的更新方向可能已经足够。</p>
+
+            <h2>LoRA 通常加在哪里？</h2>
+            <p>在 Transformer 里，LoRA 常见地加在 Attention 的线性层上，比如 <code>q_proj</code>、<code>v_proj</code>，有时也会加到 <code>k_proj</code>、<code>o_proj</code> 或 MLP 层。不同任务和模型会有不同选择。</p>
+            <p>一个简化版的线性层 LoRA 可以这样理解：</p>
+            <pre><code class="language-python">class LoRALinear(nn.Module):
+    def __init__(self, in_features, out_features, rank):
+        super().__init__()
+        self.weight = nn.Parameter(torch.randn(out_features, in_features))
+        self.weight.requires_grad = False
+
+        self.A = nn.Parameter(torch.randn(rank, in_features) * 0.01)
+        self.B = nn.Parameter(torch.zeros(out_features, rank))
+
+    def forward(self, x):
+        base = x @ self.weight.T
+        delta = x @ self.A.T @ self.B.T
+        return base + delta</code></pre>
+            <p>真实实现还会有 scaling、dropout、merge 权重等细节，但核心就是这条额外的低秩分支。</p>
+
+            <h2>LoRA 的优点和限制</h2>
+            <ul>
+                <li><strong>显存友好：</strong> 需要训练的参数少，优化器状态也少。</li>
+                <li><strong>易于保存：</strong> 可以只保存 adapter，不必保存完整模型。</li>
+                <li><strong>方便切换：</strong> 同一个底座模型可以挂不同任务的 LoRA。</li>
+                <li><strong>不是万能：</strong> 如果任务和底座模型能力差距太大，LoRA 也救不了。</li>
+            </ul>
+            <h2>rank、alpha 和数据质量</h2>
+            <p>LoRA 里 rank 是一个很关键的超参数。rank 太小，表达能力可能不够；rank 太大，训练参数变多，也更容易过拟合。对于个人实验，我会先从 8 或 16 这种保守值开始，再看验证集表现。</p>
+            <p>另一个常见参数是 alpha，它决定 LoRA 分支的缩放强度。我的理解是：rank 决定这条分支能表达多少变化，alpha 决定这个变化在输出里有多大声。两者都不应该脱离数据质量讨论。数据格式混乱、答案风格不统一时，调再多参数也只是让模型更努力地学习噪声。</p>
+            <h2>我会如何设计一次 LoRA 小实验？</h2>
+            <p>如果要真正跑一次，我会选一个小任务，比如“把课程笔记整理成问答格式”。训练集控制在几百到一两千条，先保证样例质量，再观察训练 loss 和验证回答。重点不是追求模型变得无所不能，而是看它是否稳定学会了特定输出格式和领域表达。</p>
+
+            <h2>我的理解小结</h2>
+            <p>LoRA 给我的启发是：微调不一定意味着“重写模型”，也可以是“给模型加一个可学习的偏移”。这和残差连接、adapter、prompt tuning 等思路有某种相似气质：尽量保留已有能力，只学习任务所需的增量。</p>
+            <p>下一步如果有机会，我想用一个小的开源模型做一次 LoRA 指令微调，重点观察训练数据格式、rank 选择和过拟合情况。理解原理只是第一步，真正跑通一次才算把知识落到手上。</p>
+        `
+    },
+    {
+        id: 'llm-evaluation-notes',
+        title: '大模型评测不只是看回答顺不顺：我整理的一套小型评测清单',
+        excerpt: '做大模型应用时，最容易被忽略的是评测。一个回答看起来很自然，不代表它事实正确、格式稳定、边界可靠。本文整理我现在理解的大模型应用评测维度。',
+        date: '2026-04-13',
+        tags: ['大模型', '评测', 'Prompt', '工程实践'],
+        image: 'images/llm-evaluation-notes-cover.svg',
+        readTime: '9 分钟阅读',
+        category: '大模型应用',
+        type: 'html',
+        content: `
+            <h2>“看起来不错”不是评测</h2>
+            <p>刚做大模型应用时，我很容易被流畅的回答骗到。模型说得很自然，语气也很自信，于是我下意识觉得结果不错。但后来发现，流畅和正确是两回事，甚至有时候流畅会让错误更难被发现。</p>
+            <p>如果只是随便问几个问题、肉眼感觉还行，就把系统交出去使用，那风险其实很大。尤其是搜索、问答、代码生成、学习助手这类场景，错误答案可能会直接误导用户。</p>
+
+            <h2>我把评测拆成五个维度</h2>
+            <p>现在我会把大模型应用评测拆成几个更具体的问题：</p>
+            <ol>
+                <li><strong>事实正确性：</strong> 答案是否符合资料或真实知识。</li>
+                <li><strong>指令遵循：</strong> 是否按要求的格式、语言和范围回答。</li>
+                <li><strong>稳定性：</strong> 同类问题多问几次，输出是否大体一致。</li>
+                <li><strong>边界处理：</strong> 不知道时能否承认不知道，而不是编造。</li>
+                <li><strong>用户体验：</strong> 回答是否清晰、简洁、可执行。</li>
+            </ol>
+            <p>这五个维度分开看，比笼统地说“效果好不好”更容易定位问题。</p>
+
+            <h2>准备一组固定测试题</h2>
+            <p>评测最重要的是可重复。我会先准备一组固定问题，每次改 prompt、换模型或改检索策略后都跑一遍。比如 RAG 系统可以准备：</p>
+            <ul>
+                <li>答案明确存在于文档中的问题。</li>
+                <li>需要综合两个段落才能回答的问题。</li>
+                <li>文档里没有答案的问题。</li>
+                <li>容易被相似概念干扰的问题。</li>
+                <li>要求固定格式输出的问题。</li>
+            </ul>
+            <p>这些问题不需要一开始很多，十几条高质量样例就能暴露不少问题。</p>
+
+            <h2>不要只看平均分</h2>
+            <p>如果把所有问题打一个平均分，很容易掩盖关键失败。比如一个学习助手 90% 问题都答得不错，但遇到“不知道”的问题总是胡编，这在真实使用里就很危险。</p>
+            <p>所以我更喜欢记录失败类型，而不是只记录分数：</p>
+            <pre><code>case_id: rag_007
+question: 这份资料里有没有提到 LoRA 的 rank 怎么选？
+expected: 资料未提到，应说明无法从资料判断
+actual: 建议 rank=8，因为通常效果较好
+failure_type: unsupported_claim</code></pre>
+            <p>这种记录方式可以直接反推改进方向：是 prompt 要强调引用依据，还是检索结果不够，还是模型本身太喜欢补全。</p>
+
+            <h2>什么时候用模型当裁判？</h2>
+            <p>LLM-as-a-judge 很方便，但我现在会谨慎使用。它适合做初筛，比如判断回答是否遵循格式、是否覆盖要点；但对于事实正确性，最好还是有标准答案或人工抽查。</p>
+            <p>如果必须用模型裁判，我会让它输出结构化结果，并要求引用具体错误点，而不是只给一个分数。</p>
+            <h2>评测集也要版本管理</h2>
+            <p>评测集不是一次写完就固定不动。每次发现线上或手动测试中的新失败，都应该把它沉淀成新的测试样例。这有点像软件测试里的回归测试：曾经犯过的错，不应该在下一版里悄悄回来。</p>
+            <p>我会把测试样例分成 easy、medium、hard 三类。easy 用来检查系统是否正常，medium 用来比较不同 prompt 或模型，hard 则专门收集容易幻觉、容易格式错、容易误解边界的问题。</p>
+            <h2>评测结果怎么帮助改 prompt？</h2>
+            <p>如果失败集中在格式不稳定，就应该强化输出 schema；如果失败集中在 unsupported claim，就要强调“只根据资料回答”；如果失败集中在回答太泛，就要改检索或要求引用更具体片段。好的评测不是为了给模型打分，而是为了告诉我们下一刀该改哪里。</p>
+
+            <h2>我的小型评测流程</h2>
+            <ol>
+                <li>写 15 到 30 条固定测试问题。</li>
+                <li>为每条问题写期望答案或评分要点。</li>
+                <li>每次改系统后批量运行。</li>
+                <li>记录失败类型，而不是只看总分。</li>
+                <li>挑高风险问题做人类复核。</li>
+            </ol>
+            <p>大模型应用的工程感，很多时候就体现在评测上。Prompt 写得再漂亮，如果没有稳定的评测，就不知道自己是在进步还是在碰运气。</p>
+        `
+    },
+    {
+        id: 'agent-tools-learning-notes',
+        title: '从聊天机器人到 Agent：工具调用到底改变了什么？',
+        excerpt: '普通聊天机器人只会生成文字，而 Agent 可以调用工具、观察结果、继续决策。本文记录我对工具调用、任务分解和 Agent 边界的一些理解。',
+        date: '2026-05-02',
+        tags: ['Agent', '工具调用', '大模型', '工程实践'],
+        image: 'images/agent-tools-learning-notes-cover.svg',
+        readTime: '10 分钟阅读',
+        category: '大模型应用',
+        type: 'html',
+        content: `
+            <h2>Agent 不是“更会聊天的模型”</h2>
+            <p>最近看了不少 Agent 相关内容，我最开始的理解很模糊：好像只要模型能连续思考、多轮对话，就能叫 Agent。后来慢慢意识到，Agent 真正关键的变化不是“话更多”，而是它能把语言决策连接到外部行动。</p>
+            <p>普通聊天机器人主要输出文本；Agent 则可以调用搜索、文件、数据库、代码执行、浏览器等工具，拿到观察结果后再继续决定下一步。它更像一个会使用工具的任务执行器。</p>
+
+            <h2>工具调用带来的三个变化</h2>
+            <ol>
+                <li><strong>信息来源变了。</strong> 模型不必完全依赖参数记忆，可以查询实时或私有信息。</li>
+                <li><strong>任务边界变了。</strong> 模型可以从“建议你怎么做”变成“帮你做一部分”。</li>
+                <li><strong>错误类型变了。</strong> 不仅可能答错，还可能调用错工具、传错参数、误解观察结果。</li>
+            </ol>
+            <p>这意味着 Agent 系统不仅是 prompt 设计问题，也是接口设计、权限控制、状态管理和错误恢复问题。</p>
+
+            <h2>一个简单的工具调用循环</h2>
+            <p>我现在会把 Agent 看成一个循环：</p>
+            <pre><code>用户目标 -> 模型规划 -> 选择工具 -> 执行工具 -> 观察结果 -> 更新计划 -> 输出或继续</code></pre>
+            <p>其中最重要的是“观察结果”。工具调用后，模型不能假装自己已经完成任务，而要根据真实返回继续判断。这一点和人类做实验很像：计划只是开始，结果会不断修正计划。</p>
+
+            <h2>工具越多不一定越好</h2>
+            <p>一开始我以为给 Agent 的工具越多越强。后来发现，工具太多会增加选择难度，也会带来更多误调用。一个好的工具集合应该边界清晰、命名准确、输入输出结构稳定。</p>
+            <p>比如与其给一个模糊的 <code>handle_file</code> 工具，不如拆成 <code>read_file</code>、<code>search_files</code>、<code>write_file</code>，让模型更容易选择。</p>
+
+            <h2>权限和确认很重要</h2>
+            <p>Agent 一旦能执行动作，就必须考虑安全边界。读文件、写文件、发请求、删除数据、提交代码，这些动作风险完全不同。高风险动作应该有明确确认，或者被限制在沙盒里。</p>
+            <p>这也是为什么我觉得 Agent 工程不能只追求“自动化程度”。有些步骤交给模型做很舒服，有些步骤必须让人确认。好的 Agent 应该知道什么时候行动，什么时候停下来问。</p>
+            <h2>Agent 的记忆不应该乱长</h2>
+            <p>另一个让我警惕的问题是记忆。很多 Agent demo 会把历史都塞进上下文，看起来很聪明，但上下文越长，噪声越多，成本也越高。我更倾向把记忆分成短期任务状态和长期知识库：短期状态记录当前任务进度，长期知识库保存可检索的稳定信息。</p>
+            <p>这也意味着 Agent 需要会“总结”。不是把所有过程都记住，而是把关键决策、已完成步骤、未解决问题压缩成结构化状态。否则跑久了之后，它会被自己的历史拖慢。</p>
+            <h2>失败恢复比一次成功更重要</h2>
+            <p>真正可用的 Agent 不应该假设每个工具都会成功。网络会失败，文件会不存在，命令会报错，搜索结果会为空。系统应该把这些失败变成可观察状态，让模型选择重试、换工具、降级回答或请求用户确认。</p>
+
+            <h2>我对 Agent 的阶段性理解</h2>
+            <p>Agent 的能力来自三件事的组合：模型的语言理解、工具的真实执行能力、系统对过程的约束。缺任何一个都会出问题：模型强但工具差，只能纸上谈兵；工具强但约束弱，容易乱操作；约束太死，又失去灵活性。</p>
+            <p>以后如果我要做一个自己的学习 Agent，我会先从低风险场景开始：整理笔记、搜索已有博客、生成复习清单。等这些流程稳定后，再考虑让它修改代码或自动执行更复杂的任务。</p>
+        `
+    },
+    {
+        id: 'may-learning-review-2026',
+        title: '五月学习复盘：从模型原理到 AI 工程，我到底学到了什么？',
+        excerpt: '从 NumPy 手写线性回归，到理解 Transformer、RAG、LoRA 和 Agent，这几个月的学习让我意识到：AI 学习不能只追新词，更要把原理、代码和工程闭环串起来。',
+        date: '2026-05-16',
+        tags: ['学习复盘', '人工智能', '大模型', '成长记录'],
+        image: 'images/may-learning-review-2026-cover.svg',
+        readTime: '9 分钟阅读',
+        category: '学习复盘',
+        type: 'html',
+        content: `
+            <h2>回头看这几个月</h2>
+            <p>今天是 2026 年 5 月 16 日，翻了一下前面写的文章，突然发现这条学习线已经从“我想学 AI”慢慢走到了“我开始理解 AI 工程”。这中间不只是多知道了几个名词，而是对整个学习路径有了更清楚的层次感。</p>
+            <p>最开始我关注的是模型本身：线性回归、神经网络、CNN、Transformer。后来关注点逐渐移到训练和应用：怎么 debug，怎么做 RAG，怎么微调，怎么评测，怎么让模型调用工具。这个变化挺明显的。</p>
+
+            <h2>第一层：原理不能跳过</h2>
+            <p>NumPy 手写线性回归和神经网络虽然看起来“造轮子”，但它给了我一个很重要的底座：模型训练不是魔法，就是前向计算、损失函数、梯度下降和参数更新。</p>
+            <p>如果没有这层理解，后面看 PyTorch 的 <code>loss.backward()</code>、看 Transformer 的矩阵计算、看 LoRA 的低秩更新，都会停留在“会用但不踏实”的状态。原理不一定要一开始学到特别深，但关键链路必须自己走一遍。</p>
+
+            <h2>第二层：框架是效率工具，不是思考替代品</h2>
+            <p>PyTorch 让我第一次感受到现代深度学习框架的效率。自动微分、模块化网络、优化器、DataLoader，这些工具把很多繁琐细节都封装好了。</p>
+            <p>但框架也容易让人产生错觉：代码能跑就代表理解了。后来训练不动、loss 不降、验证集崩掉的时候，我才知道真正的理解体现在 debug 能力上。能解释问题，才能修问题。</p>
+
+            <h2>第三层：大模型应用是系统工程</h2>
+            <p>RAG、LoRA、Agent、评测，这些主题让我意识到大模型应用不是简单调接口。一个可用系统至少要考虑知识来源、上下文组织、输出格式、失败处理、权限边界和质量评测。</p>
+            <p>尤其是 RAG 和 Agent，它们都要求模型和外部世界交互。模型回答不再只是“文本生成质量”，而是和检索、工具、数据、用户目标一起构成一个系统。</p>
+            <h2>这段时间最大的心态变化</h2>
+            <p>以前我看到新名词会很焦虑：今天 RAG，明天 Agent，后天又是某个新框架，好像不追就会落后。现在我更愿意先问：它解决的基础问题是什么？它依赖哪些旧知识？它的失败模式是什么？</p>
+            <p>这样一问，很多新东西就没那么吓人了。RAG 背后是信息检索和上下文构造，LoRA 背后是参数高效优化，Agent 背后是工具调用和状态管理。名字会变，但底层问题会反复出现。</p>
+            <h2>哪些文章值得回头重写？</h2>
+            <p>如果以后有时间，我想回头重写前几篇“造轮子”文章，把实验代码、可视化结果和踩坑过程补得更完整。学习博客不应该只是时间线，也应该允许旧文章随着理解变深而升级。</p>
+
+            <h2>我现在最想补的短板</h2>
+            <ul>
+                <li><strong>数学表达能力：</strong> 能看懂公式，但还不够熟练地自己推导。</li>
+                <li><strong>实验管理能力：</strong> 需要更系统地记录超参数、数据版本和结果。</li>
+                <li><strong>工程封装能力：</strong> 很多 demo 能跑，但离可维护项目还有距离。</li>
+                <li><strong>论文阅读速度：</strong> 现在读一篇论文还是偏慢，需要继续练。</li>
+            </ul>
+
+            <h2>接下来的学习计划</h2>
+            <p>接下来我想把学习重点放在两个方向：一是继续补 Transformer 和大模型训练相关基础，比如 LayerNorm、位置编码、KV Cache、量化；二是做一个真正能用的小型 AI 项目，比如基于自己博客和课程笔记的学习问答助手。</p>
+            <p>我不想让学习停留在“看了很多文章”。最好的学习闭环应该是：读原理，写代码，做项目，记录复盘，再回头修正理解。</p>
+
+            <h2>最后</h2>
+            <p>这个个人主页最开始只是心血来潮搭出来的，现在慢慢变成了一个学习轨迹记录器。它不一定多专业，但每篇文章都像给未来的自己留一个路标：当时我学到了哪里，卡在哪里，又是怎么往前走的。</p>
+            <p>希望下一次复盘时，我不只是多会了几个工具，而是真的更接近“能独立做出一个 AI 系统”的状态。</p>
+        `
+    },
 ];

@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 540" role="img" aria-labelledby="title desc">
+  <title id="title">Training Debugging Diary Cover</title>
+  <desc id="desc">A debugging dashboard with loss curves, checkmarks, and PyTorch-style training notes.</desc>
+  <rect width="960" height="540" fill="#fff8f3"/>
+  <circle cx="112" cy="98" r="52" fill="#e9c46a" opacity="0.28"/>
+  <circle cx="835" cy="442" r="74" fill="#2a9d8f" opacity="0.16"/>
+  <rect x="86" y="78" width="788" height="384" rx="18" fill="#fff" stroke="#d7ccc8" stroke-width="3"/>
+  <rect x="124" y="122" width="318" height="266" rx="14" fill="#f7fbfc" stroke="#d7ccc8" stroke-width="2"/>
+  <path d="M152 342 C206 302 238 330 286 266 S366 190 414 142" fill="none" stroke="#e76f51" stroke-width="6" stroke-linecap="round"/>
+  <path d="M152 356 C210 358 252 356 302 334 S372 296 414 268" fill="none" stroke="#2a9d8f" stroke-width="5" stroke-linecap="round"/>
+  <g font-family="Noto Sans SC, Arial, sans-serif">
+    <text x="124" y="430" font-size="32" font-weight="700" fill="#5d4037">Training Debug</text>
+    <text x="124" y="462" font-size="20" fill="#8d6e63">loss, gradients, data, sanity checks</text>
+    <g transform="translate(500 132)">
+      <rect width="300" height="52" rx="12" fill="#fff9e6" stroke="#e9c46a" stroke-width="2"/>
+      <text x="22" y="34" font-size="20" fill="#5d4037">1. inspect batch</text>
+      <path d="M252 26 l14 14 28-32" fill="none" stroke="#2a9d8f" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+    <g transform="translate(500 206)">
+      <rect width="300" height="52" rx="12" fill="#fff9e6" stroke="#e9c46a" stroke-width="2"/>
+      <text x="22" y="34" font-size="20" fill="#5d4037">2. overfit tiny set</text>
+      <path d="M252 26 l14 14 28-32" fill="none" stroke="#2a9d8f" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+    <g transform="translate(500 280)">
+      <rect width="300" height="52" rx="12" fill="#fff9e6" stroke="#e9c46a" stroke-width="2"/>
+      <text x="22" y="34" font-size="20" fill="#5d4037">3. trace gradients</text>
+      <path d="M252 26 l14 14 28-32" fill="none" stroke="#2a9d8f" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+  </g>
+</svg>
