@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 540" role="img" aria-labelledby="title desc">
+  <title id="title">ResNet Skip Connection Notes Cover</title>
+  <desc id="desc">Residual blocks connected by a skip path in a warm hand-drawn style.</desc>
+  <rect width="960" height="540" fill="#fff8f3"/>
+  <text x="104" y="116" font-family="Noto Sans SC, Arial, sans-serif" font-size="38" font-weight="700" fill="#5d4037">Residual Connection</text>
+  <text x="106" y="150" font-family="Noto Sans SC, Arial, sans-serif" font-size="20" fill="#8d6e63">y = F(x) + x</text>
+  <g fill="#fff" stroke="#d7ccc8" stroke-width="3">
+    <rect x="150" y="230" width="150" height="104" rx="16"/>
+    <rect x="404" y="230" width="150" height="104" rx="16"/>
+    <rect x="658" y="230" width="150" height="104" rx="16"/>
+  </g>
+  <g font-family="Noto Sans SC, Arial, sans-serif" text-anchor="middle" fill="#5d4037">
+    <text x="225" y="272" font-size="22" font-weight="700">Conv</text>
+    <text x="225" y="302" font-size="16">BN + ReLU</text>
+    <text x="479" y="272" font-size="22" font-weight="700">Conv</text>
+    <text x="479" y="302" font-size="16">BN</text>
+    <text x="733" y="272" font-size="22" font-weight="700">Add</text>
+    <text x="733" y="302" font-size="16">x + F(x)</text>
+  </g>
+  <g fill="none" stroke="#e76f51" stroke-width="6" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M92 282 H140"/>
+    <path d="M300 282 H394"/>
+    <path d="M554 282 H648"/>
+    <path d="M808 282 H868"/>
+    <path d="M116 282 C162 152 646 152 732 222"/>
+    <path d="M720 204 l18 20-28 10"/>
+  </g>
+  <circle cx="733" cy="282" r="28" fill="#fff9e6" stroke="#e9c46a" stroke-width="4"/>
+  <text x="733" y="292" text-anchor="middle" font-family="Noto Sans SC, Arial, sans-serif" font-size="30" fill="#5d4037">+</text>
+</svg>

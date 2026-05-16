@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 540" role="img" aria-labelledby="title desc">
+  <title id="title">RAG First Principles Cover</title>
+  <desc id="desc">A retrieval augmented generation pipeline from documents to vectors to answer.</desc>
+  <rect width="960" height="540" fill="#fff8f3"/>
+  <path d="M54 95 C164 64 260 124 364 96 S568 48 704 98 842 136 928 92" fill="none" stroke="#e9c46a" stroke-width="6" stroke-linecap="round" opacity="0.4"/>
+  <g font-family="Noto Sans SC, Arial, sans-serif" fill="#5d4037">
+    <text x="104" y="104" font-size="34" font-weight="700">RAG Pipeline</text>
+    <text x="104" y="138" font-size="20" fill="#8d6e63">retrieve -> rank -> ground -> generate</text>
+  </g>
+  <g stroke="#d7ccc8" stroke-width="3" fill="#fff">
+    <rect x="92" y="200" width="170" height="128" rx="16"/>
+    <rect x="318" y="200" width="170" height="128" rx="16"/>
+    <rect x="544" y="200" width="170" height="128" rx="16"/>
+    <rect x="738" y="200" width="130" height="128" rx="16"/>
+  </g>
+  <g stroke="#e76f51" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M272 264 H306"/>
+    <path d="M296 252 l12 12-12 12"/>
+    <path d="M498 264 H532"/>
+    <path d="M522 252 l12 12-12 12"/>
+    <path d="M724 264 H734"/>
+    <path d="M724 252 l12 12-12 12"/>
+  </g>
+  <g font-family="Noto Sans SC, Arial, sans-serif" text-anchor="middle">
+    <text x="177" y="252" font-size="24" font-weight="700" fill="#5d4037">Docs</text>
+    <text x="177" y="286" font-size="16" fill="#8d6e63">chunks</text>
+    <circle cx="403" cy="264" r="42" fill="#eef1fb" stroke="#264653" stroke-width="3"/>
+    <text x="403" y="272" font-size="20" fill="#5d4037">vectors</text>
+    <text x="629" y="252" font-size="24" font-weight="700" fill="#5d4037">Top-k</text>
+    <text x="629" y="286" font-size="16" fill="#8d6e63">rerank</text>
+    <text x="803" y="252" font-size="24" font-weight="700" fill="#5d4037">LLM</text>
+    <text x="803" y="286" font-size="16" fill="#8d6e63">answer</text>
+  </g>
+  <path d="M142 398 H818" stroke="#d7ccc8" stroke-width="3" stroke-dasharray="10 12"/>
+  <text x="142" y="436" font-family="Noto Sans SC, Arial, sans-serif" font-size="22" fill="#8d6e63">knowledge should be found before it is phrased</text>
+</svg>

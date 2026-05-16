@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 540" role="img" aria-labelledby="title desc">
+  <title id="title">LLM Evaluation Notes Cover</title>
+  <desc id="desc">A model evaluation scorecard with correctness, format, stability, and boundaries.</desc>
+  <rect width="960" height="540" fill="#fff8f3"/>
+  <rect x="102" y="78" width="756" height="384" rx="20" fill="#fff" stroke="#d7ccc8" stroke-width="3"/>
+  <text x="138" y="132" font-family="Noto Sans SC, Arial, sans-serif" font-size="34" font-weight="700" fill="#5d4037">LLM Evaluation</text>
+  <g font-family="Noto Sans SC, Arial, sans-serif">
+    <g transform="translate(142 180)">
+      <rect width="676" height="44" rx="10" fill="#fff9e6"/>
+      <text x="20" y="29" font-size="18" fill="#5d4037">factual correctness</text>
+      <rect x="430" y="13" width="190" height="18" rx="9" fill="#f1d7ca"/>
+      <rect x="430" y="13" width="148" height="18" rx="9" fill="#e76f51"/>
+    </g>
+    <g transform="translate(142 244)">
+      <rect width="676" height="44" rx="10" fill="#e8f5f2"/>
+      <text x="20" y="29" font-size="18" fill="#5d4037">instruction following</text>
+      <rect x="430" y="13" width="190" height="18" rx="9" fill="#cae7df"/>
+      <rect x="430" y="13" width="166" height="18" rx="9" fill="#2a9d8f"/>
+    </g>
+    <g transform="translate(142 308)">
+      <rect width="676" height="44" rx="10" fill="#eef1fb"/>
+      <text x="20" y="29" font-size="18" fill="#5d4037">stability</text>
+      <rect x="430" y="13" width="190" height="18" rx="9" fill="#d9def1"/>
+      <rect x="430" y="13" width="122" height="18" rx="9" fill="#264653"/>
+    </g>
+    <g transform="translate(142 372)">
+      <rect width="676" height="44" rx="10" fill="#ffe9d9"/>
+      <text x="20" y="29" font-size="18" fill="#5d4037">unknown handling</text>
+      <rect x="430" y="13" width="190" height="18" rx="9" fill="#f1d7ca"/>
+      <rect x="430" y="13" width="94" height="18" rx="9" fill="#e9c46a"/>
+    </g>
+  </g>
+</svg>
