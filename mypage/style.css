@@ -269,6 +269,33 @@ img {
     transition: var(--transition);
 }
 
+.language-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: 1rem;
+    padding: 0.35rem 0.75rem;
+    border: 1.5px dashed var(--color-primary);
+    border-radius: var(--radius-pill);
+    background: var(--color-card);
+    color: var(--color-primary);
+    font-family: var(--font-body);
+    font-size: 0.85rem;
+    font-weight: 700;
+    line-height: 1.2;
+    cursor: pointer;
+    box-shadow: 1px 2px 0 var(--color-border);
+    text-decoration: none;
+    transition: var(--transition);
+}
+
+.language-toggle:hover {
+    background: var(--color-primary);
+    color: #fff;
+    border-style: solid;
+    transform: translateY(-1px);
+}
+
 /* ---------- 主要内容区域 ---------- */
 main {
     padding-top: 84px;
@@ -1206,6 +1233,34 @@ section.visible {
     box-shadow: var(--shadow-note);
 }
 
+.translation-note {
+    background: var(--color-quote-bg);
+    border: 1.5px dashed var(--color-accent);
+    border-radius: var(--radius-card);
+    color: var(--color-text-light);
+    margin: 1rem 0 2rem;
+    padding: 1.2rem 1.4rem;
+}
+
+.translation-note h2 {
+    color: var(--color-text);
+    font-family: var(--font-body);
+    font-size: 1.15rem;
+    font-weight: 700;
+    letter-spacing: 0;
+    margin-bottom: 0.6rem;
+    text-align: left;
+    width: auto;
+}
+
+.translation-note h2::after {
+    display: none;
+}
+
+.translation-note p:last-child {
+    margin-bottom: 0;
+}
+
 .article-detail-content,
 .project-detail-content {
     line-height: 1.9;
@@ -1297,6 +1352,19 @@ section.visible {
 
 /* ---------- 响应式适配 ---------- */
 @media (max-width: 768px) {
+    .nav {
+        justify-content: flex-start;
+    }
+
+    .nav-logo {
+        margin-right: auto;
+    }
+
+    .language-toggle {
+        margin-left: 0.8rem;
+        margin-right: 0.8rem;
+    }
+
     .nav-links {
         display: none;
         position: absolute;
