@@ -686,7 +686,7 @@ function performSearch(query) {
         if (searchableText.includes(normalizedQuery) ||
             contentText.toLowerCase().includes(normalizedQuery) ||
             article.tags.some(tag => tag.toLowerCase().includes(normalizedQuery))) {
-            results.push({ type: 'article', ...article });
+            results.push({ ...article, type: 'article' });
         }
     });
 
@@ -706,7 +706,7 @@ function performSearch(query) {
         ].join(' ').toLowerCase();
 
         if (searchableText.includes(normalizedQuery)) {
-            results.push({ type: 'project', ...project });
+            results.push({ ...project, type: 'project' });
         }
     });
 
@@ -835,6 +835,7 @@ document.addEventListener('DOMContentLoaded', () => {
         createTimeline({
             prefersReducedMotion,
             localizeItem,
+            getItemHref,
             labels: { tags: t('tags') }
         });
     }

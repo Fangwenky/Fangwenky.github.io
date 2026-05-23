@@ -24,6 +24,9 @@ function createTimeline(options = {}) {
         ? options.localizeItem
         : item => item;
     const labels = options.labels || { tags: '标签' };
+    const getItemHref = typeof options.getItemHref === 'function'
+        ? options.getItemHref
+        : item => ('excerpt' in item ? `article-detail.html?id=${item.id}` : `project-detail.html?id=${item.id}`);
     const allItems = [...articles, ...projects];
     const groupedItems = groupAndSortByYear(allItems);
     const timelineContainer = document.querySelector('.timeline-container');
@@ -43,7 +46,7 @@ function createTimeline(options = {}) {
             const displayItem = localizeItem(item, itemType);
             const timelineItem = document.createElement('a');
             timelineItem.className = 'timeline-item';
-            timelineItem.href = isArticle ? `article-detail.html?id=${item.id}` : `project-detail.html?id=${item.id}`;
+            timelineItem.href = getItemHref({ ...item, type: itemType });
             if (prefersReducedMotion) {
                 timelineItem.style.transform = 'none';
             }
