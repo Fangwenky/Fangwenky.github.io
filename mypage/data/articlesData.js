@@ -262,6 +262,7 @@ export const articles = [
         date: '2025-11-19',
         tags: ['计算机视觉', 'CNN', 'PyTorch', 'CIFAR-10'],
         image: 'images/cnn-cover.svg',
+        readTime: '8 分钟阅读',
         category: '框架实战',
         type:'html',
         content: `

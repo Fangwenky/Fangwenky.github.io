@@ -16,12 +16,23 @@ function groupAndSortByYear(items) {
     return grouped;
 }
 
-function createTimeline(prefersReducedMotion = false) {
+function createTimeline(options = {}) {
+    const prefersReducedMotion = typeof options === 'boolean'
+        ? options
+        : Boolean(options.prefersReducedMotion);
+    const localizeItem = typeof options.localizeItem === 'function'
+        ? options.localizeItem
+        : item => item;
+    const labels = options.labels || { tags: '标签' };
+    const getItemHref = typeof options.getItemHref === 'function'
+        ? options.getItemHref
+        : item => ('excerpt' in item ? `article-detail.html?id=${item.id}` : `project-detail.html?id=${item.id}`);
     const allItems = [...articles, ...projects];
     const groupedItems = groupAndSortByYear(allItems);
     const timelineContainer = document.querySelector('.timeline-container');
     if (!timelineContainer) return;
 
+    timelineContainer.innerHTML = '';
     const years = Object.keys(groupedItems).sort((a, b) => b - a);
     years.forEach(year => {
         const yearSection = document.createElement('div');
@@ -31,24 +42,26 @@ function createTimeline(prefersReducedMotion = false) {
         timeline.className = 'timeline';
         groupedItems[year].forEach(item => {
             const isArticle = 'excerpt' in item;
+            const itemType = isArticle ? 'article' : 'project';
+            const displayItem = localizeItem(item, itemType);
             const timelineItem = document.createElement('a');
             timelineItem.className = 'timeline-item';
-            timelineItem.href = isArticle ? `article-detail.html?id=${item.id}` : `project-detail.html?id=${item.id}`;
+            timelineItem.href = getItemHref({ ...item, type: itemType });
             if (prefersReducedMotion) {
                 timelineItem.style.transform = 'none';
             }
             timelineItem.innerHTML = `
                 <div class="timeline-item-content">
                     <div class="timeline-item-left">
-                        <span class="timeline-date">${item.date}</span>
-                        <h4 class="timeline-title">${item.title}</h4>
-                        <p class="timeline-excerpt">${isArticle ? item.excerpt : item.description}</p>
-                        <div class="article-tags">
-                            ${item.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
+                        <span class="timeline-date">${displayItem.date}</span>
+                        <h4 class="timeline-title">${displayItem.title}</h4>
+                        <p class="timeline-excerpt">${isArticle ? displayItem.excerpt : displayItem.description}</p>
+                        <div class="article-tags" aria-label="${labels.tags || '标签'}">
+                            ${(displayItem.tags || []).map(tag => `<span class="tag">${tag}</span>`).join('')}
                         </div>
                     </div>
                     <div class="timeline-item-right">
-                        <img src="${item.image}" alt="${item.title}" width="320" height="180" loading="lazy">
+                        <img src="${displayItem.image}" alt="${displayItem.title}" width="320" height="180" loading="lazy">
                     </div>
                 </div>
             `;
