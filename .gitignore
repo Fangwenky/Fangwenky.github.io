@@ -12,3 +12,6 @@ GEMENI.md
 claude/
 
 docs/
+
+# Node dependencies for local authoring tools
+tools/mypage-admin/node_modules/

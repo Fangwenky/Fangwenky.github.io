@@ -73,7 +73,7 @@ function updateInternalLinks(root = document) {
 function localizeArticle(article) {
     if (!article || currentLang === 'zh') return article;
     const translated = articleTranslations.en?.[article.id] || {};
-    return { ...article, ...translated, content: article.content };
+    return { ...article, ...translated, hasTranslatedContent: Boolean(translated.content) };
 }
 
 function localizeProject(project) {
@@ -511,10 +511,11 @@ function loadArticleDetail() {
 
     const displayArticle = localizeArticle(article);
     document.title = `${displayArticle.title} - Fangwenky の blog`;
-    const content = article.type === 'md' && window.marked
-        ? window.marked.parse(article.content)
-        : article.content;
-    const englishSummary = currentLang === 'en'
+    const articleContent = displayArticle.content || article.content;
+    const content = displayArticle.type === 'md' && window.marked
+        ? window.marked.parse(articleContent)
+        : articleContent;
+    const englishSummary = currentLang === 'en' && !displayArticle.hasTranslatedContent
         ? `<div class="translation-note">
                 <h2>${t('englishSummary')}</h2>
                 <p>${displayArticle.excerpt}</p>
