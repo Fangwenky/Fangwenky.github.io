@@ -147,125 +147,207 @@ export const projectTranslations = {
 };
 
 export const articleTranslations = {
-    en: {
-        article1: {
-            title: 'Some Opening Thoughts',
-            excerpt: 'A short personal note about building this homepage as a beginning, rough but meaningful.',
-            tags: ['Life', 'Reflection'],
-            category: 'Life',
-            readTime: '3 min read'
+    "en": {
+        "agent-tools-learning-notes": {
+            "title": "From Chatbot to Agent: What Tool Calling Actually Changes",
+            "excerpt": "A note on tool use, observations, permissions, memory, failure recovery, and what makes an agent more than a chatbot.",
+            "tags": [
+                "Agent",
+                "Tool Calling",
+                "LLM",
+                "Engineering"
+            ],
+            "category": "LLM Applications",
+            "readTime": "10 min read"
         },
-        'ai-roadmap-sophomore': {
-            title: 'My AI Learning Roadmap: What I Plan to Study This Sophomore Year',
-            excerpt: 'A public learning plan from mathematical foundations to deep learning frameworks and engineering habits.',
-            tags: ['AI', 'Learning Roadmap', 'Deep Learning', 'Annual Plan'],
-            category: 'Study Notes',
-            readTime: '5 min read'
+        "ai-roadmap-sophomore": {
+            "title": "My AI Learning Roadmap: What I Plan to Study This Sophomore Year",
+            "excerpt": "A public learning plan from mathematical foundations to deep learning frameworks and engineering habits.",
+            "tags": [
+                "AI",
+                "Learning Roadmap",
+                "Deep Learning",
+                "Annual Plan"
+            ],
+            "category": "Study Notes",
+            "readTime": "5 min read"
         },
-        'numpy-linear-regression': {
-            title: 'No More Black Boxes: Linear Regression from Scratch with NumPy',
-            excerpt: 'Instead of calling fit(), I rebuilt linear regression with NumPy to understand gradient descent from the inside.',
-            tags: ['Machine Learning', 'NumPy', 'Math', 'Implementation'],
-            category: 'Build from Scratch',
-            readTime: '8 min read'
+        "article1": {
+            "title": "Some Opening Thoughts",
+            "excerpt": "A short personal note about building this homepage as a beginning, rough but meaningful.",
+            "tags": [
+                "Life",
+                "Reflection"
+            ],
+            "category": "Life",
+            "readTime": "3 min read"
         },
-        'numpy-neural-network': {
-            title: 'Beyond Linear Models: A Two-Layer Neural Network for XOR',
-            excerpt: 'XOR exposes the limits of linear models. A hidden layer and activation function finally make the model bend.',
-            tags: ['Deep Learning', 'Neural Network', 'Backpropagation', 'XOR'],
-            category: 'Build from Scratch',
-            readTime: '10 min read'
+        "hello-pytorch-mnist": {
+            "title": "Hello PyTorch: From Manual Gradients to Autograd",
+            "excerpt": "After hand-deriving backpropagation, PyTorch autograd feels like a huge productivity upgrade.",
+            "tags": [
+                "PyTorch",
+                "Deep Learning",
+                "MNIST",
+                "Autograd"
+            ],
+            "category": "Framework Practice",
+            "readTime": "6 min read"
         },
-        'hello-pytorch-mnist': {
-            title: 'Hello PyTorch: From Manual Gradients to Autograd',
-            excerpt: 'After hand-deriving backpropagation, PyTorch autograd feels like a huge productivity upgrade.',
-            tags: ['PyTorch', 'Deep Learning', 'MNIST', 'Autograd'],
-            category: 'Framework Practice',
-            readTime: '6 min read'
+        "linux-remote-training-notes": {
+            "title": "Training on Linux for the First Time: Remote Server Survival Notes",
+            "excerpt": "Notes on SSH, tmux, conda, CUDA, logs, GPU memory, backups, and experiment reproducibility.",
+            "tags": [
+                "Linux",
+                "Deep Learning",
+                "Server",
+                "Engineering"
+            ],
+            "category": "Engineering Notes",
+            "readTime": "9 min read"
         },
-        'pytorch-cnn-cifar': {
-            title: 'Giving AI Eyes: CNN Practice from Fully Connected Nets to CIFAR-10',
-            excerpt: 'A study note on why fully connected networks struggle with images and how CNNs preserve spatial structure.',
-            tags: ['Computer Vision', 'CNN', 'PyTorch', 'CIFAR-10'],
-            category: 'Framework Practice',
-            readTime: '8 min read'
+        "llm-evaluation-notes": {
+            "title": "LLM Evaluation Is More Than Checking Whether an Answer Sounds Good",
+            "excerpt": "A small evaluation checklist for factuality, instruction following, stability, boundaries, and user experience.",
+            "tags": [
+                "LLM",
+                "Evaluation",
+                "Prompting",
+                "Engineering"
+            ],
+            "category": "LLM Applications",
+            "readTime": "9 min read"
         },
-        stochastic_progress: {
-            title: 'Stochastic Processes: Final Review Notes',
-            excerpt: 'A structured course review covering Poisson processes, renewal theory, Markov chains, and martingales.',
-            tags: ['Stochastic Process', 'Final Review', 'Course Notes'],
-            category: 'Course Notes',
-            readTime: '12 min read'
+        "lora-finetuning-first-look": {
+            "title": "Understanding LoRA: Why Fine-Tuning Does Not Need Every Parameter",
+            "excerpt": "LoRA freezes the base model and trains low-rank adapters, making task adaptation cheaper and easier to manage.",
+            "tags": [
+                "LLM",
+                "LoRA",
+                "Fine-Tuning",
+                "Deep Learning"
+            ],
+            "category": "LLM Learning",
+            "readTime": "10 min read"
         },
-        'transformer-attention-notes': {
-            title: 'Understanding Transformer Attention from the Formula Up',
-            excerpt: 'A first-principles note on Q, K, V, matrix shapes, masking, and what attention actually computes.',
-            tags: ['Transformer', 'Attention', 'NLP', 'Paper Reading'],
-            category: 'Paper Reading',
-            readTime: '9 min read'
+        "may-learning-review-2026": {
+            "title": "May Learning Review: From Model Basics to AI Engineering",
+            "excerpt": "A learning review from NumPy and PyTorch to Transformer, RAG, LoRA, evaluation, and agent systems.",
+            "tags": [
+                "Learning Review",
+                "AI",
+                "LLM",
+                "Growth"
+            ],
+            "category": "Learning Review",
+            "readTime": "9 min read"
         },
-        'training-debugging-diary': {
-            title: 'My Checklist for Debugging a Model That Refuses to Train',
-            excerpt: 'A practical PyTorch debugging checklist covering data, labels, loss functions, gradients, learning rates, and overfitting tests.',
-            tags: ['PyTorch', 'Training Tips', 'Debugging', 'Deep Learning'],
-            category: 'Engineering Notes',
-            readTime: '8 min read'
+        "numpy-linear-regression": {
+            "title": "No More Black Boxes: Linear Regression from Scratch with NumPy",
+            "excerpt": "Instead of calling fit(), I rebuilt linear regression with NumPy to understand gradient descent from the inside.",
+            "tags": [
+                "Machine Learning",
+                "NumPy",
+                "Math",
+                "Implementation"
+            ],
+            "category": "Build from Scratch",
+            "readTime": "8 min read"
         },
-        'rag-first-principles': {
-            title: 'What Problem Does RAG Actually Solve?',
-            excerpt: 'A first-principles look at retrieval-augmented generation as a system of chunking, embeddings, ranking, grounding, and generation.',
-            tags: ['LLM', 'RAG', 'Vector Database', 'Information Retrieval'],
-            category: 'LLM Applications',
-            readTime: '11 min read'
+        "numpy-neural-network": {
+            "title": "Beyond Linear Models: A Two-Layer Neural Network for XOR",
+            "excerpt": "XOR exposes the limits of linear models. A hidden layer and activation function finally make the model bend.",
+            "tags": [
+                "Deep Learning",
+                "Neural Network",
+                "Backpropagation",
+                "XOR"
+            ],
+            "category": "Build from Scratch",
+            "readTime": "10 min read"
         },
-        'linux-remote-training-notes': {
-            title: 'Training on Linux for the First Time: Remote Server Survival Notes',
-            excerpt: 'Notes on SSH, tmux, conda, CUDA, logs, GPU memory, backups, and experiment reproducibility.',
-            tags: ['Linux', 'Deep Learning', 'Server', 'Engineering'],
-            category: 'Engineering Notes',
-            readTime: '9 min read'
+        "paper-reading-method": {
+            "title": "How I Read AI Papers Now: Three Passes and a Reproduction Checklist",
+            "excerpt": "A practical method for reading papers by first finding the problem, then the method flow, and finally the key equations.",
+            "tags": [
+                "Paper Reading",
+                "Learning Method",
+                "AI",
+                "Research Basics"
+            ],
+            "category": "Learning Method",
+            "readTime": "8 min read"
         },
-        'resnet-skip-connection-notes': {
-            title: 'Why Can ResNet Go Deeper? My Understanding of Skip Connections',
-            excerpt: 'A study note on residual learning, gradient flow, normalization, and why deeper networks need better optimization paths.',
-            tags: ['ResNet', 'CNN', 'Computer Vision', 'Deep Learning'],
-            category: 'Paper Reading',
-            readTime: '10 min read'
+        "pytorch-cnn-cifar": {
+            "title": "Giving AI Eyes: CNN Practice from Fully Connected Nets to CIFAR-10",
+            "excerpt": "A study note on why fully connected networks struggle with images and how CNNs preserve spatial structure.",
+            "tags": [
+                "Computer Vision",
+                "CNN",
+                "PyTorch",
+                "CIFAR-10"
+            ],
+            "category": "Framework Practice",
+            "readTime": "8 min read"
         },
-        'paper-reading-method': {
-            title: 'How I Read AI Papers Now: Three Passes and a Reproduction Checklist',
-            excerpt: 'A practical method for reading papers by first finding the problem, then the method flow, and finally the key equations.',
-            tags: ['Paper Reading', 'Learning Method', 'AI', 'Research Basics'],
-            category: 'Learning Method',
-            readTime: '8 min read'
+        "rag-first-principles": {
+            "title": "What Problem Does RAG Actually Solve?",
+            "excerpt": "A first-principles look at retrieval-augmented generation as a system of chunking, embeddings, ranking, grounding, and generation.",
+            "tags": [
+                "LLM",
+                "RAG",
+                "Vector Database",
+                "Information Retrieval"
+            ],
+            "category": "LLM Applications",
+            "readTime": "11 min read"
         },
-        'lora-finetuning-first-look': {
-            title: 'Understanding LoRA: Why Fine-Tuning Does Not Need Every Parameter',
-            excerpt: 'LoRA freezes the base model and trains low-rank adapters, making task adaptation cheaper and easier to manage.',
-            tags: ['LLM', 'LoRA', 'Fine-Tuning', 'Deep Learning'],
-            category: 'LLM Learning',
-            readTime: '10 min read'
+        "resnet-skip-connection-notes": {
+            "title": "Why Can ResNet Go Deeper? My Understanding of Skip Connections",
+            "excerpt": "A study note on residual learning, gradient flow, normalization, and why deeper networks need better optimization paths.",
+            "tags": [
+                "ResNet",
+                "CNN",
+                "Computer Vision",
+                "Deep Learning"
+            ],
+            "category": "Paper Reading",
+            "readTime": "10 min read"
         },
-        'llm-evaluation-notes': {
-            title: 'LLM Evaluation Is More Than Checking Whether an Answer Sounds Good',
-            excerpt: 'A small evaluation checklist for factuality, instruction following, stability, boundaries, and user experience.',
-            tags: ['LLM', 'Evaluation', 'Prompting', 'Engineering'],
-            category: 'LLM Applications',
-            readTime: '9 min read'
+        "stochastic_progress": {
+            "title": "Stochastic Processes: Final Review Notes",
+            "excerpt": "A structured course review covering Poisson processes, renewal theory, Markov chains, and martingales.",
+            "tags": [
+                "Stochastic Process",
+                "Final Review",
+                "Course Notes"
+            ],
+            "category": "Course Notes",
+            "readTime": "12 min read"
         },
-        'agent-tools-learning-notes': {
-            title: 'From Chatbot to Agent: What Tool Calling Actually Changes',
-            excerpt: 'A note on tool use, observations, permissions, memory, failure recovery, and what makes an agent more than a chatbot.',
-            tags: ['Agent', 'Tool Calling', 'LLM', 'Engineering'],
-            category: 'LLM Applications',
-            readTime: '10 min read'
+        "training-debugging-diary": {
+            "title": "My Checklist for Debugging a Model That Refuses to Train",
+            "excerpt": "A practical PyTorch debugging checklist covering data, labels, loss functions, gradients, learning rates, and overfitting tests.",
+            "tags": [
+                "PyTorch",
+                "Training Tips",
+                "Debugging",
+                "Deep Learning"
+            ],
+            "category": "Engineering Notes",
+            "readTime": "8 min read"
         },
-        'may-learning-review-2026': {
-            title: 'May Learning Review: From Model Basics to AI Engineering',
-            excerpt: 'A learning review from NumPy and PyTorch to Transformer, RAG, LoRA, evaluation, and agent systems.',
-            tags: ['Learning Review', 'AI', 'LLM', 'Growth'],
-            category: 'Learning Review',
-            readTime: '9 min read'
+        "transformer-attention-notes": {
+            "title": "Understanding Transformer Attention from the Formula Up",
+            "excerpt": "A first-principles note on Q, K, V, matrix shapes, masking, and what attention actually computes.",
+            "tags": [
+                "Transformer",
+                "Attention",
+                "NLP",
+                "Paper Reading"
+            ],
+            "category": "Paper Reading",
+            "readTime": "9 min read"
         }
     }
 };
