@@ -1,8 +1,8 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import matter from 'gray-matter';
-import { marked } from 'marked';
 import { articlesRoot } from './config.js';
+import { renderMarkdown as renderMarkdownSafe } from './markdown.js';
 
 const REQUIRED_FIELDS = ['id', 'title', 'excerpt', 'date', 'tags', 'category', 'cover', 'readTime', 'status'];
 const OPTIONAL_FIELDS = ['featured', 'updatedAt'];
@@ -15,6 +15,10 @@ export function slugify(value = '') {
         .replace(/[^a-z0-9\u4e00-\u9fa5]+/g, '-')
         .replace(/^-+|-+$/g, '')
         .slice(0, 80) || `article-${Date.now()}`;
+}
+
+export function normalizeArticleId(value = '') {
+    return slugify(value);
 }
 
 export function normalizeTags(tags) {
@@ -77,10 +81,14 @@ export async function readLanguageFile(id, lang) {
     try {
         const raw = await fs.readFile(markdownPath(id, lang), 'utf8');
         const parsed = matter(raw);
+        const frontmatter = normalizeFrontmatter(parsed.data, id);
+        if (frontmatter.id !== id) {
+            throw new Error(`Article id mismatch: folder "${id}" contains "${frontmatter.id}".`);
+        }
         return {
             exists: true,
             lang,
-            frontmatter: normalizeFrontmatter(parsed.data, id),
+            frontmatter,
             body: parsed.content.trim()
         };
     } catch (error) {
@@ -111,6 +119,7 @@ export async function listArticles() {
                 status: article.zh.frontmatter.status,
                 tags: article.zh.frontmatter.tags,
                 category: article.zh.frontmatter.category,
+                hasEnglishMeta: article.en.exists,
                 hasEnglish: article.en.exists && article.en.body.trim().length > 0,
                 updatedAt: article.zh.frontmatter.updatedAt
             });
@@ -124,9 +133,19 @@ export async function listArticles() {
 export function validateArticlePayload(payload) {
     const zh = normalizeFrontmatter(payload.zh?.frontmatter || payload.frontmatter || {}, payload.id);
     const enSource = payload.en?.frontmatter || {};
-    const en = Object.keys(enSource).length > 0 ? normalizeFrontmatter({ ...zh, ...enSource, id: zh.id }, zh.id) : null;
     const zhBody = String(payload.zh?.body || payload.body || '').trim();
     const enBody = String(payload.en?.body || '').trim();
+    const en = Object.keys(enSource).length > 0
+        ? normalizeFrontmatter({ ...zh, ...enSource, id: zh.id }, zh.id)
+        : null;
+
+    if (en && enBody) {
+        en.title = en.title || zh.title;
+        en.excerpt = en.excerpt || zh.excerpt;
+        en.category = en.category || zh.category;
+        en.tags = en.tags.length > 0 ? en.tags : zh.tags;
+        en.readTime = en.readTime || zh.readTime;
+    }
 
     const missing = [];
     ['id', 'title', 'excerpt', 'date', 'category', 'cover', 'readTime'].forEach(key => {
@@ -151,6 +170,8 @@ export async function saveArticle(payload) {
 
     if (en && (enBody || en.title || en.excerpt)) {
         await fs.writeFile(markdownPath(zh.id, 'en'), matter.stringify(`${enBody}\n`, pickFrontmatter(en)), 'utf8');
+    } else {
+        await fs.rm(markdownPath(zh.id, 'en'), { force: true });
     }
 
     return readArticle(zh.id);
@@ -161,7 +182,7 @@ export async function deleteArticle(id) {
 }
 
 export async function renderMarkdown(markdown) {
-    return marked.parse(String(markdown || ''));
+    return renderMarkdownSafe(markdown);
 }
 
 export function estimateReadTime(markdown, lang = 'zh') {

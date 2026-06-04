@@ -36,6 +36,11 @@ function tagsToInput(tags) {
     return Array.isArray(tags) ? tags.join(', ') : '';
 }
 
+function englishReadTimeFrom(readTime) {
+    const match = String(readTime || '').match(/\d+/);
+    return match ? `${match[0]} min read` : '';
+}
+
 function currentMeta() {
     const base = {
         id: $('#articleId').value.trim(),
@@ -59,7 +64,7 @@ function currentMeta() {
                 title: $('#enTitle').value.trim(),
                 excerpt: $('#enExcerpt').value.trim(),
                 tags: tagsFromInput($('#enTags').value),
-                readTime: $('#articleReadTime').value.replace('分钟阅读', 'min read')
+                readTime: englishReadTimeFrom($('#articleReadTime').value)
             },
             body: state.bodies.en
         }
@@ -118,7 +123,8 @@ function renderList() {
             const button = document.createElement('button');
             button.type = 'button';
             button.className = `article-item ${state.current?.id === article.id ? 'active' : ''}`;
-            button.innerHTML = `<strong>${article.title}</strong><span>${article.date || ''} · ${article.status} · ${article.hasEnglish ? 'EN' : '中文'}</span>`;
+            const englishState = article.hasEnglish ? 'EN正文' : (article.hasEnglishMeta ? 'EN元信息' : '中文');
+            button.innerHTML = `<strong>${article.title}</strong><span>${article.date || ''} · ${article.status} · ${englishState}</span>`;
             button.addEventListener('click', () => loadArticle(article.id));
             list.appendChild(button);
         });

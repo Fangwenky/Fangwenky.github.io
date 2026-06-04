@@ -3,15 +3,19 @@
 ._DS_Store
 
 # 忽略 SSH 相关本地文件
-eval "$(ssh-agent -s)"
-eval "$(ssh-agent -s)".pub
+*.pem
+*.pub
 
 AGENTS.md
-GEMENI.md
+GEMINI.md
 
 claude/
 
 docs/
+
+# Local Python environments
+mypage/.venv/
+.venv/
 
 # Node dependencies for local authoring tools
 tools/mypage-admin/node_modules/

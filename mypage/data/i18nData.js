@@ -314,7 +314,7 @@ export const articleTranslations = {
             "category": "Paper Reading",
             "readTime": "10 min read"
         },
-        "stochastic_progress": {
+        "stochastic-progress": {
             "title": "Stochastic Processes: Final Review Notes",
             "excerpt": "A structured course review covering Poisson processes, renewal theory, Markov chains, and martingales.",
             "tags": [

@@ -39,8 +39,8 @@ const classmates = [
   {name:"杨琳",city:"哈尔滨工业大学",province:"黑龙江",words:"工科试验班（航天与自动化）",img:"images/杨琳.png"},
   {name:"张钊",city:"哈尔滨工业大学（威海）",province:"黑龙江",words:"测控技术与仪器",img:"images/张钊.png"},
   {name:"丁禹心",city:"哈尔滨医科大学",province:"黑龙江",words:"临床医学（5+3一体化，于维汉班）",img:"images/丁禹心.png"},
-  {name:"刘士垚",city:"国防科技大学",province:"黑龙江",words:"航空航天类",img:"images/刘士垚.png"},
-  {name:"常贤哲",city:"国防科技大学",province:"黑龙江",words:"通信工程",img:"images/常贤哲.png"},
+  {name:"刘士垚",city:"国防科技大学",province:"湖南",words:"航空航天类",img:"images/刘士垚.png"},
+  {name:"常贤哲",city:"国防科技大学",province:"湖南",words:"通信工程",img:"images/常贤哲.png"},
   {name:"纪顺",city:"德强高中",province:"黑龙江",words:"英俊の语文老师",img:"images/纪顺.png"},
   {name:"王爽",city:"德强高中",province:"黑龙江",words:"可爱の数学老师",img:"images/王爽.png"},
   {name:"孟静",city:"德强高中",province:"黑龙江",words:"漂酿の英语老师",img:"images/孟静.png"},
@@ -59,7 +59,7 @@ const classmates = [
 const provinceIcons = {
   "北京": "🏛️", "黑龙江": "❄️", "安徽": "🏔️", "江苏": "🌸",
   "上海": "🌃", "辽宁": "🏭", "广东": "🌴", "福建": "🍵",
-  "天津": "⚓", "浙江": "🌊", "河南": "🌾"
+  "天津": "⚓", "浙江": "🌊", "河南": "🌾", "湖南": "🌶️"
 };
 
 // ===== 数据分组：按省份 -> 按学校 =====

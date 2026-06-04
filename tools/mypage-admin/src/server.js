@@ -4,7 +4,6 @@ import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import express from 'express';
 import multer from 'multer';
-import { marked } from 'marked';
 import {
     adminToken,
     articlesRoot,
@@ -24,11 +23,18 @@ import {
     saveArticle,
     slugify
 } from './contentStore.js';
+import { renderMarkdown } from './markdown.js';
 import { generateStaticData } from './staticGenerator.js';
 
 const execFileAsync = promisify(execFile);
 const app = express();
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 8 * 1024 * 1024 } });
+const allowedImageTypes = new Map([
+    ['image/png', ['.png']],
+    ['image/jpeg', ['.jpg', '.jpeg']],
+    ['image/webp', ['.webp']],
+    ['image/gif', ['.gif']]
+]);
 
 app.use(express.json({ limit: '2mb' }));
 app.use('/mypage', express.static(mypageRoot));
@@ -83,6 +89,34 @@ async function publishArticle(title) {
     return { generated, committed: true, pushed: true };
 }
 
+function validateImageUpload(file) {
+    const extension = path.extname(file.originalname).toLowerCase();
+    const allowedExtensions = allowedImageTypes.get(file.mimetype);
+    if (!allowedExtensions || !allowedExtensions.includes(extension)) {
+        throw new Error('Only PNG, JPG, WebP, and GIF images can be uploaded.');
+    }
+
+    const header = file.buffer.subarray(0, 12);
+    const isPng = file.mimetype === 'image/png'
+        && header[0] === 0x89
+        && header[1] === 0x50
+        && header[2] === 0x4e
+        && header[3] === 0x47;
+    const isJpeg = file.mimetype === 'image/jpeg'
+        && header[0] === 0xff
+        && header[1] === 0xd8
+        && header[2] === 0xff;
+    const isWebp = file.mimetype === 'image/webp'
+        && header.toString('ascii', 0, 4) === 'RIFF'
+        && header.toString('ascii', 8, 12) === 'WEBP';
+    const isGif = file.mimetype === 'image/gif'
+        && ['GIF87a', 'GIF89a'].includes(header.toString('ascii', 0, 6));
+
+    if (!isPng && !isJpeg && !isWebp && !isGif) {
+        throw new Error('Uploaded file does not match its image type.');
+    }
+}
+
 app.get('/api/session', requireToken, (req, res) => {
     res.json({ ok: true });
 });
@@ -112,6 +146,7 @@ app.delete('/api/articles/:id', requireToken, asyncHandler(async (req, res) => {
 
 app.post('/api/articles/:id/upload', requireToken, upload.single('image'), asyncHandler(async (req, res) => {
     if (!req.file) throw new Error('No image uploaded.');
+    validateImageUpload(req.file);
     const extension = path.extname(req.file.originalname).toLowerCase() || '.png';
     const safeBase = slugify(path.basename(req.file.originalname, extension));
     const fileName = `${Date.now()}-${safeBase}${extension}`;
@@ -126,7 +161,7 @@ app.post('/api/articles/:id/upload', requireToken, upload.single('image'), async
 }));
 
 app.post('/api/preview', requireToken, (req, res) => {
-    res.json({ html: marked.parse(String(req.body.markdown || '')) });
+    res.json({ html: renderMarkdown(String(req.body.markdown || '')) });
 });
 
 app.post('/api/read-time', requireToken, (req, res) => {

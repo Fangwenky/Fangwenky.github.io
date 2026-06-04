@@ -17,6 +17,5 @@ export const adminToken = process.env.MYPAGE_ADMIN_TOKEN || Math.random().toStri
 export const managedPaths = [
     'mypage/content/articles',
     'mypage/data/articlesData.js',
-    'mypage/data/i18nData.js',
-    'tools/mypage-admin'
+    'mypage/data/i18nData.js'
 ];

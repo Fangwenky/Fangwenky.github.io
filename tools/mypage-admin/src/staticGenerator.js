@@ -1,15 +1,15 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import { marked } from 'marked';
 import { articlesRoot, dataRoot } from './config.js';
 import { listArticleIds, readArticle } from './contentStore.js';
+import { renderMarkdown } from './markdown.js';
 
 function toJsString(value) {
     return JSON.stringify(value, null, 4);
 }
 
 function htmlFromMarkdown(markdown) {
-    return marked.parse(String(markdown || '').trim());
+    return renderMarkdown(markdown);
 }
 
 function articleRecord(article) {

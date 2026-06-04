@@ -1,5 +1,5 @@
 ---
-id: stochastic_progress
+id: stochastic-progress
 title: 随机过程：期末教材知识点总结
 excerpt: 随机过程课程历来缺少复习资料，只好将课本中的知识点进行一些总结。
 date: '2025-12-01'

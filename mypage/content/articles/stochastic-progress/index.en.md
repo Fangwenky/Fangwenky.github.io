@@ -1,5 +1,5 @@
 ---
-id: stochastic_progress
+id: stochastic-progress
 title: 'Stochastic Processes: Final Review Notes'
 excerpt: >-
   A structured course review covering Poisson processes, renewal theory, Markov
@@ -16,4 +16,3 @@ status: published
 featured: false
 updatedAt: '2026-05-25T06:46:17.397Z'
 ---
-
