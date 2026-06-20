@@ -3,36 +3,65 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fangwenky の blog - 个人主页</title>
-    <meta name="description" content="Fangwenky 的个人博客，记录学习笔记、技术分享和项目展示。主要涵盖机器学习、深度学习、Python 编程等技术领域。">
-    <meta name="author" content="Fangwenky">
-    <meta property="og:title" content="Fangwenky の blog - 个人主页">
-    <meta property="og:description" content="Fangwenky 的个人博客，记录学习笔记、技术分享和项目展示。">
-    <meta property="og:image" content="images/avatar.jpg">
-    <meta property="og:url" content="https://fangwenky.github.io/">
+    <title>F_wenky | AI 学习、项目与技术写作</title>
+    <meta name="description" content="F_wenky 的个人作品集：记录人工智能、深度学习与 LLM 应用的学习过程，展示 PyTorch、ONNX 和 Web AI 项目。">
+    <meta name="author" content="F_wenky">
+    <meta name="theme-color" content="#f6f7fb">
+    <link rel="canonical" href="https://fangwenky.github.io/mypage/">
+    <meta property="og:title" content="F_wenky | AI 学习、项目与技术写作">
+    <meta property="og:description" content="从模型原理到可运行作品，记录一个 AI 本科生的学习与实践。">
+    <meta property="og:image" content="https://fangwenky.github.io/mypage/images/avatar.jpg">
+    <meta property="og:url" content="https://fangwenky.github.io/mypage/">
     <meta property="og:type" content="website">
     <meta name="twitter:card" content="summary">
     <link rel="icon" href="images/avatar.jpg">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Sans+SC:wght@400;500;700&family=Caveat:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600&family=Noto+Sans+SC:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <script>
+        (() => {
+            try {
+                const saved = localStorage.getItem('siteTheme');
+                const theme = saved || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+                document.documentElement.dataset.theme = theme;
+            } catch (error) {
+                document.documentElement.dataset.theme = 'light';
+            }
+        })();
+    </script>
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "Person",
+        "name": "F_wenky",
+        "url": "https://fangwenky.github.io/mypage/",
+        "image": "https://fangwenky.github.io/mypage/images/avatar.jpg",
+        "sameAs": [
+            "https://github.com/fangwenky",
+            "https://space.bilibili.com/1002000285"
+        ],
+        "affiliation": {
+            "@type": "CollegeOrUniversity",
+            "name": "Beijing Institute of Technology"
+        },
+        "knowsAbout": ["Artificial Intelligence", "Deep Learning", "PyTorch", "Web Development"]
+    }
+    </script>
 </head>
 <body id="home-page">
-    <div class="loading-screen">
-        <div class="loader"></div>
-    </div>
+    <a class="skip-link" href="#main-content">跳到主要内容</a>
+    <div class="loading-screen" aria-hidden="true"><div class="loader"></div></div>
 
     <header class="header">
-        <nav class="nav">
+        <nav class="nav" aria-label="主导航">
             <div class="nav-logo">
-                <a href="about.html" class="logo-link">
-                    <img src="images/avatar.jpg" alt="头像" class="avatar" width="42" height="42">
-                    <span>F_wenky的个人主页</span>
+                <a href="#home" class="logo-link" aria-label="F_wenky 首页">
+                    <img src="images/avatar.jpg" alt="" class="avatar" width="42" height="42">
+                    <span>F_wenky</span>
                 </a>
             </div>
-
             <div class="nav-links" id="primaryNav">
                 <a href="#home" class="active">首页</a>
                 <a href="articles.html">文章</a>
@@ -41,108 +70,129 @@
                 <a href="about.html">关于我</a>
                 <a href="search.html">搜索</a>
             </div>
+            <div class="nav-actions"></div>
             <button class="nav-toggle" type="button" aria-label="打开导航菜单" aria-expanded="false" aria-controls="primaryNav">
-                <span></span>
-                <span></span>
-                <span></span>
+                <span></span><span></span><span></span>
             </button>
         </nav>
     </header>
 
-    <main>
-        <section id="home" class="slider-section">
-            <div class="slider-container">
-                <div class="slider-wrapper">
-                    <div class="slider-cards">
-                    </div>
+    <main id="main-content">
+        <section id="home" class="hero-section visible">
+            <div class="hero-copy">
+                <p class="eyebrow" data-copy="heroEyebrow">AI STUDENT · BUILDER · WRITER</p>
+                <h1 data-copy="heroTitle">把学到的 AI，做成真正能运行的作品。</h1>
+                <p class="hero-description" data-copy="heroDescription">我是 F_wenky，北京理工大学人工智能专业本科生。这里记录我从模型原理、代码实现到浏览器部署的学习过程。</p>
+                <div class="hero-actions">
+                    <a href="#featured-projects" class="button button-primary" data-copy="heroProjects">查看代表项目</a>
+                    <a href="#latest-articles" class="button button-secondary" data-copy="heroArticles">阅读学习笔记</a>
                 </div>
-                <div class="slider-nav">
-                    <button class="prev-btn" type="button" aria-label="上一张精选内容"><i class="fas fa-chevron-left" aria-hidden="true"></i></button>
-                    <div class="slider-dots">
-                        <!-- 点将通过JavaScript动态添加 -->
-                    </div>
-                    <button class="next-btn" type="button" aria-label="下一张精选内容"><i class="fas fa-chevron-right" aria-hidden="true"></i></button>
+                <div class="hero-meta">
+                    <span class="availability-dot" aria-hidden="true"></span>
+                    <span data-copy="heroNote">持续学习，也持续交付</span>
+                    <span class="meta-divider" aria-hidden="true"></span>
+                    <span id="contentCount"></span>
                 </div>
-                <div class="polaroid-caption">📸 精选内容</div>
             </div>
+
+            <div class="hero-portrait" aria-label="F_wenky 个人简介">
+                <div class="portrait-frame">
+                    <img src="images/avatar.jpg" alt="F_wenky 的头像" width="520" height="520">
+                    <span class="portrait-signature">F_wenky</span>
+                </div>
+                <div class="status-card">
+                    <span class="status-label" data-copy="heroStatus">当前关注</span>
+                    <strong data-copy="heroStatusValue">深度学习 · LLM 应用 · AI 工程</strong>
+                </div>
+                <svg class="learning-path" viewBox="0 0 360 170" aria-hidden="true">
+                    <path d="M8 142 C68 151 83 59 145 74 S235 154 351 21" />
+                    <circle cx="8" cy="142" r="5" />
+                    <circle cx="145" cy="74" r="5" />
+                    <circle cx="351" cy="21" r="5" />
+                </svg>
+            </div>
+
+            <a href="#focus" class="scroll-hint">
+                <span data-copy="scrollHint">向下浏览作品</span>
+                <i class="fa-solid fa-arrow-down" aria-hidden="true"></i>
+            </a>
         </section>
 
-        <section id="latest-articles" class="articles-section">
-            <h2>最新文章</h2>
-            <div class="articles-grid">
-                <!-- 文章卡片将通过JavaScript动态添加 -->
+        <section id="focus" class="focus-section">
+            <div class="section-heading split-heading">
+                <div><p class="eyebrow">PROCESS</p><h2 data-copy="focusTitle">我的工作方式</h2></div>
+                <p data-copy="focusDescription">不只收藏知识点，而是通过实现、复现和写作把它们变成自己的能力。</p>
             </div>
-            <div class="section-footer">
-                <a href="articles.html" class="btn view-all-btn">查看所有文章</a>
+            <div class="focus-grid">
+                <article class="focus-card">
+                    <span class="focus-index">01</span>
+                    <div class="focus-icon"><i class="fa-solid fa-compass-drafting" aria-hidden="true"></i></div>
+                    <h3 data-copy="focusLearn">理解原理</h3>
+                    <p data-copy="focusLearnText">从数学直觉和最小实现开始，弄清模型为什么有效。</p>
+                </article>
+                <article class="focus-card">
+                    <span class="focus-index">02</span>
+                    <div class="focus-icon"><i class="fa-solid fa-code" aria-hidden="true"></i></div>
+                    <h3 data-copy="focusBuild">做成作品</h3>
+                    <p data-copy="focusBuildText">把训练、推理与前端连接起来，让想法成为可体验的应用。</p>
+                </article>
+                <article class="focus-card">
+                    <span class="focus-index">03</span>
+                    <div class="focus-icon"><i class="fa-solid fa-pen-nib" aria-hidden="true"></i></div>
+                    <h3 data-copy="focusShare">公开记录</h3>
+                    <p data-copy="focusShareText">整理实验过程、失败经验和技术判断，形成可复用的学习笔记。</p>
+                </article>
             </div>
         </section>
 
         <section id="featured-projects" class="projects-section">
-            <h2>精选项目</h2>
-            <div class="projects-grid">
-                <!-- 项目卡片将通过JavaScript动态添加 -->
+            <div class="section-heading">
+                <p class="eyebrow" data-copy="sectionProjectsKicker">SELECTED WORK</p>
+                <h2>精选项目</h2>
             </div>
-            <div class="section-footer">
-                <a href="projects.html" class="btn view-all-btn">查看所有项目</a>
+            <div class="projects-grid featured-grid"></div>
+            <div class="section-footer"><a href="projects.html" class="text-link view-all-btn">查看所有项目 <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a></div>
+        </section>
+
+        <section id="latest-articles" class="articles-section">
+            <div class="section-heading">
+                <p class="eyebrow" data-copy="sectionArticlesKicker">LEARNING IN PUBLIC</p>
+                <h2>最新文章</h2>
             </div>
+            <div class="articles-grid"></div>
+            <div class="section-footer"><a href="articles.html" class="text-link view-all-btn">查看所有文章 <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a></div>
         </section>
 
         <section class="about-section" id="about">
-            <div class="about-header">
-                <div class="about-image">
-                </div>
-                <div class="about-text">
-                </div>
-            </div>
-
+            <div class="section-heading"><p class="eyebrow" data-copy="sectionAboutKicker">ABOUT & JOURNEY</p></div>
+            <div class="about-header"><div class="about-image"></div><div class="about-text"></div></div>
             <div class="about-content">
-                <div class="experience-section">
-                    <h2>工作经历</h2>
-                    <div class="timeline">
-                    </div>
-                </div>
+                <div class="experience-section"><h2>学习轨迹</h2><div class="timeline"></div></div>
+                <div class="interests-section"><h2>兴趣方向</h2><div class="interests-grid"></div></div>
+            </div>
+        </section>
 
-                <div class="interests-section">
-                    <h2>兴趣爱好</h2>
-                    <div class="interests-grid">
-                    </div>
-                </div>
+        <section class="contact-section" aria-labelledby="contact-title">
+            <div class="contact-copy">
+                <p class="eyebrow">LET'S CONNECT</p>
+                <h2 id="contact-title" data-copy="contactTitle">对我的项目或学习方向感兴趣？</h2>
+                <p data-copy="contactDescription">欢迎查看源码、交流 AI 学习，或者聊聊可以一起完成的项目。</p>
+            </div>
+            <div class="contact-actions">
+                <a href="mailto:fangmierui@gmail.com" class="button button-primary"><i class="fa-regular fa-envelope" aria-hidden="true"></i><span data-copy="contactEmail">发送邮件</span></a>
+                <a href="https://github.com/fangwenky" target="_blank" rel="noopener noreferrer" class="button button-secondary"><i class="fa-brands fa-github" aria-hidden="true"></i><span data-copy="contactGithub">访问 GitHub</span></a>
             </div>
         </section>
     </main>
 
     <footer class="footer">
         <div class="footer-content">
-            <div class="footer-section">
-                <h3>联系方式</h3>
-                <div class="social-links">
-                </div>
-            </div>
-            <div class="footer-section">
-                <h3>快速链接</h3>
-                <ul>
-                    <li><a href="articles.html">所有文章</a></li>
-                    <li><a href="projects.html">项目展示</a></li>
-                    <li><a href="about.html">关于我</a></li>
-                </ul>
-            </div>
+            <div class="footer-brand"><strong>F_wenky</strong><p>Learning AI in public, one working project at a time.</p></div>
+            <div class="footer-section"><h3>联系方式</h3><div class="social-links"></div></div>
+            <div class="footer-section"><h3>快速链接</h3><ul><li><a href="articles.html">所有文章</a></li><li><a href="projects.html">项目展示</a></li><li><a href="about.html">关于我</a></li></ul></div>
         </div>
-        <div class="footer-bottom">
-            <p>&copy; F_wenky 的个人主页. All rights reserved.</p>
-        </div>
+        <div class="footer-bottom"><p>&copy; F_wenky 的个人主页. All rights reserved.</p><a href="#home">Back to top ↑</a></div>
     </footer>
-
-    <div class="search-overlay" id="searchOverlay">
-        <div class="search-container">
-            <div class="search-header">
-                <h2>搜索结果</h2>
-                <button class="close-search" id="closeSearch" type="button" aria-label="关闭搜索结果">&times;</button>
-            </div>
-            <div class="search-results" id="searchResults">
-                <!-- 搜索结果将通过JavaScript动态添加 -->
-            </div>
-        </div>
-    </div>
 
     <script type="module" src="script.js"></script>
 </body>

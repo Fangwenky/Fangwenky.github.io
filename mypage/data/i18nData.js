@@ -1,6 +1,6 @@
 export const uiText = {
     zh: {
-        siteName: 'F_wenky的个人主页',
+        siteName: 'F_wenky',
         home: '首页',
         articles: '文章',
         projects: '项目',
@@ -15,7 +15,7 @@ export const uiText = {
         projectsShowcase: '项目展示',
         viewAllArticles: '查看所有文章',
         viewAllProjects: '查看所有项目',
-        experience: '工作经历',
+        experience: '学习轨迹',
         interests: '兴趣爱好',
         contact: '联系方式',
         quickLinks: '快速链接',
@@ -39,10 +39,38 @@ export const uiText = {
         originalChineseNote: '正文目前保留中文原文。英文模式下先展示英文标题、摘要与标签，方便英文读者理解文章主题。',
         englishSummary: 'English Summary',
         copyright: '© F_wenky 的个人主页. All rights reserved.',
-        langToggle: 'EN'
+        langToggle: 'EN',
+        skipToContent: '跳到主要内容',
+        themeLight: '切换到浅色主题',
+        themeDark: '切换到深色主题',
+        heroEyebrow: 'AI STUDENT · BUILDER · WRITER',
+        heroTitle: '把学到的 AI，做成真正能运行的作品。',
+        heroDescription: '我是 F_wenky，北京理工大学人工智能专业本科生。这里记录我从模型原理、代码实现到浏览器部署的学习过程。',
+        heroProjects: '查看代表项目',
+        heroArticles: '阅读学习笔记',
+        heroStatus: '当前关注',
+        heroStatusValue: '深度学习 · LLM 应用 · AI 工程',
+        heroNote: '持续学习，也持续交付',
+        focusTitle: '我的工作方式',
+        focusDescription: '不只收藏知识点，而是通过实现、复现和写作把它们变成自己的能力。',
+        focusLearn: '理解原理',
+        focusLearnText: '从数学直觉和最小实现开始，弄清模型为什么有效。',
+        focusBuild: '做成作品',
+        focusBuildText: '把训练、推理与前端连接起来，让想法成为可体验的应用。',
+        focusShare: '公开记录',
+        focusShareText: '整理实验过程、失败经验和技术判断，形成可复用的学习笔记。',
+        sectionProjectsKicker: 'SELECTED WORK',
+        sectionArticlesKicker: 'LEARNING IN PUBLIC',
+        sectionAboutKicker: 'ABOUT & JOURNEY',
+        contactTitle: '对我的项目或学习方向感兴趣？',
+        contactDescription: '欢迎查看源码、交流 AI 学习，或者聊聊可以一起完成的项目。',
+        contactEmail: '发送邮件',
+        contactGithub: '访问 GitHub',
+        contentCount: (articles, projects) => `${articles} 篇文章 · ${projects} 个项目`,
+        scrollHint: '向下浏览作品'
     },
     en: {
-        siteName: "F_wenky's Homepage",
+        siteName: 'F_wenky',
         home: 'Home',
         articles: 'Articles',
         projects: 'Projects',
@@ -57,7 +85,7 @@ export const uiText = {
         projectsShowcase: 'Project Showcase',
         viewAllArticles: 'View All Articles',
         viewAllProjects: 'View All Projects',
-        experience: 'Experience',
+        experience: 'Learning Journey',
         interests: 'Interests',
         contact: 'Contact',
         quickLinks: 'Quick Links',
@@ -81,36 +109,58 @@ export const uiText = {
         originalChineseNote: 'The full article is currently kept in Chinese. In English mode, the translated title, summary, and tags are shown first so English readers can understand the topic.',
         englishSummary: 'English Summary',
         copyright: "© F_wenky's Homepage. All rights reserved.",
-        langToggle: '中'
+        langToggle: '中',
+        skipToContent: 'Skip to main content',
+        themeLight: 'Switch to light theme',
+        themeDark: 'Switch to dark theme',
+        heroEyebrow: 'AI STUDENT · BUILDER · WRITER',
+        heroTitle: 'Turning what I learn in AI into things that actually run.',
+        heroDescription: 'I am F_wenky, an AI undergraduate at Beijing Institute of Technology. This site follows my path from model intuition and implementation to browser deployment.',
+        heroProjects: 'Explore selected work',
+        heroArticles: 'Read learning notes',
+        heroStatus: 'Current focus',
+        heroStatusValue: 'Deep learning · LLM apps · AI engineering',
+        heroNote: 'Keep learning. Keep shipping.',
+        focusTitle: 'How I work',
+        focusDescription: 'I turn ideas into understanding through implementation, reproduction, and clear technical writing.',
+        focusLearn: 'Understand',
+        focusLearnText: 'Start with the mathematical intuition and a minimal implementation to learn why a model works.',
+        focusBuild: 'Build',
+        focusBuildText: 'Connect training, inference, and the frontend so an idea becomes something people can try.',
+        focusShare: 'Share',
+        focusShareText: 'Document experiments, failures, and technical decisions as reusable learning notes.',
+        sectionProjectsKicker: 'SELECTED WORK',
+        sectionArticlesKicker: 'LEARNING IN PUBLIC',
+        sectionAboutKicker: 'ABOUT & JOURNEY',
+        contactTitle: 'Interested in my projects or learning path?',
+        contactDescription: 'Browse the source, talk about learning AI, or reach out about something we could build together.',
+        contactEmail: 'Send an email',
+        contactGithub: 'Visit GitHub',
+        contentCount: (articles, projects) => `${articles} articles · ${projects} projects`,
+        scrollHint: 'Scroll to explore'
     }
 };
 
 export const aboutTranslations = {
     en: {
         name: 'F_wenky',
-        bio: 'An AI student who enjoys building playful projects, learning machine learning in public, and occasionally letting AI help push code through suspiciously large loops.',
+        bio: 'An AI undergraduate at Beijing Institute of Technology, moving from model fundamentals toward working AI applications. I turn courses, reproductions, and engineering lessons into articles, and I enjoy making new ideas directly explorable in the browser.',
         experience: [
-            {
-                title: 'Frontend Tester (Food Delivery Edition)',
-                company: 'Meituan Waimai',
-                duration: '2024 - Present',
-                description: 'Testing ordering flows by ordering food very seriously.'
-            },
-            {
-                title: 'Frontend Tester (Chat Group Edition)',
-                company: 'Tencent QQ',
-                duration: '2024 - Present',
-                description: 'Testing chat interfaces by being extremely active in group chats.'
-            },
             {
                 title: 'AI Undergraduate, Xu Teli Elite Class',
                 company: 'Beijing Institute of Technology',
                 duration: '2024 - Present',
-                description: 'This one is real, though the previous two may contain a little comedy.'
+                description: 'Studying machine learning, deep learning, and mathematical foundations while validating ideas through course notes, paper reading, and working projects.'
+            },
+            {
+                title: 'AI Learning and Project Practice',
+                company: 'Personal long-term track',
+                duration: 'Ongoing',
+                description: 'Moving from NumPy implementations to PyTorch, CNNs, Transformers, and LLM applications, with bilingual notes and open projects along the way.'
             }
         ],
-        interests: ['Good food', 'Long sleep', 'Group chats', 'Learning tech from videos'],
-        skills: ['Eating', 'Sleeping', 'Taking it easy', 'Still learning']
+        interests: ['AI models and engineering', 'Technical writing', 'Web and interaction design', 'Games and visual media'],
+        skills: ['Python / NumPy', 'PyTorch / Deep Learning', 'HTML / CSS / JavaScript', 'Linux / Git / AI Engineering']
     }
 };
 

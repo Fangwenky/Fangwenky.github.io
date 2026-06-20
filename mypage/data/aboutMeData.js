@@ -1,6 +1,6 @@
 export const aboutMe = {
     name: 'F_wenky',
-    bio: '一个很神禾必的入口牙，擅长push AI 写代码，超模史山程序建造者，究极死循环算法设计大师',
+    bio: '北京理工大学人工智能专业本科生，正在从模型原理走向可运行的 AI 应用。我把课程学习、复现过程和工程踩坑持续整理成文章，也喜欢把新知识做成能在浏览器里直接体验的小项目。',
     avatar: 'images/avatar.jpg',
     socialLinks: [
     // GitHub 链接
@@ -21,28 +21,22 @@ export const aboutMe = {
     ],
     experience: [
         {
-            title: '前端测试员（凑点外卖的）',
-            company: '美团外卖',
-            duration: '2024年至今',
-            description: '负责测试美团外卖前端点餐系统（指点外卖吃好吃的）'
-        },
-        {
-            title: '前端测试员（水群老登）',
-            company: '腾讯QQ',
-            duration: '2024年至今',
-            description: '负责测试 QQ 前端界面使用（指 QQ 水群）'
-        },
-        {
-            title: '24 级人工智能（徐特立英才班）',
+            title: '人工智能本科生（徐特立英才班）',
             company: '北京理工大学',
             duration: '2024年至今',
-            description: '这条是真的（不代表前面的是假的）'
+            description: '学习机器学习、深度学习与数学基础，并通过课程笔记、论文阅读和可运行项目持续验证理解。'
+        },
+        {
+            title: 'AI 学习与项目实践',
+            company: '个人长期计划',
+            duration: '持续进行',
+            description: '从 NumPy 手写模型到 PyTorch、CNN、Transformer 与 LLM 应用，把学习过程沉淀为双语技术文章和开源项目。'
         }
     ],
     interests: [
-        '吃好吃的',
-        '睡大觉',
-        '水群+1+3',
-        '刷视频学寄术'
+        'AI 模型与工程',
+        '技术写作',
+        '网页与交互设计',
+        '游戏与影像'
     ]
 };

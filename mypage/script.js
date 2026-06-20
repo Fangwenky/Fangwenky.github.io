@@ -120,7 +120,10 @@ function createContentCard(item, type) {
     card.className = 'article-card';
     card.href = withLanguageParam(href);
     card.innerHTML = `
-        <img src="${displayItem.image}" alt="${displayItem.title}" class="article-image" width="640" height="360" loading="lazy">
+        <div class="article-image-wrap">
+            <img src="${displayItem.image}" alt="${displayItem.title}" class="article-image" width="640" height="360" loading="lazy">
+            <span class="card-type">${isArticle ? t('article') : t('project')}</span>
+        </div>
         <div class="article-content">
             <div class="article-meta">
                 ${meta}
@@ -130,6 +133,7 @@ function createContentCard(item, type) {
             <div class="article-tags" aria-label="${t('tags')}">
                 ${renderTags(displayItem.tags)}
             </div>
+            <span class="card-arrow" aria-hidden="true"><i class="fa-solid fa-arrow-right"></i></span>
         </div>
     `;
     return card;
@@ -151,7 +155,7 @@ function hideLoadingScreen() {
         return;
     }
 
-    setTimeout(hide, 1000);
+    setTimeout(hide, 180);
 }
 
 function setText(selector, value) {
@@ -187,14 +191,14 @@ function updateNavLinks() {
 
 function updateDocumentTitle() {
     const titles = {
-        'home-page': currentLang === 'en' ? "Fangwenky の blog - Homepage" : 'Fangwenky の blog - 个人主页',
-        'articles-page': `${t('allArticles')} - Fangwenky の blog`,
-        'projects-page': `${t('allProjects')} - Fangwenky の blog`,
-        'archive-page': `${t('archive')} - Fangwenky の blog`,
-        'about-page': `${t('about')} - Fangwenky の blog`,
-        'search-page': `${t('search')} - Fangwenky の blog`,
-        'article-detail-page': `${t('article')} - Fangwenky の blog`,
-        'project-detail-page': `${t('project')} - Fangwenky の blog`
+        'home-page': currentLang === 'en' ? 'F_wenky | AI Projects and Technical Writing' : 'F_wenky | AI 学习、项目与技术写作',
+        'articles-page': `${t('allArticles')} | F_wenky`,
+        'projects-page': `${t('allProjects')} | F_wenky`,
+        'archive-page': `${t('archive')} | F_wenky`,
+        'about-page': `${t('about')} | F_wenky`,
+        'search-page': `${t('search')} | F_wenky`,
+        'article-detail-page': `${t('article')} | F_wenky`,
+        'project-detail-page': `${t('project')} | F_wenky`
     };
     document.title = titles[document.body.id] || document.title;
 }
@@ -204,10 +208,10 @@ function applyStaticTranslations() {
     setText('.logo-link span', t('siteName'));
     setText('#latest-articles h2', t('latestArticles'));
     setText('#featured-projects h2', t('featuredProjects'));
-    setText('#articles-list h2', t('allArticles'));
-    setText('#projects-list h2', t('allProjects'));
-    setText('#archive h2', t('archive'));
-    setText('body#search-page main h2', t('search'));
+    setText('#articles-list .page-title', t('allArticles'));
+    setText('#projects-list .page-title', t('allProjects'));
+    setText('#archive .page-title', t('archive'));
+    setText('body#search-page main .page-title', t('search'));
     setText('.experience-section h2', t('experience'));
     setText('.interests-section h2', t('interests'));
     setText('.search-header h2', t('searchResults'));
@@ -239,6 +243,12 @@ function applyStaticTranslations() {
     const polaroidCaption = document.querySelector('.polaroid-caption');
     if (polaroidCaption) polaroidCaption.textContent = t('featured');
 
+    document.querySelectorAll('[data-copy]').forEach(element => {
+        element.textContent = t(element.dataset.copy);
+    });
+    setText('.skip-link', t('skipToContent'));
+    setText('#contentCount', t('contentCount', articles.length, projects.length));
+
     updateNavLinks();
     updateDocumentTitle();
 }
@@ -246,6 +256,13 @@ function applyStaticTranslations() {
 function initLanguageToggle() {
     const nav = document.querySelector('.nav');
     if (!nav || document.querySelector('.language-toggle')) return;
+
+    let actions = nav.querySelector('.nav-actions');
+    if (!actions) {
+        actions = document.createElement('div');
+        actions.className = 'nav-actions';
+        nav.insertBefore(actions, navToggle || null);
+    }
 
     const nextLang = currentLang === 'zh' ? 'en' : 'zh';
     const url = new URL(window.location.href);
@@ -263,7 +280,75 @@ function initLanguageToggle() {
     link.textContent = t('langToggle');
     link.addEventListener('click', () => setStoredLanguage(nextLang));
 
-    nav.insertBefore(link, navToggle || null);
+    actions.appendChild(link);
+}
+
+function initAccessibilityShell() {
+    const main = document.querySelector('main');
+    if (main && !main.id) main.id = 'main-content';
+
+    if (main && !document.querySelector('.skip-link')) {
+        const skipLink = document.createElement('a');
+        skipLink.className = 'skip-link';
+        skipLink.href = `#${main.id}`;
+        skipLink.textContent = t('skipToContent');
+        document.body.prepend(skipLink);
+    }
+
+    document.querySelector('.nav')?.setAttribute('aria-label', currentLang === 'en' ? 'Primary navigation' : '主导航');
+}
+
+function getStoredTheme() {
+    try {
+        return window.localStorage?.getItem('siteTheme');
+    } catch (error) {
+        return null;
+    }
+}
+
+function setStoredTheme(theme) {
+    try {
+        window.localStorage?.setItem('siteTheme', theme);
+    } catch (error) {
+        // The selected theme still applies to the current page.
+    }
+}
+
+function initThemeToggle() {
+    const nav = document.querySelector('.nav');
+    if (!nav || document.querySelector('.theme-toggle')) return;
+
+    let actions = nav.querySelector('.nav-actions');
+    if (!actions) {
+        actions = document.createElement('div');
+        actions.className = 'nav-actions';
+        nav.insertBefore(actions, navToggle || null);
+    }
+
+    const systemDark = window.matchMedia?.('(prefers-color-scheme: dark)').matches;
+    let theme = getStoredTheme() || document.documentElement.dataset.theme || (systemDark ? 'dark' : 'light');
+    const button = document.createElement('button');
+    button.className = 'theme-toggle';
+    button.type = 'button';
+
+    const applyTheme = nextTheme => {
+        theme = nextTheme;
+        document.documentElement.dataset.theme = theme;
+        const isDark = theme === 'dark';
+        button.innerHTML = `<i class="fa-solid ${isDark ? 'fa-sun' : 'fa-moon'}" aria-hidden="true"></i>`;
+        button.setAttribute('aria-label', isDark ? t('themeLight') : t('themeDark'));
+        button.setAttribute('title', isDark ? t('themeLight') : t('themeDark'));
+        document.querySelector('meta[name="theme-color"]')?.setAttribute('content', isDark ? '#10131d' : '#f6f7fb');
+    };
+
+    button.addEventListener('click', () => {
+        const nextTheme = theme === 'dark' ? 'light' : 'dark';
+        setStoredTheme(nextTheme);
+        applyTheme(nextTheme);
+    });
+
+    actions.insertBefore(button, actions.firstChild);
+    applyTheme(theme);
 }
 
 // 滑动模块功能
@@ -400,15 +485,9 @@ function initSlider() {
 
 function initNavigation() {
     if (header) {
-        window.addEventListener('scroll', () => {
-            if (window.scrollY > 50) {
-                header.style.backgroundColor = 'rgba(255, 255, 255, 0.95)';
-                header.style.boxShadow = '0 2px 10px rgba(0, 0, 0, 0.1)';
-            } else {
-                header.style.backgroundColor = 'rgba(255, 255, 255, 0.8)';
-                header.style.boxShadow = 'none';
-            }
-        });
+        const updateHeader = () => header.classList.toggle('is-scrolled', window.scrollY > 24);
+        window.addEventListener('scroll', updateHeader, { passive: true });
+        updateHeader();
     }
 
     navToggle?.addEventListener('click', () => {
@@ -442,24 +521,16 @@ function initNavigation() {
 
 // 卡片随机旋转 — 便签纸效果
 function applyRandomRotation(cards) {
-    if (prefersReducedMotion || window.innerWidth <= 768) return;
-    cards.forEach(card => {
-        const angle = (Math.random() - 0.5) * 2.5;
-        card.style.transform = `rotate(${angle}deg)`;
-    });
+    cards.forEach(card => card.style.removeProperty('transform'));
 }
 
 // 标签贴纸随机旋转
 function applyTagRotation(container) {
-    if (prefersReducedMotion || window.innerWidth <= 768 || !container) return;
-    container.querySelectorAll('.tag').forEach(tag => {
-        const angle = (Math.random() - 0.5) * 5;
-        tag.style.transform = `rotate(${angle}deg)`;
-    });
+    container?.querySelectorAll('.tag').forEach(tag => tag.style.removeProperty('transform'));
 }
 
 // 加载文章列表
-function loadArticles(container = '.articles-grid', articlesList = articles) {
+function loadArticles(container = '.articles-grid', articlesList = articles, limit = null) {
     const grid = document.querySelector(container);
     if (!grid) return;
 
@@ -470,7 +541,8 @@ function loadArticles(container = '.articles-grid', articlesList = articles) {
     });
 
     grid.innerHTML = '';
-    sortedArticles.forEach(article => {
+    const visibleArticles = Number.isInteger(limit) ? sortedArticles.slice(0, limit) : sortedArticles;
+    visibleArticles.forEach(article => {
         grid.appendChild(createContentCard(article, 'article'));
     });
     applyRandomRotation(grid.querySelectorAll('.article-card'));
@@ -478,7 +550,7 @@ function loadArticles(container = '.articles-grid', articlesList = articles) {
 }
 
 // 加载项目列表
-function loadProjects(container = '.projects-grid', projectsList = projects) {
+function loadProjects(container = '.projects-grid', projectsList = projects, limit = null) {
     const grid = document.querySelector(container);
     if (!grid) return;
 
@@ -489,7 +561,8 @@ function loadProjects(container = '.projects-grid', projectsList = projects) {
     });
 
     grid.innerHTML = '';
-    sortedProjects.forEach(project => {
+    const visibleProjects = Number.isInteger(limit) ? sortedProjects.slice(0, limit) : sortedProjects;
+    visibleProjects.forEach(project => {
         grid.appendChild(createContentCard(project, 'project'));
     });
     applyRandomRotation(grid.querySelectorAll('.article-card'));
@@ -628,8 +701,9 @@ function loadAboutMe() {
     const interestsGrid = aboutSection.querySelector('.interests-section .interests-grid');
 
     if (aboutTextDiv) {
+        const headingTag = document.body.id === 'about-page' ? 'h1' : 'h2';
         aboutTextDiv.innerHTML = `
-            <h2>${displayAbout.name}</h2>
+            <${headingTag}>${displayAbout.name}</${headingTag}>
             <p>${displayAbout.bio}</p>
             <div class="social-links">
                 ${renderSocialLinks()}
@@ -809,16 +883,18 @@ function loadFooterSocialLinks() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+    initAccessibilityShell();
     applyStaticTranslations();
     initLanguageToggle();
+    initThemeToggle();
     hideLoadingScreen();
     initNavigation();
     initSearchControls();
 
     if (document.body.id === 'home-page') {
         initSlider();
-        loadArticles();
-        loadProjects();
+        loadArticles('.articles-grid', articles, 3);
+        loadProjects('.projects-grid', projects, 2);
         loadAboutMe();
     } else if (document.body.id === 'articles-page') {
         loadArticles('.articles-grid', articles);
