@@ -1,6 +1,6 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import matter from 'gray-matter';
+import { stringifyFrontmatter } from '../src/frontmatter.js';
 import TurndownService from 'turndown';
 import { articles } from '../../../mypage/data/articlesData.js';
 import { articleTranslations } from '../../../mypage/data/i18nData.js';
@@ -54,7 +54,7 @@ for (const article of articles) {
     const zhMarkdown = htmlToMarkdown(article);
     await fs.writeFile(
         markdownPath(article.id, 'zh'),
-        matter.stringify(`${zhMarkdown}\n`, pickFrontmatter(zhFrontmatter)),
+        stringifyFrontmatter(`${zhMarkdown}\n`, pickFrontmatter(zhFrontmatter)),
         'utf8'
     );
 
@@ -64,7 +64,7 @@ for (const article of articles) {
         const enMarkdown = enTranslation.content ? turndown.turndown(enTranslation.content).trim() : '';
         await fs.writeFile(
             markdownPath(article.id, 'en'),
-            matter.stringify(`${enMarkdown}\n`, pickFrontmatter(enFrontmatter)),
+            stringifyFrontmatter(`${enMarkdown}\n`, pickFrontmatter(enFrontmatter)),
             'utf8'
         );
     }

@@ -3,91 +3,157 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>mypage 文章管理</title>
+    <title>Mypage Publishing Desk</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <a class="skip-link" href="#editorMain">跳到编辑器</a>
+    <header class="app-header">
+        <button id="sidebarToggle" class="icon-button sidebar-toggle" type="button" aria-label="打开文章库" aria-expanded="false"><span></span><span></span><span></span></button>
+        <a class="brand" href="/" aria-label="文章管理首页">
+            <span class="brand-mark">文</span>
+            <span><strong>Publishing Desk</strong><small>F_wenky / Mypage</small></span>
+        </a>
+        <ol class="publish-rail" aria-label="发布流程">
+            <li><span>1</span><strong>源码</strong></li>
+            <li><span>2</span><strong>GitHub</strong></li>
+            <li><span>3</span><strong>VPS</strong></li>
+        </ol>
+        <div class="workspace-state">
+            <span id="gitBranch">main</span>
+            <span id="syncState" class="sync-state">检查中</span>
+        </div>
+    </header>
+
     <div class="app-shell">
-        <aside class="sidebar">
-            <div class="brand">
-                <span class="brand-mark">文</span>
-                <div>
-                    <h1>文章管理</h1>
-                    <p>Markdown Publishing Desk</p>
-                </div>
+        <button id="sidebarBackdrop" class="sidebar-backdrop" type="button" aria-label="关闭文章库"></button>
+        <aside class="sidebar" id="articleSidebar">
+            <div class="sidebar-heading">
+                <div><p class="eyebrow">LIBRARY</p><h1>文章库</h1></div>
+                <button id="newArticle" class="icon-button" type="button" aria-label="新建文章" title="新建文章">＋</button>
             </div>
-
-            <div class="toolbar">
-                <button id="newArticle" type="button">新建</button>
-                <button id="refreshArticles" type="button">刷新</button>
-            </div>
-
             <div class="filters">
-                <input id="filterInput" type="search" placeholder="筛选标题、标签、分类">
-                <select id="statusFilter">
+                <label class="search-field"><span class="visually-hidden">搜索文章</span><input id="filterInput" type="search" placeholder="搜索标题、标签或分类"></label>
+                <select id="statusFilter" aria-label="按状态筛选">
                     <option value="">全部状态</option>
                     <option value="published">已发布</option>
                     <option value="draft">草稿</option>
                     <option value="invalid">异常</option>
                 </select>
             </div>
-
-            <div id="articleList" class="article-list"></div>
+            <div id="recoveryList" class="recovery-list"></div>
+            <div id="articleList" class="article-list" aria-live="polite"></div>
+            <button id="refreshArticles" class="quiet-button sidebar-refresh" type="button">刷新文章库</button>
         </aside>
 
-        <main class="editor-panel">
-            <header class="topbar">
-                <div>
-                    <span id="currentState" class="state-pill">未选择文章</span>
-                    <h2 id="editorTitle">选择或新建一篇文章</h2>
+        <main class="editor-panel" id="editorMain">
+            <header class="document-header">
+                <div class="document-identity">
+                    <div class="document-state-line">
+                        <span id="currentState" class="state-pill">未选择</span>
+                        <span id="saveState" class="save-state">请选择或新建文章</span>
+                    </div>
+                    <h2 id="editorTitle">准备开始写作</h2>
                 </div>
-                <div class="actions">
-                    <button id="saveArticle" type="button">保存草稿</button>
-                    <button id="generateSite" type="button">生成静态数据</button>
-                    <button id="publishArticle" type="button" class="primary">发布并推送</button>
+                <div class="document-actions">
+                    <button id="deleteArticle" class="danger-button" type="button" disabled>删除</button>
+                    <button id="saveArticle" type="button" disabled>保存到源码</button>
+                    <button id="publishArticle" class="primary" type="button" disabled>准备发布</button>
                 </div>
             </header>
 
-            <section class="meta-grid">
-                <label>文章 ID<input id="articleId" autocomplete="off"></label>
-                <label>发布日期<input id="articleDate" type="date"></label>
-                <label>分类<input id="articleCategory" autocomplete="off"></label>
-                <label>阅读时长<input id="articleReadTime" autocomplete="off"></label>
-                <label class="wide">封面路径<input id="articleCover" autocomplete="off" placeholder="images/example.svg"></label>
-                <label>状态
-                    <select id="articleStatus">
-                        <option value="draft">草稿</option>
-                        <option value="published">已发布</option>
-                    </select>
-                </label>
-                <label class="wide">中文标题<input id="zhTitle" autocomplete="off"></label>
-                <label class="wide">英文标题<input id="enTitle" autocomplete="off"></label>
-                <label class="wide">中文摘要<textarea id="zhExcerpt" rows="3"></textarea></label>
-                <label class="wide">英文摘要<textarea id="enExcerpt" rows="3"></textarea></label>
-                <label class="wide">中文标签<input id="zhTags" autocomplete="off" placeholder="人工智能, 学习笔记"></label>
-                <label class="wide">英文标签<input id="enTags" autocomplete="off" placeholder="AI, Notes"></label>
-            </section>
+            <form id="articleForm" novalidate>
+                <details class="metadata-panel" open>
+                    <summary><span><strong>文章信息</strong><small>标题、分类、封面与发布状态</small></span><span class="summary-action">展开 / 收起</span></summary>
+                    <div class="meta-grid">
+                        <label>文章 ID <span class="required">必填</span><input id="articleId" required autocomplete="off" pattern="[A-Za-z0-9_-]+" aria-describedby="articleIdHelp"><small id="articleIdHelp">首次保存后锁定，用作目录名和链接。</small></label>
+                        <label>发布日期 <span class="required">必填</span><input id="articleDate" type="date" required></label>
+                        <label>分类 <span class="required">必填</span><input id="articleCategory" required autocomplete="off"></label>
+                        <label>发布状态<select id="articleStatus"><option value="draft">草稿（仅本机）</option><option value="published">已发布</option></select></label>
+                        <label class="wide">封面路径 <span class="required">必填</span><span class="input-with-action"><input id="articleCover" required autocomplete="off" placeholder="images/example.svg"><button id="chooseCover" type="button">选择</button></span></label>
+                        <label>阅读时长 <span class="required">必填</span><input id="articleReadTime" required autocomplete="off"><span class="inline-option"><input id="autoReadTime" type="checkbox" checked> 自动计算</span></label>
+                        <label class="check-card"><input id="articleFeatured" type="checkbox"><span><strong>精选文章</strong><small>可用于首页推荐排序</small></span></label>
+                        <label class="wide">中文标题 <span class="required">必填</span><input id="zhTitle" required autocomplete="off"></label>
+                        <label class="wide">英文标题<input id="enTitle" autocomplete="off"></label>
+                        <label class="wide">中文摘要 <span class="required">必填</span><textarea id="zhExcerpt" rows="3" required></textarea></label>
+                        <label class="wide">英文摘要<textarea id="enExcerpt" rows="3"></textarea></label>
+                        <label class="wide">中文标签 <span class="required">必填</span><input id="zhTags" required autocomplete="off" placeholder="人工智能, 学习笔记"></label>
+                        <label class="wide">英文标签<input id="enTags" autocomplete="off" placeholder="AI, Notes"></label>
+                    </div>
+                </details>
 
-            <section class="language-tabs" aria-label="正文语言">
-                <button class="tab active" type="button" data-lang="zh">中文正文</button>
-                <button class="tab" type="button" data-lang="en">英文正文</button>
-                <label class="upload-button">
-                    插入图片
-                    <input id="imageUpload" type="file" accept="image/*">
-                </label>
-            </section>
-
-            <section class="workspace">
-                <textarea id="markdownEditor" spellcheck="false" placeholder="在这里写 Markdown..."></textarea>
-                <article id="preview" class="preview"></article>
-            </section>
-
-            <footer class="statusbar">
-                <span id="message">准备就绪</span>
-            </footer>
+                <section class="writing-desk" aria-label="正文编辑器">
+                    <header class="editor-toolbar">
+                        <div class="language-tabs" role="tablist" aria-label="正文语言">
+                            <button class="tab active" type="button" role="tab" aria-selected="true" data-lang="zh">中文正文</button>
+                            <button class="tab" type="button" role="tab" aria-selected="false" data-lang="en">英文正文</button>
+                        </div>
+                        <div class="format-tools" aria-label="Markdown 格式工具">
+                            <button type="button" data-command="heading" title="二级标题">H2</button>
+                            <button type="button" data-command="bold" title="粗体"><strong>B</strong></button>
+                            <button type="button" data-command="italic" title="斜体"><em>I</em></button>
+                            <button type="button" data-command="link" title="链接">链接</button>
+                            <button type="button" data-command="quote" title="引用">引用</button>
+                            <button type="button" data-command="unordered" title="无序列表">列表</button>
+                            <button type="button" data-command="code" title="行内代码">代码</button>
+                            <button type="button" data-command="codeblock" title="代码块">代码块</button>
+                            <button type="button" data-command="table" title="表格">表格</button>
+                            <label class="upload-button">插入图片<input id="imageUpload" type="file" accept="image/png,image/jpeg,image/webp,image/gif"></label>
+                        </div>
+                        <div class="view-tabs" aria-label="工作区视图">
+                            <button type="button" data-view="editor">编辑</button>
+                            <button type="button" data-view="split" class="active">分栏</button>
+                            <button type="button" data-view="preview">预览</button>
+                        </div>
+                    </header>
+                    <div class="workspace" data-view="split">
+                        <div class="editor-column">
+                            <label class="visually-hidden" for="markdownEditor">Markdown 正文</label>
+                            <textarea id="markdownEditor" spellcheck="false" placeholder="在这里写 Markdown…" disabled></textarea>
+                            <div class="editor-metrics"><span id="wordCount">0 字</span><span>支持粘贴或拖入图片</span></div>
+                        </div>
+                        <iframe id="previewFrame" class="preview-frame" title="文章实时预览"></iframe>
+                    </div>
+                </section>
+            </form>
         </main>
     </div>
 
-    <script type="module" src="app.js"></script>
+    <footer class="statusbar"><span id="message" role="status" aria-live="polite">正在连接后台…</span><span><kbd>⌘ S</kbd> 保存源码</span></footer>
+
+    <dialog id="recoveryDialog" class="modal compact-modal">
+        <form method="dialog">
+            <p class="eyebrow">RECOVERY</p><h2>发现较新的恢复稿</h2>
+            <p id="recoveryMessage">浏览器中保存了一份尚未写入源码的内容。</p>
+            <div class="modal-actions"><button id="discardRecovery" value="discard">丢弃恢复稿</button><button id="restoreRecovery" class="primary" value="restore">恢复内容</button></div>
+        </form>
+    </dialog>
+
+    <dialog id="deleteDialog" class="modal compact-modal">
+        <form method="dialog">
+            <p class="eyebrow danger-text">DANGER</p><h2>删除这篇文章？</h2>
+            <p>文章源码和专属图片目录都会删除。已发布文章会在下一次发布时从网站移除。</p>
+            <div class="modal-actions"><button value="cancel">取消</button><button id="confirmDelete" class="danger-solid" value="delete">确认删除</button></div>
+        </form>
+    </dialog>
+
+    <dialog id="assetDialog" class="modal asset-modal">
+        <div class="modal-header"><div><p class="eyebrow">ASSETS</p><h2>选择文章图片</h2></div><button id="closeAssets" class="icon-button" type="button" aria-label="关闭图片选择">×</button></div>
+        <div id="assetGrid" class="asset-grid"></div>
+    </dialog>
+
+    <dialog id="publishDialog" class="modal publish-modal">
+        <div class="modal-header"><div><p class="eyebrow">RELEASE</p><h2>发布到 GitHub 与 VPS</h2></div><button id="closePublish" class="icon-button" type="button" aria-label="关闭发布面板">×</button></div>
+        <p id="publishSummary" class="publish-summary">准备发布信息…</p>
+        <div class="publish-layout">
+            <section><h3>本次变更</h3><ul id="publishFiles" class="change-list"></ul></section>
+            <section><h3>发布进度</h3><ol id="publishSteps" class="publish-steps"></ol></section>
+        </div>
+        <aside id="excludedDrafts" class="excluded-drafts"></aside>
+        <div class="modal-actions"><button id="retryPublish" type="button" hidden>重试 Git 推送</button><button id="retryDeploy" type="button" hidden>仅重试 VPS</button><button id="confirmPublish" class="primary" type="button" hidden>确认提交并发布</button></div>
+    </dialog>
+
+    <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+    <script type="module" src="js/app.js"></script>
 </body>
 </html>

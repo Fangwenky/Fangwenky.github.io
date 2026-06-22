@@ -53,14 +53,16 @@ function replaceArticleTranslations(existing, generatedBlock) {
     return `${existing.slice(0, start).trimEnd()}\n\n${generatedBlock}\n`;
 }
 
-export async function generateStaticData() {
-    await fs.mkdir(dataRoot, { recursive: true });
-    const ids = await listArticleIds();
+export async function generateStaticData(options = {}) {
+    const sourceRoot = options.articlesRoot || articlesRoot;
+    const outputRoot = options.dataRoot || dataRoot;
+    await fs.mkdir(outputRoot, { recursive: true });
+    const ids = await listArticleIds(sourceRoot);
     const allArticles = [];
     const english = {};
 
     for (const id of ids) {
-        const article = await readArticle(id);
+        const article = await readArticle(id, { root: sourceRoot });
         if (article.zh.frontmatter.status !== 'published') continue;
         allArticles.push(articleRecord(article));
         const en = englishRecord(article);
@@ -70,12 +72,12 @@ export async function generateStaticData() {
     allArticles.sort((a, b) => new Date(a.date) - new Date(b.date));
 
     const articlesData = `export const articles = ${toJsString(allArticles)};\n`;
-    await fs.writeFile(path.join(dataRoot, 'articlesData.js'), articlesData, 'utf8');
+    await fs.writeFile(path.join(outputRoot, 'articlesData.js'), articlesData, 'utf8');
 
-    const i18nPath = path.join(dataRoot, 'i18nData.js');
+    const i18nPath = path.join(outputRoot, 'i18nData.js');
     const existingI18n = await fs.readFile(i18nPath, 'utf8');
     const articleTranslationsBlock = `export const articleTranslations = ${toJsString({ en: english })};`;
     await fs.writeFile(i18nPath, replaceArticleTranslations(existingI18n, articleTranslationsBlock), 'utf8');
 
-    return { articleCount: allArticles.length, englishCount: Object.keys(english).length, articlesRoot };
+    return { articleCount: allArticles.length, englishCount: Object.keys(english).length, articlesRoot: sourceRoot };
 }

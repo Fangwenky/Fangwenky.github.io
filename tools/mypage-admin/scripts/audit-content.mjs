@@ -1,6 +1,6 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import matter from 'gray-matter';
+import { parseFrontmatter } from '../src/frontmatter.js';
 import { articles } from '../../../mypage/data/articlesData.js';
 import { articleTranslations } from '../../../mypage/data/i18nData.js';
 import { articlesRoot, mypageRoot } from '../src/config.js';
@@ -26,7 +26,7 @@ for (const dir of dirs) {
     const zhPath = path.join(articlesRoot, dir, 'index.zh.md');
     let zh;
     try {
-        zh = matter(await fs.readFile(zhPath, 'utf8'));
+        zh = parseFrontmatter(await fs.readFile(zhPath, 'utf8'));
     } catch {
         issues.push(`Missing Chinese article file: ${dir}/index.zh.md`);
         continue;
@@ -41,7 +41,7 @@ for (const dir of dirs) {
 
     const enPath = path.join(articlesRoot, dir, 'index.en.md');
     try {
-        const en = matter(await fs.readFile(enPath, 'utf8'));
+        const en = parseFrontmatter(await fs.readFile(enPath, 'utf8'));
         if (en.data.id !== dir) {
             issues.push(`English article id mismatch: folder "${dir}" contains "${en.data.id}"`);
         }

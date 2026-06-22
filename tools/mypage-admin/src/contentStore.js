@@ -1,7 +1,7 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import matter from 'gray-matter';
 import { articlesRoot } from './config.js';
+import { parseFrontmatter, stringifyFrontmatter } from './frontmatter.js';
 import { renderMarkdown as renderMarkdownSafe } from './markdown.js';
 
 const REQUIRED_FIELDS = ['id', 'title', 'excerpt', 'date', 'tags', 'category', 'cover', 'readTime', 'status'];
@@ -27,19 +27,19 @@ export function normalizeTags(tags) {
     return [];
 }
 
-export function articleDir(id) {
+export function articleDir(id, root = articlesRoot) {
     if (!/^[a-zA-Z0-9_-]+$/.test(id)) {
         throw new Error('Article id can only contain letters, numbers, hyphen, and underscore.');
     }
-    return path.join(articlesRoot, id);
+    return path.join(root, id);
 }
 
-export function markdownPath(id, lang) {
-    return path.join(articleDir(id), `index.${lang}.md`);
+export function markdownPath(id, lang, root = articlesRoot) {
+    return path.join(articleDir(id, root), `index.${lang}.md`);
 }
 
-export function assetsDir(id) {
-    return path.join(articleDir(id), 'assets');
+export function assetsDir(id, root = articlesRoot) {
+    return path.join(articleDir(id, root), 'assets');
 }
 
 export function normalizeFrontmatter(data = {}, fallbackId = '') {
@@ -67,20 +67,20 @@ export function pickFrontmatter(data) {
     return picked;
 }
 
-export async function ensureContentRoot() {
-    await fs.mkdir(articlesRoot, { recursive: true });
+export async function ensureContentRoot(root = articlesRoot) {
+    await fs.mkdir(root, { recursive: true });
 }
 
-export async function listArticleIds() {
-    await ensureContentRoot();
-    const entries = await fs.readdir(articlesRoot, { withFileTypes: true });
+export async function listArticleIds(root = articlesRoot) {
+    await ensureContentRoot(root);
+    const entries = await fs.readdir(root, { withFileTypes: true });
     return entries.filter(entry => entry.isDirectory()).map(entry => entry.name).sort();
 }
 
-export async function readLanguageFile(id, lang) {
+export async function readLanguageFile(id, lang, root = articlesRoot) {
     try {
-        const raw = await fs.readFile(markdownPath(id, lang), 'utf8');
-        const parsed = matter(raw);
+        const raw = await fs.readFile(markdownPath(id, lang, root), 'utf8');
+        const parsed = parseFrontmatter(raw);
         const frontmatter = normalizeFrontmatter(parsed.data, id);
         if (frontmatter.id !== id) {
             throw new Error(`Article id mismatch: folder "${id}" contains "${frontmatter.id}".`);
@@ -99,19 +99,21 @@ export async function readLanguageFile(id, lang) {
     }
 }
 
-export async function readArticle(id) {
-    const zh = await readLanguageFile(id, 'zh');
+export async function readArticle(id, options = {}) {
+    const root = options.root || articlesRoot;
+    const zh = await readLanguageFile(id, 'zh', root);
     if (!zh.exists) throw new Error(`Article ${id} is missing index.zh.md.`);
-    const en = await readLanguageFile(id, 'en');
+    const en = await readLanguageFile(id, 'en', root);
     return { id, zh, en };
 }
 
-export async function listArticles() {
-    const ids = await listArticleIds();
+export async function listArticles(options = {}) {
+    const root = options.root || articlesRoot;
+    const ids = await listArticleIds(root);
     const articles = [];
     for (const id of ids) {
         try {
-            const article = await readArticle(id);
+            const article = await readArticle(id, { root });
             articles.push({
                 id,
                 title: article.zh.frontmatter.title,
@@ -160,25 +162,38 @@ export function validateArticlePayload(payload) {
     return { zh, en, zhBody, enBody };
 }
 
-export async function saveArticle(payload) {
+export async function saveArticle(payload, options = {}) {
+    const root = options.root || articlesRoot;
     const { zh, en, zhBody, enBody } = validateArticlePayload(payload);
-    const dir = articleDir(zh.id);
+    const originalId = String(payload.originalId || '').trim();
+    if (originalId && originalId !== zh.id) {
+        throw new Error('Article ID is locked after the first save.');
+    }
+    const dir = articleDir(zh.id, root);
+    if (!originalId) {
+        try {
+            await fs.access(markdownPath(zh.id, 'zh', root));
+            throw new Error(`Article ID "${zh.id}" already exists.`);
+        } catch (error) {
+            if (error.code !== 'ENOENT') throw error;
+        }
+    }
     await fs.mkdir(dir, { recursive: true });
     await fs.mkdir(path.join(dir, 'assets'), { recursive: true });
 
-    await fs.writeFile(markdownPath(zh.id, 'zh'), matter.stringify(`${zhBody}\n`, pickFrontmatter(zh)), 'utf8');
+    await fs.writeFile(markdownPath(zh.id, 'zh', root), stringifyFrontmatter(`${zhBody}\n`, pickFrontmatter(zh)), 'utf8');
 
     if (en && (enBody || en.title || en.excerpt)) {
-        await fs.writeFile(markdownPath(zh.id, 'en'), matter.stringify(`${enBody}\n`, pickFrontmatter(en)), 'utf8');
+        await fs.writeFile(markdownPath(zh.id, 'en', root), stringifyFrontmatter(`${enBody}\n`, pickFrontmatter(en)), 'utf8');
     } else {
-        await fs.rm(markdownPath(zh.id, 'en'), { force: true });
+        await fs.rm(markdownPath(zh.id, 'en', root), { force: true });
     }
 
-    return readArticle(zh.id);
+    return readArticle(zh.id, { root });
 }
 
-export async function deleteArticle(id) {
-    await fs.rm(articleDir(id), { recursive: true, force: true });
+export async function deleteArticle(id, options = {}) {
+    await fs.rm(articleDir(id, options.root || articlesRoot), { recursive: true, force: true });
 }
 
 export async function renderMarkdown(markdown) {

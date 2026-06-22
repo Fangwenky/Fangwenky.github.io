@@ -1,18 +1,16 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { execFile } from 'node:child_process';
-import { promisify } from 'node:util';
 import express from 'express';
 import multer from 'multer';
 import {
     adminToken,
-    articlesRoot,
     defaultHost,
     defaultPort,
-    managedPaths,
+    deployConfig,
     mypageRoot,
-    publicRoot,
-    repoRoot
+    openBrowser,
+    publicRoot
 } from './config.js';
 import {
     assetsDir,
@@ -23,10 +21,12 @@ import {
     saveArticle,
     slugify
 } from './contentStore.js';
+import { createDeployService } from './deployService.js';
+import { createGitService } from './gitService.js';
 import { renderMarkdown } from './markdown.js';
+import { createPublishService } from './publishService.js';
 import { generateStaticData } from './staticGenerator.js';
 
-const execFileAsync = promisify(execFile);
 const app = express();
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 8 * 1024 * 1024 } });
 const allowedImageTypes = new Map([
@@ -35,8 +35,11 @@ const allowedImageTypes = new Map([
     ['image/webp', ['.webp']],
     ['image/gif', ['.gif']]
 ]);
+const gitService = createGitService();
+const deployService = createDeployService();
+const publishService = createPublishService({ gitService, deployService });
 
-app.use(express.json({ limit: '2mb' }));
+app.use(express.json({ limit: '4mb' }));
 app.use('/mypage', express.static(mypageRoot));
 app.use('/content', express.static(path.join(mypageRoot, 'content')));
 app.use(express.static(publicRoot));
@@ -47,46 +50,12 @@ function requireToken(req, res, next) {
         res.status(401).json({ error: 'Invalid admin token.' });
         return;
     }
+    res.set('cache-control', 'no-store');
     next();
 }
 
 function asyncHandler(handler) {
     return (req, res, next) => Promise.resolve(handler(req, res, next)).catch(next);
-}
-
-async function git(args, options = {}) {
-    return execFileAsync('git', args, { cwd: repoRoot, ...options });
-}
-
-function isManagedPath(filePath) {
-    return managedPaths.some(prefix => filePath === prefix || filePath.startsWith(`${prefix}/`));
-}
-
-async function assertNoUnmanagedChanges() {
-    const { stdout } = await git(['status', '--porcelain']);
-    const changes = stdout.trim().split('\n').filter(Boolean).map(line => line.slice(3));
-    const unmanaged = changes.filter(file => !isManagedPath(file));
-    if (unmanaged.length > 0) {
-        throw new Error(`Unrelated worktree changes block publishing: ${unmanaged.join(', ')}`);
-    }
-}
-
-async function publishArticle(title) {
-    await assertNoUnmanagedChanges();
-    const generated = await generateStaticData();
-    await execFileAsync('node', ['--check', 'mypage/data/articlesData.js'], { cwd: repoRoot });
-    await execFileAsync('node', ['--check', 'mypage/data/i18nData.js'], { cwd: repoRoot });
-    await git(['diff', '--check', '--', ...managedPaths]);
-    await git(['add', ...managedPaths]);
-
-    const { stdout: staged } = await git(['diff', '--cached', '--name-only']);
-    if (!staged.trim()) {
-        return { generated, committed: false, pushed: false, message: 'No changes to publish.' };
-    }
-
-    await git(['commit', '-m', `Publish article: ${title}`]);
-    await git(['push']);
-    return { generated, committed: true, pushed: true };
 }
 
 function validateImageUpload(file) {
@@ -98,28 +67,53 @@ function validateImageUpload(file) {
 
     const header = file.buffer.subarray(0, 12);
     const isPng = file.mimetype === 'image/png'
-        && header[0] === 0x89
-        && header[1] === 0x50
-        && header[2] === 0x4e
-        && header[3] === 0x47;
+        && header[0] === 0x89 && header[1] === 0x50 && header[2] === 0x4e && header[3] === 0x47;
     const isJpeg = file.mimetype === 'image/jpeg'
-        && header[0] === 0xff
-        && header[1] === 0xd8
-        && header[2] === 0xff;
+        && header[0] === 0xff && header[1] === 0xd8 && header[2] === 0xff;
     const isWebp = file.mimetype === 'image/webp'
         && header.toString('ascii', 0, 4) === 'RIFF'
         && header.toString('ascii', 8, 12) === 'WEBP';
     const isGif = file.mimetype === 'image/gif'
         && ['GIF87a', 'GIF89a'].includes(header.toString('ascii', 0, 6));
-
     if (!isPng && !isJpeg && !isWebp && !isGif) {
         throw new Error('Uploaded file does not match its image type.');
     }
 }
 
-app.get('/api/session', requireToken, (req, res) => {
-    res.json({ ok: true });
-});
+async function listAssets(id) {
+    try {
+        const entries = await fs.readdir(assetsDir(id), { withFileTypes: true });
+        return entries
+            .filter(entry => entry.isFile())
+            .map(entry => ({
+                name: entry.name,
+                path: `content/articles/${id}/assets/${entry.name}`,
+                url: `/content/articles/${id}/assets/${encodeURIComponent(entry.name)}`
+            }))
+            .sort((a, b) => a.name.localeCompare(b.name));
+    } catch (error) {
+        if (error.code === 'ENOENT') return [];
+        throw error;
+    }
+}
+
+app.get('/api/session', requireToken, asyncHandler(async (req, res) => {
+    const workspace = await gitService.workspaceStatus();
+    res.json({
+        ok: true,
+        workspace,
+        deployment: {
+            githubPagesUrl: deployConfig.githubPagesUrl,
+            vpsUrl: deployConfig.vpsUrl,
+            sshHost: deployConfig.sshHost,
+            deployRoot: deployConfig.deployRoot
+        }
+    });
+}));
+
+app.get('/api/workspace/status', requireToken, asyncHandler(async (req, res) => {
+    res.json(await gitService.workspaceStatus({ fetch: req.query.fetch === '1' }));
+}));
 
 app.get('/api/articles', requireToken, asyncHandler(async (req, res) => {
     res.json(await listArticles());
@@ -135,13 +129,16 @@ app.post('/api/articles', requireToken, asyncHandler(async (req, res) => {
         payload.id = slugify(payload.zh.frontmatter.title);
         payload.zh.frontmatter.id = payload.id;
     }
-    const article = await saveArticle(payload);
-    res.json(article);
+    res.json(await saveArticle(payload));
 }));
 
 app.delete('/api/articles/:id', requireToken, asyncHandler(async (req, res) => {
     await deleteArticle(req.params.id);
     res.json({ ok: true });
+}));
+
+app.get('/api/articles/:id/assets', requireToken, asyncHandler(async (req, res) => {
+    res.json(await listAssets(req.params.id));
 }));
 
 app.post('/api/articles/:id/upload', requireToken, upload.single('image'), asyncHandler(async (req, res) => {
@@ -155,7 +152,9 @@ app.post('/api/articles/:id/upload', requireToken, upload.single('image'), async
     await fs.writeFile(path.join(dir, fileName), req.file.buffer);
     const imagePath = `content/articles/${req.params.id}/assets/${fileName}`;
     res.json({
+        name: fileName,
         path: imagePath,
+        url: `/content/articles/${req.params.id}/assets/${encodeURIComponent(fileName)}`,
         markdown: `![${safeBase}](${imagePath})`
     });
 }));
@@ -172,16 +171,40 @@ app.post('/api/generate', requireToken, asyncHandler(async (req, res) => {
     res.json(await generateStaticData());
 }));
 
-app.post('/api/publish', requireToken, asyncHandler(async (req, res) => {
-    const title = req.body.title || 'content update';
-    res.json(await publishArticle(title));
+app.post('/api/publish/prepare', requireToken, asyncHandler(async (req, res) => {
+    res.json(await publishService.prepare());
+}));
+
+app.post('/api/publish/jobs', requireToken, (req, res) => {
+    res.status(202).json(publishService.startPublish(req.body || {}));
+});
+
+app.get('/api/publish/jobs/:id', requireToken, (req, res) => {
+    res.json(publishService.getJob(req.params.id));
+});
+
+app.post('/api/publish/jobs/:id/retry', requireToken, (req, res) => {
+    res.status(202).json(publishService.retryPush(req.params.id));
+});
+
+app.post('/api/deploy/jobs', requireToken, asyncHandler(async (req, res) => {
+    res.status(202).json(await publishService.startDeployOnly());
 }));
 
 app.use((error, req, res, next) => {
+    console.error(error);
     res.status(400).json({ error: error.message || 'Unexpected admin error.' });
 });
 
-app.listen(defaultPort, defaultHost, () => {
-    console.log(`mypage admin: http://${defaultHost}:${defaultPort}/?token=${adminToken}`);
+const server = app.listen(defaultPort, defaultHost, () => {
+    const url = `http://${defaultHost}:${defaultPort}/?token=${adminToken}`;
+    console.log(`mypage admin: ${url}`);
     console.log(`one-time token: ${adminToken}`);
+    if (openBrowser && process.platform === 'darwin') {
+        execFile('open', [url], error => {
+            if (error) console.error(`Could not open browser: ${error.message}`);
+        });
+    }
 });
+
+export { app, server, validateImageUpload };
