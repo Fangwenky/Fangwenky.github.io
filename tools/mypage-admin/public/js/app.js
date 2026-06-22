@@ -4,6 +4,7 @@ import { applyMarkdownCommand, insertAtCursor, previewDocument } from './editor.
 import { PublishingController } from './publish.js';
 
 const $ = selector => document.querySelector(selector);
+const desktopSidebarKey = 'mypageAdminSidebarCollapsed';
 const fields = [
     'articleId', 'articleDate', 'articleCategory', 'articleReadTime', 'articleCover',
     'articleStatus', 'articleFeatured', 'zhTitle', 'enTitle', 'zhExcerpt', 'enExcerpt',
@@ -454,6 +455,13 @@ function setSidebar(open) {
     $('#sidebarToggle').setAttribute('aria-label', open ? '关闭文章库' : '打开文章库');
 }
 
+function setDesktopSidebar(collapsed, persist = true) {
+    document.body.classList.toggle('sidebar-collapsed', collapsed);
+    $('#sidebarToggle').setAttribute('aria-expanded', String(!collapsed));
+    $('#sidebarToggle').setAttribute('aria-label', collapsed ? '打开文章库' : '收起文章库');
+    if (persist) localStorage.setItem(desktopSidebarKey, collapsed ? '1' : '0');
+}
+
 function closeSidebar() {
     if (window.matchMedia('(max-width: 900px)').matches) setSidebar(false);
 }
@@ -500,7 +508,14 @@ document.querySelectorAll('[data-view]').forEach(button => button.addEventListen
 }));
 
 $('#newArticle').addEventListener('click', async () => { if (await confirmDiscardCurrent()) newArticle(); });
-$('#sidebarToggle').addEventListener('click', () => setSidebar(!document.body.classList.contains('sidebar-open')));
+$('#collapseSidebar').addEventListener('click', () => setDesktopSidebar(true));
+$('#sidebarToggle').addEventListener('click', () => {
+    if (window.matchMedia('(max-width: 900px)').matches) {
+        setSidebar(!document.body.classList.contains('sidebar-open'));
+    } else {
+        setDesktopSidebar(false);
+    }
+});
 $('#sidebarBackdrop').addEventListener('click', () => setSidebar(false));
 $('#refreshArticles').addEventListener('click', () => Promise.all([loadArticles(), refreshWorkspace(true)]).then(() => notify('文章库已刷新', 'success')).catch(error => notify(error.message, 'error')));
 $('#saveArticle').addEventListener('click', () => saveArticle().catch(error => notify(error.message, 'error')));
@@ -543,6 +558,7 @@ window.addEventListener('beforeunload', event => {
 setInterval(persistRecovery, 2000);
 
 async function init() {
+    setDesktopSidebar(localStorage.getItem(desktopSidebarKey) === '1', false);
     setEnabled(false);
     const session = await api('/api/session');
     updateWorkspaceUi(session.workspace);
