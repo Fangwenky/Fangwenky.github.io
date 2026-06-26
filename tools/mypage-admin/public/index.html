@@ -29,14 +29,18 @@
         <button id="sidebarBackdrop" class="sidebar-backdrop" type="button" aria-label="关闭文章库"></button>
         <aside class="sidebar" id="articleSidebar">
             <div class="sidebar-heading">
-                <div><p class="eyebrow">LIBRARY</p><h1>文章库</h1></div>
+                <div><p class="eyebrow">LIBRARY</p><h1 id="libraryTitle">文章库</h1></div>
                 <div class="sidebar-actions">
                     <button id="collapseSidebar" class="icon-button collapse-sidebar" type="button" aria-label="收起文章库" title="收起文章库">‹</button>
                     <button id="newArticle" class="icon-button" type="button" aria-label="新建文章" title="新建文章">＋</button>
                 </div>
             </div>
+            <div class="content-switch" role="tablist" aria-label="内容类型">
+                <button id="articleMode" class="active" type="button" role="tab" aria-selected="true">文章</button>
+                <button id="projectMode" type="button" role="tab" aria-selected="false">项目</button>
+            </div>
             <div class="filters">
-                <label class="search-field"><span class="visually-hidden">搜索文章</span><input id="filterInput" type="search" placeholder="搜索标题、标签或分类"></label>
+                <label class="search-field"><span class="visually-hidden" id="filterLabel">搜索文章</span><input id="filterInput" type="search" placeholder="搜索标题、标签或分类"></label>
                 <select id="statusFilter" aria-label="按状态筛选">
                     <option value="">全部状态</option>
                     <option value="published">已发布</option>
@@ -67,7 +71,7 @@
 
             <form id="articleForm" novalidate>
                 <details class="metadata-panel" open>
-                    <summary><span><strong>文章信息</strong><small>标题、分类、封面与发布状态</small></span><span class="summary-action">展开 / 收起</span></summary>
+                    <summary><span><strong id="metaTitle">文章信息</strong><small id="metaSubtitle">标题、分类、封面与发布状态</small></span><span class="summary-action">展开 / 收起</span></summary>
                     <div class="meta-grid">
                         <label>文章 ID <span class="required">必填</span><input id="articleId" required autocomplete="off" pattern="[A-Za-z0-9_-]+" aria-describedby="articleIdHelp"><small id="articleIdHelp">首次保存后锁定，用作目录名和链接。</small></label>
                         <label>发布日期 <span class="required">必填</span><input id="articleDate" type="date" required></label>
@@ -76,12 +80,16 @@
                         <label class="wide">封面路径 <span class="required">必填</span><span class="input-with-action"><input id="articleCover" required autocomplete="off" placeholder="images/example.svg"><button id="chooseCover" type="button">选择</button></span></label>
                         <label>阅读时长 <span class="required">必填</span><input id="articleReadTime" required autocomplete="off"><span class="inline-option"><input id="autoReadTime" type="checkbox" checked> 自动计算</span></label>
                         <label class="check-card"><input id="articleFeatured" type="checkbox"><span><strong>精选文章</strong><small>可用于首页推荐排序</small></span></label>
-                        <label class="wide">中文标题 <span class="required">必填</span><input id="zhTitle" required autocomplete="off"></label>
-                        <label class="wide">英文标题<input id="enTitle" autocomplete="off"></label>
-                        <label class="wide">中文摘要 <span class="required">必填</span><textarea id="zhExcerpt" rows="3" required></textarea></label>
-                        <label class="wide">英文摘要<textarea id="enExcerpt" rows="3"></textarea></label>
-                        <label class="wide">中文标签 <span class="required">必填</span><input id="zhTags" required autocomplete="off" placeholder="人工智能, 学习笔记"></label>
-                        <label class="wide">英文标签<input id="enTags" autocomplete="off" placeholder="AI, Notes"></label>
+                        <label class="wide article-field">中文标题 <span class="required">必填</span><input id="zhTitle" required autocomplete="off"></label>
+                        <label class="wide article-field">英文标题<input id="enTitle" autocomplete="off"></label>
+                        <label class="wide article-field">中文摘要 <span class="required">必填</span><textarea id="zhExcerpt" rows="3" required></textarea></label>
+                        <label class="wide article-field">英文摘要<textarea id="enExcerpt" rows="3"></textarea></label>
+                        <label class="wide article-field">中文标签 <span class="required">必填</span><input id="zhTags" required autocomplete="off" placeholder="人工智能, 学习笔记"></label>
+                        <label class="wide article-field">英文标签<input id="enTags" autocomplete="off" placeholder="AI, Notes"></label>
+                        <label class="wide project-field" hidden>项目标题 <span class="required">必填</span><input id="projectTitle" autocomplete="off"></label>
+                        <label class="wide project-field" hidden>项目链接<input id="projectLink" autocomplete="off" placeholder="https://..."></label>
+                        <label class="wide project-field" hidden>项目简介 <span class="required">必填</span><textarea id="projectDescription" rows="3"></textarea></label>
+                        <label class="wide project-field" hidden>项目标签<input id="projectTags" autocomplete="off" placeholder="PyTorch, Web AI"></label>
                     </div>
                 </details>
 
@@ -135,7 +143,7 @@
     <dialog id="deleteDialog" class="modal compact-modal">
         <form method="dialog">
             <p class="eyebrow danger-text">DANGER</p><h2>删除这篇文章？</h2>
-            <p>文章源码和专属图片目录都会删除。已发布文章会在下一次发布时从网站移除。</p>
+            <p id="deleteMessage">文章源码和专属图片目录都会删除。已发布文章会在下一次发布时从网站移除。</p>
             <div class="modal-actions"><button value="cancel">取消</button><button id="confirmDelete" class="danger-solid" value="delete">确认删除</button></div>
         </form>
     </dialog>

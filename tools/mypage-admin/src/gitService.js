@@ -3,7 +3,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
-import { generatedPaths, repoRoot } from './config.js';
+import { generatedPaths, projectPaths, repoRoot } from './config.js';
 import { parseFrontmatter } from './frontmatter.js';
 
 const execFileAsync = promisify(execFile);
@@ -84,7 +84,7 @@ export function createGitService(options = {}) {
     }
 
     async function publicationScope() {
-        const entries = await statusEntries(['mypage/content/articles', ...generatedPaths]);
+        const entries = await statusEntries(['mypage/content/articles', ...generatedPaths, ...projectPaths]);
         const ids = [...new Set(entries.map(entry => articleIdFromPath(entry.file)).filter(Boolean))];
         const publishIds = [];
         const draftIds = [];
@@ -99,7 +99,7 @@ export function createGitService(options = {}) {
 
         const articlePaths = publishIds.map(id => `${articlePrefix}${id}`.replace(/\/$/, ''));
         const draftPaths = draftIds.map(id => `${articlePrefix}${id}`.replace(/\/$/, ''));
-        const publishPaths = [...articlePaths, ...generatedPaths];
+        const publishPaths = [...articlePaths, ...generatedPaths, ...projectPaths];
         const isWithin = (file, roots) => roots.some(root => file === root || file.startsWith(`${root}/`));
 
         return {

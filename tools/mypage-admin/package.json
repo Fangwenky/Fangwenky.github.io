@@ -9,7 +9,7 @@
     "generate": "node scripts/generate-static.mjs",
     "audit": "node scripts/audit-content.mjs",
     "test": "node --test test/*.test.js",
-    "check": "node --check src/server.js && node --check src/contentStore.js && node --check src/staticGenerator.js && node --check src/markdown.js && node --check src/frontmatter.js && node --check src/gitService.js && node --check src/deployService.js && node --check src/publishService.js && node --check scripts/migrate-articles.mjs && node --check scripts/audit-content.mjs && node --check public/js/api.js && node --check public/js/drafts.js && node --check public/js/editor.js && node --check public/js/publish.js && node --check public/js/app.js && npm test && npm run audit"
+    "check": "node --check src/server.js && node --check src/contentStore.js && node --check src/projectStore.js && node --check src/staticGenerator.js && node --check src/markdown.js && node --check src/frontmatter.js && node --check src/gitService.js && node --check src/deployService.js && node --check src/publishService.js && node --check scripts/migrate-articles.mjs && node --check scripts/audit-content.mjs && node --check public/js/api.js && node --check public/js/drafts.js && node --check public/js/editor.js && node --check public/js/publish.js && node --check public/js/app.js && npm test && npm run audit"
   },
   "dependencies": {
     "express": "^4.19.2",

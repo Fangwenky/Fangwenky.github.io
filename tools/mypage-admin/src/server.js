@@ -23,6 +23,14 @@ import {
 } from './contentStore.js';
 import { createDeployService } from './deployService.js';
 import { createGitService } from './gitService.js';
+import {
+    deleteProject,
+    listProjectImages,
+    listProjects,
+    readProject,
+    saveProject,
+    saveProjectImage
+} from './projectStore.js';
 import { renderMarkdown } from './markdown.js';
 import { createPublishService } from './publishService.js';
 import { generateStaticData } from './staticGenerator.js';
@@ -137,6 +145,29 @@ app.delete('/api/articles/:id', requireToken, asyncHandler(async (req, res) => {
     res.json({ ok: true });
 }));
 
+app.get('/api/projects', requireToken, asyncHandler(async (req, res) => {
+    res.json(await listProjects());
+}));
+
+app.get('/api/projects/assets', requireToken, asyncHandler(async (req, res) => {
+    res.json(await listProjectImages());
+}));
+
+app.get('/api/projects/:id', requireToken, asyncHandler(async (req, res) => {
+    res.json(await readProject(req.params.id));
+}));
+
+app.post('/api/projects', requireToken, asyncHandler(async (req, res) => {
+    const payload = req.body;
+    if (!payload.id && payload.title) payload.id = slugify(payload.title);
+    res.json(await saveProject(payload));
+}));
+
+app.delete('/api/projects/:id', requireToken, asyncHandler(async (req, res) => {
+    await deleteProject(req.params.id);
+    res.json({ ok: true });
+}));
+
 app.get('/api/articles/:id/assets', requireToken, asyncHandler(async (req, res) => {
     res.json(await listAssets(req.params.id));
 }));
@@ -159,8 +190,21 @@ app.post('/api/articles/:id/upload', requireToken, upload.single('image'), async
     });
 }));
 
+app.post('/api/projects/upload', requireToken, upload.single('image'), asyncHandler(async (req, res) => {
+    if (!req.file) throw new Error('No image uploaded.');
+    validateImageUpload(req.file);
+    const extension = path.extname(req.file.originalname).toLowerCase() || '.png';
+    const safeBase = slugify(path.basename(req.file.originalname, extension));
+    const fileName = `${Date.now()}-${safeBase}${extension}`;
+    res.json(await saveProjectImage(fileName, req.file.buffer));
+}));
+
 app.post('/api/preview', requireToken, (req, res) => {
     res.json({ html: renderMarkdown(String(req.body.markdown || '')) });
+});
+
+app.post('/api/project-preview', requireToken, (req, res) => {
+    res.json({ html: String(req.body.html || '') });
 });
 
 app.post('/api/read-time', requireToken, (req, res) => {

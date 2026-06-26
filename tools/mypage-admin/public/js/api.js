@@ -17,4 +17,10 @@ export async function uploadArticleImage(id, file) {
     return api(`/api/articles/${encodeURIComponent(id)}/upload`, { method: 'POST', body: form });
 }
 
+export async function uploadProjectImage(file) {
+    const form = new FormData();
+    form.append('image', file);
+    return api('/api/projects/upload', { method: 'POST', body: form });
+}
+
 export { token };

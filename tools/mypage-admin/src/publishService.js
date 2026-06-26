@@ -74,7 +74,7 @@ export function createPublishService(options = {}) {
             return {
                 ready: false,
                 generated,
-                message: '没有可发布的公开文章变更。草稿会继续保留在本机。',
+                message: '没有可发布的公开内容变更。文章草稿会继续保留在本机。',
                 excludedDraftFiles: workspace.draftFiles
             };
         }
@@ -137,7 +137,7 @@ export function createPublishService(options = {}) {
             }
 
             job.phase = 'commit';
-            const sha = await git.commit(`Publish article: ${title || workspace.publishIds.join(', ')}`);
+            const sha = await git.commit(`Publish content: ${title || workspace.publishIds.join(', ') || 'site update'}`);
             committed = true;
             job.commit = sha;
             updateStep(job, 'git-commit', 'success', sha.slice(0, 8));

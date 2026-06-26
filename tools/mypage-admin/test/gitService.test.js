@@ -30,8 +30,11 @@ async function makeRepository(t) {
     await writeArticle(root, 'public-note', 'published', 'old');
     await writeArticle(root, 'existing-draft', 'draft', 'old draft');
     await fs.mkdir(path.join(root, 'mypage/data'), { recursive: true });
+    await fs.mkdir(path.join(root, 'mypage/images'), { recursive: true });
     await fs.writeFile(path.join(root, 'mypage/data/articlesData.js'), 'old\n');
     await fs.writeFile(path.join(root, 'mypage/data/i18nData.js'), 'old\n');
+    await fs.writeFile(path.join(root, 'mypage/data/projectsData.js'), 'old\n');
+    await fs.writeFile(path.join(root, 'mypage/images/existing.png'), 'old\n');
     await git(root, ['add', '.']);
     await git(root, ['commit', '-m', 'baseline']);
     await git(root, ['remote', 'add', 'origin', remote]);
@@ -53,11 +56,15 @@ test('publishes public article changes but excludes pure drafts and unrelated fi
     await fs.mkdir(path.join(root, '.claude'), { recursive: true });
     await fs.writeFile(path.join(root, '.claude/local.txt'), 'local');
     await fs.writeFile(path.join(root, 'mypage/data/articlesData.js'), 'new\n');
+    await fs.writeFile(path.join(root, 'mypage/data/projectsData.js'), 'project change\n');
+    await fs.writeFile(path.join(root, 'mypage/images/new-project.png'), 'image');
 
     const service = createGitService({ repoRoot: root });
     const status = await service.workspaceStatus();
     assert.equal(status.ready, true);
     assert(status.publishableFiles.some(file => file.file.includes('public-note')));
+    assert(status.publishableFiles.some(file => file.file === 'mypage/data/projectsData.js'));
+    assert(status.publishableFiles.some(file => file.file === 'mypage/images/new-project.png'));
     assert(status.draftFiles.some(file => file.file.includes('existing-draft')));
     assert(!status.publishableFiles.some(file => file.file.includes('.claude')));
 

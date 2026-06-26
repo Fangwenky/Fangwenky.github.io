@@ -1,6 +1,6 @@
-import { api, uploadArticleImage } from './api.js';
+import { api, uploadArticleImage, uploadProjectImage } from './api.js';
 import { clearRecovery, listRecoveries, loadRecovery, saveRecovery } from './drafts.js';
-import { applyMarkdownCommand, insertAtCursor, previewDocument } from './editor.js';
+import { applyHtmlCommand, applyMarkdownCommand, insertAtCursor, previewDocument, projectPreviewDocument } from './editor.js';
 import { PublishingController } from './publish.js';
 
 const $ = selector => document.querySelector(selector);
@@ -8,10 +8,13 @@ const desktopSidebarKey = 'mypageAdminSidebarCollapsed';
 const fields = [
     'articleId', 'articleDate', 'articleCategory', 'articleReadTime', 'articleCover',
     'articleStatus', 'articleFeatured', 'zhTitle', 'enTitle', 'zhExcerpt', 'enExcerpt',
-    'zhTags', 'enTags'
+    'zhTags', 'enTags', 'projectTitle', 'projectDescription', 'projectTags', 'projectLink'
 ];
+const projectRecoveryNamespace = 'project';
 const state = {
+    mode: 'article',
     articles: [],
+    projects: [],
     current: null,
     originalId: '',
     recoveryId: '',
@@ -64,8 +67,17 @@ function setEnabled(enabled) {
     $('#deleteArticle').disabled = !enabled || !state.originalId;
     $('#markdownEditor').disabled = !enabled;
     $('#chooseCover').disabled = !enabled;
-    fields.forEach(id => { $(`#${id}`).disabled = !enabled || (id === 'articleId' && Boolean(state.originalId)); });
-    document.querySelectorAll('.format-tools button, .format-tools input, .language-tabs button').forEach(control => { control.disabled = !enabled; });
+    fields.forEach(id => {
+        const element = $(`#${id}`);
+        const articleOnly = ['articleReadTime', 'articleStatus', 'articleFeatured', 'zhTitle', 'enTitle', 'zhExcerpt', 'enExcerpt', 'zhTags', 'enTags'].includes(id);
+        const projectOnly = ['projectTitle', 'projectDescription', 'projectTags', 'projectLink'].includes(id);
+        element.disabled = !enabled
+            || (id === 'articleId' && Boolean(state.originalId))
+            || (state.mode === 'project' && articleOnly)
+            || (state.mode === 'article' && projectOnly);
+    });
+    document.querySelectorAll('.format-tools button, .format-tools input').forEach(control => { control.disabled = !enabled; });
+    document.querySelectorAll('.language-tabs button').forEach(control => { control.disabled = !enabled || state.mode === 'project'; });
 }
 
 function updatePublishButton() {
@@ -74,7 +86,7 @@ function updatePublishButton() {
     $('#publishArticle').disabled = blocked || !hasCandidate;
 }
 
-function currentPayload() {
+function articlePayload() {
     state.bodies[state.activeLang] = $('#markdownEditor').value;
     const base = {
         id: $('#articleId').value.trim(),
@@ -105,7 +117,30 @@ function currentPayload() {
     };
 }
 
+function projectPayload() {
+    return {
+        id: $('#articleId').value.trim(),
+        originalId: state.originalId,
+        title: $('#projectTitle').value.trim(),
+        description: $('#projectDescription').value.trim(),
+        image: $('#articleCover').value.trim(),
+        tags: tagsFromInput($('#projectTags').value),
+        link: $('#projectLink').value.trim(),
+        category: $('#articleCategory').value.trim(),
+        date: $('#articleDate').value,
+        content: $('#markdownEditor').value.trim()
+    };
+}
+
+function currentPayload() {
+    return state.mode === 'project' ? projectPayload() : articlePayload();
+}
+
 function applyPayload(payload) {
+    if (state.mode === 'project') {
+        applyProjectPayload(payload);
+        return;
+    }
     const zh = payload.zh?.frontmatter || {};
     const en = payload.en?.frontmatter || {};
     state.bodies = { zh: payload.zh?.body || '', en: payload.en?.body || '' };
@@ -125,7 +160,27 @@ function applyPayload(payload) {
     switchLanguage('zh', false);
 }
 
+function applyProjectPayload(project = {}) {
+    state.bodies = { zh: project.content || '', en: '' };
+    $('#articleId').value = project.id || '';
+    $('#articleDate').value = project.date || new Date().toISOString().slice(0, 10);
+    $('#articleCategory').value = project.category || '项目';
+    $('#articleCover').value = project.image || '';
+    $('#projectTitle').value = project.title || '';
+    $('#projectDescription').value = project.description || '';
+    $('#projectTags').value = tagsToInput(project.tags);
+    $('#projectLink').value = project.link || '';
+    state.activeLang = 'zh';
+    $('#markdownEditor').value = state.bodies.zh;
+    updateMetrics();
+    schedulePreview();
+}
+
 async function renderPreview() {
+    if (state.mode === 'project') {
+        $('#previewFrame').srcdoc = projectPreviewDocument(projectPayload());
+        return;
+    }
     const markdown = $('#markdownEditor').value;
     const data = await api('/api/preview', { method: 'POST', body: JSON.stringify({ markdown }) });
     $('#previewFrame').srcdoc = previewDocument(data.html);
@@ -145,6 +200,7 @@ function updateMetrics() {
 }
 
 function scheduleReadTime() {
+    if (state.mode === 'project') return;
     if (state.activeLang !== 'zh' || !$('#autoReadTime').checked) return;
     clearTimeout(state.readTimeTimer);
     state.readTimeTimer = setTimeout(async () => {
@@ -164,6 +220,7 @@ function scheduleReadTime() {
 }
 
 function switchLanguage(lang, preserve = true) {
+    if (state.mode === 'project') return;
     if (preserve) state.bodies[state.activeLang] = $('#markdownEditor').value;
     state.activeLang = lang;
     $('#markdownEditor').value = state.bodies[lang] || '';
@@ -184,6 +241,20 @@ function renderList() {
     const query = $('#filterInput').value.trim().toLowerCase();
     const status = $('#statusFilter').value;
     const list = $('#articleList');
+    if (state.mode === 'project') {
+        const filteredProjects = state.projects
+            .filter(project => !query || [project.title, project.description, project.category, ...(project.tags || [])].join(' ').toLowerCase().includes(query));
+        list.innerHTML = filteredProjects.map(project => {
+            const active = state.originalId === project.id;
+            return `<button type="button" class="article-item ${active ? 'active' : ''}" data-id="${project.id}">
+                <span class="article-item-top"><strong>${project.title}</strong>${active && state.dirty ? '<i>未保存</i>' : ''}</span>
+                <span>${project.date || '无日期'} · ${project.category || '未分类'}</span>
+                <small>${(project.tags || []).join(', ') || '无标签'}</small>
+            </button>`;
+        }).join('') || '<p class="empty-state">没有符合条件的项目。</p>';
+        list.querySelectorAll('[data-id]').forEach(button => button.addEventListener('click', () => loadProject(button.dataset.id)));
+        return;
+    }
     const filtered = state.articles
         .filter(article => !status || article.status === status)
         .filter(article => !query || [article.title, article.category, ...(article.tags || [])].join(' ').toLowerCase().includes(query));
@@ -200,14 +271,15 @@ function renderList() {
 }
 
 function renderRecoveries() {
-    const recoveries = listRecoveries().filter(item => item.id.startsWith('new-'));
+    const recoveries = listRecoveries(state.mode === 'project' ? projectRecoveryNamespace : '').filter(item => item.id.startsWith('new-'));
+    const label = state.mode === 'project' ? '未写入源码的项目恢复稿' : '未写入源码的恢复稿';
     $('#recoveryList').innerHTML = recoveries.length ? `
-        <p class="list-label">未写入源码的恢复稿</p>
-        ${recoveries.map(item => `<div class="recovery-row"><button type="button" class="recovery-item" data-recovery="${item.id}"><strong>${item.payload?.zh?.frontmatter?.title || '未命名文章'}</strong><span>${new Date(item.savedAt).toLocaleString()}</span></button><button type="button" class="discard-recovery" data-discard-recovery="${item.id}" aria-label="丢弃恢复稿">×</button></div>`).join('')}
+        <p class="list-label">${label}</p>
+        ${recoveries.map(item => `<div class="recovery-row"><button type="button" class="recovery-item" data-recovery="${item.id}"><strong>${item.payload?.title || item.payload?.zh?.frontmatter?.title || '未命名内容'}</strong><span>${new Date(item.savedAt).toLocaleString()}</span></button><button type="button" class="discard-recovery" data-discard-recovery="${item.id}" aria-label="丢弃恢复稿">×</button></div>`).join('')}
     ` : '';
     document.querySelectorAll('[data-recovery]').forEach(button => button.addEventListener('click', () => openRecoveryDraft(button.dataset.recovery)));
     document.querySelectorAll('[data-discard-recovery]').forEach(button => button.addEventListener('click', () => {
-        clearRecovery(button.dataset.discardRecovery);
+        clearRecovery(button.dataset.discardRecovery, state.mode === 'project' ? projectRecoveryNamespace : '');
         renderRecoveries();
         notify('已丢弃恢复稿', 'success');
     }));
@@ -215,6 +287,12 @@ function renderRecoveries() {
 
 async function loadArticles() {
     state.articles = await api('/api/articles');
+    renderList();
+    renderRecoveries();
+}
+
+async function loadProjects() {
+    state.projects = await api('/api/projects');
     renderList();
     renderRecoveries();
 }
@@ -266,6 +344,40 @@ async function loadArticle(id) {
     }
 }
 
+async function loadProject(id) {
+    if (!(await confirmDiscardCurrent())) return;
+    const project = await api(`/api/projects/${encodeURIComponent(id)}`);
+    state.suspended = true;
+    state.current = project;
+    state.originalId = project.id;
+    state.recoveryId = project.id;
+    state.sourceUpdatedAt = '';
+    applyProjectPayload(project);
+    $('#articleId').disabled = true;
+    $('#editorTitle').textContent = project.title || project.id;
+    $('#currentState').textContent = '项目';
+    setEnabled(true);
+    state.suspended = false;
+    setDirty(false);
+    updatePublishButton();
+    renderList();
+    message(`已加载项目：${project.title}`);
+    closeSidebar();
+
+    const recovery = loadRecovery(id, projectRecoveryNamespace);
+    if (recovery) {
+        const choice = await askRecovery(recovery);
+        if (choice === 'restore') {
+            applyProjectPayload(recovery.payload);
+            setDirty(true);
+            notify('已恢复浏览器中的项目恢复稿', 'success');
+        } else {
+            clearRecovery(id, projectRecoveryNamespace);
+            renderRecoveries();
+        }
+    }
+}
+
 function newArticle(recoveryId = `new-${crypto.randomUUID()}`) {
     state.suspended = true;
     state.current = { id: '' };
@@ -298,10 +410,43 @@ function newArticle(recoveryId = `new-${crypto.randomUUID()}`) {
     message('新草稿尚未写入源码');
 }
 
+function newProject(recoveryId = `new-${crypto.randomUUID()}`) {
+    state.suspended = true;
+    state.current = { id: '' };
+    state.originalId = '';
+    state.recoveryId = recoveryId;
+    state.sourceUpdatedAt = '';
+    applyProjectPayload({
+        id: '',
+        title: '',
+        description: '',
+        image: '',
+        tags: [],
+        link: '',
+        category: '项目',
+        date: new Date().toISOString().slice(0, 10),
+        content: '<h2>项目亮点</h2>\n<p>写下这个项目解决的问题、你的实现方式和最终效果。</p>'
+    });
+    $('#articleId').disabled = false;
+    $('#editorTitle').textContent = '未命名项目';
+    $('#currentState').textContent = '本地项目';
+    setEnabled(true);
+    state.suspended = false;
+    state.dirty = false;
+    $('#saveState').textContent = '尚未写入源码';
+    $('#saveState').classList.remove('dirty');
+    updatePublishButton();
+    renderList();
+    $('#projectTitle').focus();
+    message('新项目尚未写入源码');
+}
+
 function openRecoveryDraft(id) {
-    const recovery = loadRecovery(id);
+    const namespace = state.mode === 'project' ? projectRecoveryNamespace : '';
+    const recovery = loadRecovery(id, namespace);
     if (!recovery) return;
-    newArticle(id);
+    if (state.mode === 'project') newProject(id);
+    else newArticle(id);
     applyPayload(recovery.payload);
     setDirty(true);
     notify('已打开本地恢复稿', 'success');
@@ -323,6 +468,16 @@ function validateArticle() {
         $('#markdownEditor').focus();
         throw new Error('中文正文不能为空。');
     }
+}
+
+function validateProject() {
+    if (!$('#articleId').value.trim()) $('#articleId').value = deriveId($('#projectTitle').value).replace(/^article-/, 'project-');
+    if (!$('#projectTitle').value.trim()) throw new Error('项目标题不能为空。');
+    if (!$('#projectDescription').value.trim()) throw new Error('项目简介不能为空。');
+    if (!$('#articleCategory').value.trim()) throw new Error('项目分类不能为空。');
+    if (!$('#articleCover').value.trim()) throw new Error('项目图片不能为空。');
+    if (!$('#markdownEditor').value.trim()) throw new Error('项目详情不能为空。');
+    if (!$('#articleForm').reportValidity()) throw new Error('请先补全项目必填信息。');
 }
 
 async function saveArticle() {
@@ -347,14 +502,51 @@ async function saveArticle() {
     return saved;
 }
 
+async function saveProject() {
+    validateProject();
+    const previousRecovery = state.recoveryId;
+    const saved = await api('/api/projects', { method: 'POST', body: JSON.stringify(projectPayload()) });
+    clearRecovery(previousRecovery, projectRecoveryNamespace);
+    state.suspended = true;
+    state.current = saved;
+    state.originalId = saved.id;
+    state.recoveryId = saved.id;
+    applyProjectPayload(saved);
+    $('#articleId').disabled = true;
+    $('#editorTitle').textContent = saved.title;
+    $('#currentState').textContent = '项目';
+    state.suspended = false;
+    setDirty(false);
+    await Promise.all([loadProjects(), refreshWorkspace()]);
+    message('项目已保存到源码');
+    notify('项目已写入 projectsData.js', 'success');
+    return saved;
+}
+
+async function saveCurrent() {
+    return state.mode === 'project' ? saveProject() : saveArticle();
+}
+
 function persistRecovery() {
     if (!state.current || !state.dirty || !state.recoveryId) return;
-    saveRecovery(state.recoveryId, { payload: currentPayload(), sourceUpdatedAt: state.sourceUpdatedAt });
+    saveRecovery(state.recoveryId, { payload: currentPayload(), sourceUpdatedAt: state.sourceUpdatedAt }, state.mode === 'project' ? projectRecoveryNamespace : '');
     $('#saveState').textContent = '未保存 · 恢复稿已更新';
     renderRecoveries();
 }
 
 async function uploadImage(file, { asCover = false } = {}) {
+    if (state.mode === 'project') {
+        if (!file.type.startsWith('image/')) throw new Error('只能上传图片文件。');
+        const result = await uploadProjectImage(file);
+        if (asCover) {
+            $('#articleCover').value = result.path;
+        } else {
+            insertAtCursor($('#markdownEditor'), `<img src="${result.path}" alt="">`);
+        }
+        setDirty();
+        notify(`已上传 ${result.name}`, 'success');
+        return result;
+    }
     if (!state.originalId) throw new Error('请先保存文章，再上传图片。');
     if (!file.type.startsWith('image/')) throw new Error('只能上传图片文件。');
     const result = await uploadArticleImage(state.originalId, file);
@@ -369,6 +561,19 @@ async function uploadImage(file, { asCover = false } = {}) {
 }
 
 async function openAssets() {
+    if (state.mode === 'project') {
+        const assets = await api('/api/projects/assets');
+        $('#assetGrid').innerHTML = assets.length ? assets.map(asset => `
+            <button type="button" data-asset-path="${asset.path}"><img src="${asset.url}" alt=""><span>${asset.name}</span></button>
+        `).join('') : '<p class="empty-state">还没有可选的项目图片。</p>';
+        $('#assetGrid').querySelectorAll('[data-asset-path]').forEach(button => button.addEventListener('click', () => {
+            $('#articleCover').value = button.dataset.assetPath;
+            setDirty();
+            $('#assetDialog').close();
+        }));
+        $('#assetDialog').showModal();
+        return;
+    }
     if (!state.originalId) throw new Error('请先保存文章，再选择文章图片。');
     const assets = await api(`/api/articles/${encodeURIComponent(state.originalId)}/assets`);
     $('#assetGrid').innerHTML = assets.length ? assets.map(asset => `
@@ -397,6 +602,23 @@ async function deleteCurrentArticle() {
     $('#previewFrame').srcdoc = previewDocument('<p>选择其他文章继续编辑，或直接发布这次删除。</p>');
     await Promise.all([loadArticles(), refreshWorkspace()]);
     notify('文章源码已删除，尚未提交', 'warning');
+}
+
+async function deleteCurrentProject() {
+    if (!state.originalId) return;
+    await api(`/api/projects/${encodeURIComponent(state.originalId)}`, { method: 'DELETE' });
+    clearRecovery(state.originalId, projectRecoveryNamespace);
+    state.current = null;
+    state.originalId = '';
+    state.recoveryId = '';
+    setEnabled(false);
+    $('#editorTitle').textContent = '项目已删除';
+    $('#currentState').textContent = '待发布';
+    $('#saveState').textContent = '删除将在下一次发布时同步';
+    $('#markdownEditor').value = '';
+    $('#previewFrame').srcdoc = projectPreviewDocument({ content: '<p>选择其他项目继续编辑，或直接发布这次删除。</p>' });
+    await Promise.all([loadProjects(), refreshWorkspace()]);
+    notify('项目源码已删除，尚未提交', 'warning');
 }
 
 function updateWorkspaceUi(workspace) {
@@ -428,8 +650,8 @@ async function refreshWorkspace(fetch = false) {
 
 async function preparePublish() {
     if (state.current) {
-        if (state.dirty) await saveArticle();
-        if ($('#articleStatus').value === 'draft') {
+        if (state.dirty) await saveCurrent();
+        if (state.mode === 'article' && $('#articleStatus').value === 'draft') {
             const confirmed = window.confirm('发布会把当前文章状态改为“已发布”，并同步到公开 GitHub。继续？');
             if (!confirmed) return;
             $('#articleStatus').value = 'published';
@@ -437,7 +659,7 @@ async function preparePublish() {
             await saveArticle();
         }
     }
-    await publishing.prepare($('#zhTitle').value.trim() || 'content update');
+    await publishing.prepare((state.mode === 'project' ? $('#projectTitle').value.trim() : $('#zhTitle').value.trim()) || 'content update');
 }
 
 const publishing = new PublishingController({
@@ -445,7 +667,7 @@ const publishing = new PublishingController({
     notify,
     onSuccess: async () => {
         setDirty(false);
-        await Promise.all([loadArticles(), refreshWorkspace(true)]);
+        await Promise.all([state.mode === 'project' ? loadProjects() : loadArticles(), refreshWorkspace(true)]);
     }
 });
 
@@ -466,12 +688,82 @@ function closeSidebar() {
     if (window.matchMedia('(max-width: 900px)').matches) setSidebar(false);
 }
 
+function updateModeUi() {
+    const projectMode = state.mode === 'project';
+    document.body.dataset.mode = state.mode;
+    $('#libraryTitle').textContent = projectMode ? '项目库' : '文章库';
+    $('#filterLabel').textContent = projectMode ? '搜索项目' : '搜索文章';
+    $('#filterInput').placeholder = projectMode ? '搜索项目、标签或分类' : '搜索标题、标签或分类';
+    $('#statusFilter').hidden = projectMode;
+    $('#refreshArticles').textContent = projectMode ? '刷新项目库' : '刷新文章库';
+    $('#newArticle').setAttribute('aria-label', projectMode ? '新建项目' : '新建文章');
+    $('#newArticle').setAttribute('title', projectMode ? '新建项目' : '新建文章');
+    $('#metaTitle').textContent = projectMode ? '项目信息' : '文章信息';
+    $('#metaSubtitle').textContent = projectMode ? '标题、简介、封面、链接与详情' : '标题、分类、封面与发布状态';
+    $('#saveArticle').textContent = projectMode ? '保存项目源码' : '保存到源码';
+    $('#publishArticle').textContent = '准备发布';
+    $('#deleteArticle').textContent = projectMode ? '删除项目' : '删除';
+    $('#markdownEditor').placeholder = projectMode ? '在这里写项目详情 HTML…' : '在这里写 Markdown…';
+    $('#wordCount').nextElementSibling.textContent = projectMode ? '支持粘贴或拖入项目图片' : '支持粘贴或拖入图片';
+    document.querySelectorAll('.article-field').forEach(element => { element.hidden = projectMode; });
+    document.querySelectorAll('.project-field').forEach(element => { element.hidden = !projectMode; });
+    ['articleReadTime', 'autoReadTime', 'articleFeatured'].forEach(id => {
+        const field = $(`#${id}`)?.closest('label');
+        if (field) field.hidden = projectMode;
+    });
+    $('#articleStatus').closest('label').hidden = projectMode;
+    document.querySelectorAll('.language-tabs button').forEach(button => { button.hidden = projectMode && button.dataset.lang === 'en'; });
+    $('#articleMode').classList.toggle('active', !projectMode);
+    $('#projectMode').classList.toggle('active', projectMode);
+    $('#articleMode').setAttribute('aria-selected', String(!projectMode));
+    $('#projectMode').setAttribute('aria-selected', String(projectMode));
+    setEnabled(Boolean(state.current));
+}
+
+function openDeleteDialog() {
+    const projectMode = state.mode === 'project';
+    $('#deleteDialog h2').textContent = projectMode ? '删除这个项目？' : '删除这篇文章？';
+    $('#deleteMessage').textContent = projectMode
+        ? '项目记录会从 projectsData.js 移除。共享图片不会自动删除，下一次发布后网站同步移除这个项目。'
+        : '文章源码和专属图片目录都会删除。已发布文章会在下一次发布时从网站移除。';
+    $('#deleteDialog').showModal();
+}
+
+async function switchContentMode(mode) {
+    if (state.mode === mode) return;
+    if (!(await confirmDiscardCurrent())) return;
+    state.mode = mode;
+    state.current = null;
+    state.originalId = '';
+    state.recoveryId = '';
+    state.dirty = false;
+    $('#filterInput').value = '';
+    $('#statusFilter').value = '';
+    $('#editorTitle').textContent = mode === 'project' ? '准备管理项目' : '准备开始写作';
+    $('#currentState').textContent = '未选择';
+    $('#saveState').textContent = mode === 'project' ? '请选择或新建项目' : '请选择或新建文章';
+    $('#markdownEditor').value = '';
+    $('#previewFrame').srcdoc = '';
+    updateModeUi();
+    if (mode === 'project') {
+        await loadProjects();
+        if (state.projects.length) await loadProject(state.projects[0].id);
+        else newProject();
+    } else {
+        await loadArticles();
+        if (state.articles.length) await loadArticle(state.articles[0].id);
+        else newArticle();
+    }
+}
+
 fields.forEach(id => {
     const element = $(`#${id}`);
     element.addEventListener('input', () => {
         if (id === 'zhTitle' && !state.originalId) $('#editorTitle').textContent = element.value || '未命名文章';
+        if (id === 'projectTitle' && !state.originalId) $('#editorTitle').textContent = element.value || '未命名项目';
         if (id === 'articleStatus') $('#currentState').textContent = statusText(element.value);
         setDirty();
+        if (state.mode === 'project') schedulePreview();
     });
     element.addEventListener('blur', () => element.checkValidity?.());
 });
@@ -499,7 +791,10 @@ $('#markdownEditor').addEventListener('drop', event => {
     uploadImage(image).catch(error => notify(error.message, 'error'));
 });
 
-document.querySelectorAll('[data-command]').forEach(button => button.addEventListener('click', () => applyMarkdownCommand($('#markdownEditor'), button.dataset.command)));
+document.querySelectorAll('[data-command]').forEach(button => button.addEventListener('click', () => {
+    if (state.mode === 'project') applyHtmlCommand($('#markdownEditor'), button.dataset.command);
+    else applyMarkdownCommand($('#markdownEditor'), button.dataset.command);
+}));
 document.querySelectorAll('.tab').forEach(button => button.addEventListener('click', () => switchLanguage(button.dataset.lang)));
 document.querySelectorAll('[data-view]').forEach(button => button.addEventListener('click', () => {
     const view = button.dataset.view;
@@ -507,7 +802,13 @@ document.querySelectorAll('[data-view]').forEach(button => button.addEventListen
     document.querySelectorAll('[data-view]').forEach(item => item.classList.toggle('active', item === button));
 }));
 
-$('#newArticle').addEventListener('click', async () => { if (await confirmDiscardCurrent()) newArticle(); });
+$('#articleMode').addEventListener('click', () => switchContentMode('article').catch(error => notify(error.message, 'error')));
+$('#projectMode').addEventListener('click', () => switchContentMode('project').catch(error => notify(error.message, 'error')));
+$('#newArticle').addEventListener('click', async () => {
+    if (!(await confirmDiscardCurrent())) return;
+    if (state.mode === 'project') newProject();
+    else newArticle();
+});
 $('#collapseSidebar').addEventListener('click', () => setDesktopSidebar(true));
 $('#sidebarToggle').addEventListener('click', () => {
     if (window.matchMedia('(max-width: 900px)').matches) {
@@ -517,8 +818,8 @@ $('#sidebarToggle').addEventListener('click', () => {
     }
 });
 $('#sidebarBackdrop').addEventListener('click', () => setSidebar(false));
-$('#refreshArticles').addEventListener('click', () => Promise.all([loadArticles(), refreshWorkspace(true)]).then(() => notify('文章库已刷新', 'success')).catch(error => notify(error.message, 'error')));
-$('#saveArticle').addEventListener('click', () => saveArticle().catch(error => notify(error.message, 'error')));
+$('#refreshArticles').addEventListener('click', () => Promise.all([state.mode === 'project' ? loadProjects() : loadArticles(), refreshWorkspace(true)]).then(() => notify(state.mode === 'project' ? '项目库已刷新' : '文章库已刷新', 'success')).catch(error => notify(error.message, 'error')));
+$('#saveArticle').addEventListener('click', () => saveCurrent().catch(error => notify(error.message, 'error')));
 $('#publishArticle').addEventListener('click', () => preparePublish().catch(error => notify(error.message, 'error')));
 $('#filterInput').addEventListener('input', renderList);
 $('#statusFilter').addEventListener('change', renderList);
@@ -529,23 +830,28 @@ $('#imageUpload').addEventListener('change', event => {
 });
 $('#chooseCover').addEventListener('click', () => openAssets().catch(error => notify(error.message, 'error')));
 $('#closeAssets').addEventListener('click', () => $('#assetDialog').close());
-$('#deleteArticle').addEventListener('click', () => $('#deleteDialog').showModal());
+$('#deleteArticle').addEventListener('click', openDeleteDialog);
 $('#deleteDialog').addEventListener('close', () => {
-    if ($('#deleteDialog').returnValue === 'delete') deleteCurrentArticle().catch(error => notify(error.message, 'error'));
+    if ($('#deleteDialog').returnValue === 'delete') {
+        const action = state.mode === 'project' ? deleteCurrentProject : deleteCurrentArticle;
+        action().catch(error => notify(error.message, 'error'));
+    }
 });
 
 document.addEventListener('keydown', event => {
     if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 's') {
         event.preventDefault();
-        if (!$('#saveArticle').disabled) saveArticle().catch(error => notify(error.message, 'error'));
+        if (!$('#saveArticle').disabled) saveCurrent().catch(error => notify(error.message, 'error'));
     }
     if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'b') {
         event.preventDefault();
-        applyMarkdownCommand($('#markdownEditor'), 'bold');
+        if (state.mode === 'project') applyHtmlCommand($('#markdownEditor'), 'bold');
+        else applyMarkdownCommand($('#markdownEditor'), 'bold');
     }
     if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'i') {
         event.preventDefault();
-        applyMarkdownCommand($('#markdownEditor'), 'italic');
+        if (state.mode === 'project') applyHtmlCommand($('#markdownEditor'), 'italic');
+        else applyMarkdownCommand($('#markdownEditor'), 'italic');
     }
 });
 
@@ -559,6 +865,7 @@ setInterval(persistRecovery, 2000);
 
 async function init() {
     setDesktopSidebar(localStorage.getItem(desktopSidebarKey) === '1', false);
+    updateModeUi();
     setEnabled(false);
     const session = await api('/api/session');
     updateWorkspaceUi(session.workspace);

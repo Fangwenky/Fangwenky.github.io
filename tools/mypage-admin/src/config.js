@@ -25,10 +25,17 @@ export const deployConfig = {
 export const managedPaths = [
     'mypage/content/articles',
     'mypage/data/articlesData.js',
-    'mypage/data/i18nData.js'
+    'mypage/data/i18nData.js',
+    'mypage/data/projectsData.js',
+    'mypage/images'
 ];
 
 export const generatedPaths = [
     'mypage/data/articlesData.js',
     'mypage/data/i18nData.js'
+];
+
+export const projectPaths = [
+    'mypage/data/projectsData.js',
+    'mypage/images'
 ];

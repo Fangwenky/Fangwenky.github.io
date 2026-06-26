@@ -48,6 +48,30 @@ export function insertAtCursor(textarea, value) {
     replaceSelection(textarea, value);
 }
 
+export function applyHtmlCommand(textarea, command) {
+    const commands = {
+        heading: () => wrap(textarea, '<h2>', '</h2>', '小标题'),
+        paragraph: () => wrap(textarea, '<p>', '</p>', '项目介绍'),
+        bold: () => wrap(textarea, '<strong>', '</strong>', '重点'),
+        italic: () => wrap(textarea, '<em>', '</em>', '强调'),
+        quote: () => wrap(textarea, '<blockquote>', '</blockquote>', '引用'),
+        link: () => {
+            const label = textarea.value.slice(textarea.selectionStart, textarea.selectionEnd) || '链接文字';
+            const url = window.prompt('链接地址', 'https://');
+            if (url) replaceSelection(textarea, `<a href="${url}">${label}</a>`, 12 + url.length, 12 + url.length + label.length);
+        },
+        unordered: () => wrap(textarea, '<ul>\n<li>', '</li>\n</ul>', '内容'),
+        code: () => wrap(textarea, '<code>', '</code>', 'code'),
+        codeblock: () => wrap(textarea, '<pre><code>', '</code></pre>', 'code'),
+        table: () => replaceSelection(textarea, '<table>\n<tr><th>项目</th><th>说明</th></tr>\n<tr><td>内容</td><td>内容</td></tr>\n</table>\n'),
+        image: () => {
+            const url = window.prompt('图片路径', 'images/example.png');
+            if (url) replaceSelection(textarea, `<img src="${url}" alt="">`);
+        }
+    };
+    commands[command]?.();
+}
+
 export function previewDocument(html) {
     return `<!DOCTYPE html>
 <html lang="zh-CN">
@@ -64,5 +88,46 @@ export function previewDocument(html) {
     </style>
 </head>
 <body><article class="article-detail-content">${html}</article></body>
+</html>`;
+}
+
+export function projectPreviewDocument(project = {}) {
+    const title = project.title || '未命名项目';
+    const description = project.description || '';
+    const image = project.image || 'images/avatar.jpg';
+    const tags = (project.tags || []).map(tag => `<span class="tag">${tag}</span>`).join('');
+    return `<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <base href="/mypage/">
+    <link rel="stylesheet" href="/mypage/style.css">
+    <style>
+        html { background: var(--bg); }
+        body { min-width: 0; padding: 28px; background: var(--bg); }
+        .project-preview-shell { max-width: 980px; margin: 0 auto; }
+        .project-preview-hero { margin-bottom: 28px; overflow: hidden; border-radius: 24px; background: var(--card-bg, #fff); box-shadow: var(--shadow-md, 0 18px 45px rgba(15, 23, 42, 0.1)); }
+        .project-preview-hero img { display: block; width: 100%; max-height: 360px; object-fit: cover; }
+        .project-preview-copy { padding: 24px; }
+        .project-preview-copy h1 { margin: 0 0 10px; }
+        .project-preview-copy p { color: var(--text-light, #667085); }
+        .article-tags { margin-top: 14px; }
+        @media (max-width: 560px) { body { padding: 18px; } }
+    </style>
+</head>
+<body>
+    <article class="project-preview-shell">
+        <header class="project-preview-hero">
+            <img src="${image}" alt="${title}">
+            <div class="project-preview-copy">
+                <h1>${title}</h1>
+                <p>${description}</p>
+                <div class="article-tags">${tags}</div>
+            </div>
+        </header>
+        <section class="article-detail-content">${project.content || '<p>在这里预览项目详情。</p>'}</section>
+    </article>
+</body>
 </html>`;
 }
