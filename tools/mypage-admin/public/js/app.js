@@ -1,6 +1,6 @@
 import { api, uploadArticleImage, uploadProjectImage } from './api.js';
 import { clearRecovery, listRecoveries, loadRecovery, saveRecovery } from './drafts.js';
-import { applyHtmlCommand, applyMarkdownCommand, insertAtCursor, previewDocument, projectPreviewDocument } from './editor.js';
+import { applyMarkdownCommand, insertAtCursor, previewDocument, projectPreviewDocument } from './editor.js';
 import { PublishingController } from './publish.js';
 
 const $ = selector => document.querySelector(selector);
@@ -128,6 +128,7 @@ function projectPayload() {
         link: $('#projectLink').value.trim(),
         category: $('#articleCategory').value.trim(),
         date: $('#articleDate').value,
+        contentType: 'markdown',
         content: $('#markdownEditor').value.trim()
     };
 }
@@ -178,7 +179,9 @@ function applyProjectPayload(project = {}) {
 
 async function renderPreview() {
     if (state.mode === 'project') {
-        $('#previewFrame').srcdoc = projectPreviewDocument(projectPayload());
+        const payload = projectPayload();
+        const data = await api('/api/project-preview', { method: 'POST', body: JSON.stringify({ markdown: payload.content }) });
+        $('#previewFrame').srcdoc = projectPreviewDocument({ ...payload, content: data.html });
         return;
     }
     const markdown = $('#markdownEditor').value;
@@ -425,7 +428,8 @@ function newProject(recoveryId = `new-${crypto.randomUUID()}`) {
         link: '',
         category: '项目',
         date: new Date().toISOString().slice(0, 10),
-        content: '<h2>项目亮点</h2>\n<p>写下这个项目解决的问题、你的实现方式和最终效果。</p>'
+        contentType: 'markdown',
+        content: '## 项目亮点\n\n写下这个项目解决的问题、你的实现方式和最终效果。'
     });
     $('#articleId').disabled = false;
     $('#editorTitle').textContent = '未命名项目';
@@ -541,7 +545,7 @@ async function uploadImage(file, { asCover = false } = {}) {
         if (asCover) {
             $('#articleCover').value = result.path;
         } else {
-            insertAtCursor($('#markdownEditor'), `<img src="${result.path}" alt="">`);
+            insertAtCursor($('#markdownEditor'), `![${result.name}](${result.path})`);
         }
         setDirty();
         notify(`已上传 ${result.name}`, 'success');
@@ -703,7 +707,7 @@ function updateModeUi() {
     $('#saveArticle').textContent = projectMode ? '保存项目源码' : '保存到源码';
     $('#publishArticle').textContent = '准备发布';
     $('#deleteArticle').textContent = projectMode ? '删除项目' : '删除';
-    $('#markdownEditor').placeholder = projectMode ? '在这里写项目详情 HTML…' : '在这里写 Markdown…';
+    $('#markdownEditor').placeholder = projectMode ? '在这里写项目详情 Markdown…' : '在这里写 Markdown…';
     $('#wordCount').nextElementSibling.textContent = projectMode ? '支持粘贴或拖入项目图片' : '支持粘贴或拖入图片';
     document.querySelectorAll('.article-field').forEach(element => { element.hidden = projectMode; });
     document.querySelectorAll('.project-field').forEach(element => { element.hidden = !projectMode; });
@@ -792,8 +796,7 @@ $('#markdownEditor').addEventListener('drop', event => {
 });
 
 document.querySelectorAll('[data-command]').forEach(button => button.addEventListener('click', () => {
-    if (state.mode === 'project') applyHtmlCommand($('#markdownEditor'), button.dataset.command);
-    else applyMarkdownCommand($('#markdownEditor'), button.dataset.command);
+    applyMarkdownCommand($('#markdownEditor'), button.dataset.command);
 }));
 document.querySelectorAll('.tab').forEach(button => button.addEventListener('click', () => switchLanguage(button.dataset.lang)));
 document.querySelectorAll('[data-view]').forEach(button => button.addEventListener('click', () => {
@@ -845,13 +848,11 @@ document.addEventListener('keydown', event => {
     }
     if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'b') {
         event.preventDefault();
-        if (state.mode === 'project') applyHtmlCommand($('#markdownEditor'), 'bold');
-        else applyMarkdownCommand($('#markdownEditor'), 'bold');
+        applyMarkdownCommand($('#markdownEditor'), 'bold');
     }
     if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'i') {
         event.preventDefault();
-        if (state.mode === 'project') applyHtmlCommand($('#markdownEditor'), 'italic');
-        else applyMarkdownCommand($('#markdownEditor'), 'italic');
+        applyMarkdownCommand($('#markdownEditor'), 'italic');
     }
 });
 

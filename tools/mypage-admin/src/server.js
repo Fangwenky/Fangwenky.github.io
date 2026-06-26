@@ -204,7 +204,7 @@ app.post('/api/preview', requireToken, (req, res) => {
 });
 
 app.post('/api/project-preview', requireToken, (req, res) => {
-    res.json({ html: String(req.body.html || '') });
+    res.json({ html: renderMarkdown(String(req.body.markdown || '')) });
 });
 
 app.post('/api/read-time', requireToken, (req, res) => {

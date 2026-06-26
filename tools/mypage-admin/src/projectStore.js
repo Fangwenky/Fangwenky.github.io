@@ -33,7 +33,8 @@ function parseProjectsSource(raw) {
     return projects;
 }
 
-function projectRecord(project = {}) {
+function projectRecord(project = {}, options = {}) {
+    const contentType = project.contentType === 'markdown' || options.forceMarkdown ? 'markdown' : 'html';
     return {
         id: normalizeProjectId(project.id),
         title: String(project.title || '').trim(),
@@ -43,6 +44,7 @@ function projectRecord(project = {}) {
         link: String(project.link || '').trim(),
         category: String(project.category || '').trim(),
         date: String(project.date || new Date().toISOString().slice(0, 10)).trim(),
+        contentType,
         content: String(project.content || '').trim()
     };
 }
@@ -79,7 +81,7 @@ export async function readProjects(options = {}) {
 export async function writeProjects(projects, options = {}) {
     const root = options.dataRoot || dataRoot;
     await fs.mkdir(root, { recursive: true });
-    await fs.writeFile(projectsDataPath(root), serializeProjects(projects.map(projectRecord)), 'utf8');
+    await fs.writeFile(projectsDataPath(root), serializeProjects(projects.map(project => projectRecord(project, { forceMarkdown: project.contentType === 'markdown' }))), 'utf8');
 }
 
 export async function listProjects(options = {}) {
@@ -93,7 +95,8 @@ export async function listProjects(options = {}) {
             tags: project.tags,
             category: project.category,
             image: project.image,
-            link: project.link
+            link: project.link,
+            contentType: project.contentType
         }))
         .sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
 }
@@ -110,7 +113,7 @@ export async function saveProject(payload, options = {}) {
         if (error.code === 'ENOENT') return [];
         throw error;
     });
-    const project = projectRecord(payload);
+    const project = projectRecord({ ...payload, contentType: 'markdown' }, { forceMarkdown: true });
     validateProject(project);
     const originalId = String(payload.originalId || '').trim();
     if (originalId && originalId !== project.id) {

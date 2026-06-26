@@ -22,7 +22,7 @@ function project(id) {
         link: 'https://example.com',
         category: 'AI 应用',
         date: '2026-06-26',
-        content: '<h2>项目详情</h2><p>内容</p>'
+        content: '## 项目详情\n\n内容'
     };
 }
 
@@ -55,12 +55,16 @@ test('reads, saves, rewrites, and deletes projects', async t => {
     const initial = await listProjects({ dataRoot: root });
     assert.equal(initial.length, 1);
     assert.equal(initial[0].id, 'old-project');
+    assert.equal(initial[0].contentType, 'html');
 
     const saved = await saveProject(project('new-project'), { dataRoot: root });
     assert.deepEqual(saved.tags, ['AI', 'Web']);
+    assert.equal(saved.contentType, 'markdown');
+    assert.equal(saved.content, '## 项目详情\n\n内容');
     const raw = await fs.readFile(path.join(root, 'projectsData.js'), 'utf8');
     assert.match(raw, /export const projects =/);
     assert.match(raw, /new-project/);
+    assert.match(raw, /"contentType": "markdown"/);
 
     await assert.rejects(saveProject(project('new-project'), { dataRoot: root }), /already exists/);
     await assert.rejects(saveProject({ ...project('renamed'), originalId: 'new-project' }, { dataRoot: root }), /locked/);

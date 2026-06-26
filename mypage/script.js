@@ -104,6 +104,27 @@ function renderTags(tags = []) {
     return tags.map(tag => `<span class="tag">${tag}</span>`).join('');
 }
 
+function renderContentByType(content = '', contentType = 'html') {
+    return contentType === 'markdown' && window.marked
+        ? window.marked.parse(content)
+        : content;
+}
+
+function plainTextFromContent(content = '', contentType = 'html') {
+    const value = String(content || '');
+    if (contentType === 'markdown') {
+        return value
+            .replace(/```[\s\S]*?```/g, ' ')
+            .replace(/`([^`]+)`/g, '$1')
+            .replace(/!\[[^\]]*\]\([^)]+\)/g, ' ')
+            .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+            .replace(/[#>*_~|`-]+/g, ' ')
+            .replace(/\s+/g, ' ')
+            .trim();
+    }
+    return stripHTML(value);
+}
+
 function createContentCard(item, type) {
     const isArticle = type === 'article';
     const displayItem = localizeItem(item, type);
@@ -632,6 +653,8 @@ function loadProjectDetail() {
 
     const displayProject = localizeProject(project);
     document.title = `${displayProject.title} - Fangwenky の blog`;
+    const projectContent = displayProject.content || project.content;
+    const content = renderContentByType(projectContent, displayProject.contentType || project.contentType);
     detailContainer.innerHTML = `
         <div class="article-detail-wrapper">
             <h1 class="article-detail-title">${displayProject.title}</h1>
@@ -643,7 +666,7 @@ function loadProjectDetail() {
             </div>
             <img src="${displayProject.image}" alt="${displayProject.title}" class="article-detail-image" width="860" height="484" loading="lazy">
             <div class="article-detail-content">
-                ${displayProject.content}
+                ${content}
             </div>
             <p><a href="${project.link}" target="_blank" rel="noopener noreferrer" class="button">${t('viewProject')}</a></p>
         </div>
@@ -747,7 +770,7 @@ function performSearch(query) {
 
     articles.forEach(article => {
         const displayArticle = localizeArticle(article);
-        const contentText = stripHTML(article.content || '');
+        const contentText = plainTextFromContent(article.content || '', article.type === 'md' ? 'markdown' : 'html');
         const searchableText = [
             article.title,
             article.excerpt,
@@ -767,8 +790,8 @@ function performSearch(query) {
 
     projects.forEach(project => {
         const displayProject = localizeProject(project);
-        const contentText = stripHTML(project.content || '');
-        const localizedContentText = stripHTML(displayProject.content || '');
+        const contentText = plainTextFromContent(project.content || '', project.contentType);
+        const localizedContentText = plainTextFromContent(displayProject.content || '', displayProject.contentType || project.contentType);
         const searchableText = [
             project.title,
             project.description,

@@ -171,27 +171,34 @@ export const projectTranslations = {
             description: 'A small web game created for a short-term web development course project.',
             tags: ['HTML', 'CSS', 'JavaScript'],
             category: 'Web App',
-            content: `
-                <h2>Identity V: Deduction Finale</h2>
-                <p>This was a team web game project built during a short course on web design and development. Because the schedule was tight, we chose a fan-made theme based on Identity V, which gave us a ready-made world, visual references, and character background to build from.</p>
-                <p>The game combines story reading, map exploration, puzzle solving, and card-based combat. Players follow Orpheus into the ruins of the manor, read fragments of old diaries, unlock characters, and gradually approach the final deduction.</p>
-                <p>The result is not a polished commercial game, but it was a valuable exercise in shipping a complete browser-based interactive project within three weeks. It taught me how much coordination, asset management, and gameplay simplification matter when time is limited.</p>
-            `
+            contentType: 'markdown',
+            content: `## Identity V: Deduction Finale
+
+This was a team web game project built during a short course on web design and development. Because the schedule was tight, we chose a fan-made theme based on Identity V, which gave us a ready-made world, visual references, and character background to build from.
+
+The game combines story reading, map exploration, puzzle solving, and card-based combat. Players follow Orpheus into the ruins of the manor, read fragments of old diaries, unlock characters, and gradually approach the final deduction.
+
+The result is not a polished commercial game, but it was a valuable exercise in shipping a complete browser-based interactive project within three weeks. It taught me how much coordination, asset management, and gameplay simplification matter when time is limited.`
         },
         project2: {
             title: 'AI Soul Sketcher: CNN-Based Doodle Recognition',
             description: 'A browser-based doodle recognition app trained with PyTorch and deployed with ONNX Runtime Web for real-time inference.',
             tags: ['PyTorch', 'ONNX', 'Computer Vision', 'Web AI'],
             category: 'AI App',
-            content: `
-                <h2>Teaching AI to Understand Doodles</h2>
-                <p>After practicing CNNs with MNIST, I wanted to see whether a model could recognize simple sketches drawn directly in the browser. Inspired by Google Quick, Draw!, this project became a small “draw and guess” web app.</p>
-                <h3>Technical Approach</h3>
-                <p>The model was trained in PyTorch on selected QuickDraw categories, exported to ONNX, and loaded in the browser through ONNX Runtime Web. The frontend uses HTML Canvas for drawing and performs preprocessing before inference.</p>
-                <h3>Main Challenge</h3>
-                <p>The hardest part was not the network itself, but making user drawings look like the training data. Canvas strokes need to be resized, centered, normalized, and converted into the format expected by the model.</p>
-                <p>This project helped me connect model training with frontend deployment, which is a very different feeling from keeping everything inside a notebook.</p>
-            `
+            contentType: 'markdown',
+            content: `## Teaching AI to Understand Doodles
+
+After practicing CNNs with MNIST, I wanted to see whether a model could recognize simple sketches drawn directly in the browser. Inspired by Google Quick, Draw!, this project became a small “draw and guess” web app.
+
+### Technical Approach
+
+The model was trained in PyTorch on selected QuickDraw categories, exported to ONNX, and loaded in the browser through ONNX Runtime Web. The frontend uses HTML Canvas for drawing and performs preprocessing before inference.
+
+### Main Challenge
+
+The hardest part was not the network itself, but making user drawings look like the training data. Canvas strokes need to be resized, centered, normalized, and converted into the format expected by the model.
+
+This project helped me connect model training with frontend deployment, which is a very different feeling from keeping everything inside a notebook.`
         }
     }
 };
