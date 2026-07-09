@@ -16,6 +16,8 @@ const searchButton = document.getElementById('searchButton');
 const searchOverlay = document.getElementById('searchOverlay');
 const closeSearch = document.getElementById('closeSearch');
 const supportedLanguages = ['zh', 'en'];
+const allowedContentTags = new Set(['A', 'BLOCKQUOTE', 'BR', 'CODE', 'DEL', 'EM', 'FIGCAPTION', 'FIGURE', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'HR', 'IMG', 'LI', 'OL', 'P', 'PRE', 'S', 'SPAN', 'STRONG', 'TABLE', 'TBODY', 'TD', 'TH', 'THEAD', 'TR', 'UL']);
+const allowedContentAttributes = new Set(['align', 'alt', 'class', 'height', 'href', 'id', 'loading', 'name', 'rel', 'src', 'target', 'title', 'width']);
 
 function getUrlLanguage() {
     const language = new URLSearchParams(window.location.search).get('lang');
@@ -51,6 +53,55 @@ function textBundle() {
 function t(key, ...args) {
     const value = textBundle()[key] ?? uiText.zh[key] ?? key;
     return typeof value === 'function' ? value(...args) : value;
+}
+
+function escapeHTML(value = '') {
+    return String(value).replace(/[&<>'"]/g, character => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        "'": '&#39;',
+        '"': '&quot;'
+    })[character]);
+}
+
+function isSafeContentUrl(value, attribute) {
+    const raw = String(value || '').trim();
+    if (!raw) return false;
+    if (raw.startsWith('#')) return attribute === 'href';
+    try {
+        const url = new URL(raw, window.location.href);
+        if (attribute === 'href') return ['http:', 'https:', 'mailto:'].includes(url.protocol);
+        return ['http:', 'https:'].includes(url.protocol) && !raw.startsWith('data:');
+    } catch {
+        return false;
+    }
+}
+
+function sanitizeRenderedHtml(html = '') {
+    const template = document.createElement('template');
+    template.innerHTML = String(html || '');
+    template.content.querySelectorAll('script, style, iframe, object, embed, form, input, button').forEach(element => element.remove());
+    template.content.querySelectorAll('*').forEach(element => {
+        if (!allowedContentTags.has(element.tagName)) {
+            element.replaceWith(document.createTextNode(element.textContent || ''));
+            return;
+        }
+        [...element.attributes].forEach(attribute => {
+            const name = attribute.name.toLowerCase();
+            if (!allowedContentAttributes.has(name)) {
+                element.removeAttribute(attribute.name);
+                return;
+            }
+            if ((name === 'href' || name === 'src') && !isSafeContentUrl(attribute.value, name)) {
+                element.removeAttribute(attribute.name);
+            }
+        });
+        if (element.tagName === 'A' && element.getAttribute('target') === '_blank') {
+            element.setAttribute('rel', 'noopener noreferrer');
+        }
+    });
+    return template.innerHTML;
 }
 
 function withLanguageParam(href) {
@@ -101,13 +152,14 @@ function getSocialLabel(link) {
 }
 
 function renderTags(tags = []) {
-    return tags.map(tag => `<span class="tag">${tag}</span>`).join('');
+    return tags.map(tag => `<span class="tag">${escapeHTML(tag)}</span>`).join('');
 }
 
 function renderContentByType(content = '', contentType = 'html') {
-    return contentType === 'markdown' && window.marked
+    const rendered = contentType === 'markdown' && window.marked
         ? window.marked.parse(content)
         : content;
+    return sanitizeRenderedHtml(rendered);
 }
 
 function plainTextFromContent(content = '', contentType = 'html') {
@@ -142,15 +194,15 @@ function createContentCard(item, type) {
     card.href = withLanguageParam(href);
     card.innerHTML = `
         <div class="article-image-wrap">
-            <img src="${displayItem.image}" alt="${displayItem.title}" class="article-image" width="640" height="360" loading="lazy">
+            <img src="${escapeHTML(displayItem.image)}" alt="${escapeHTML(displayItem.title)}" class="article-image" width="640" height="360" loading="lazy">
             <span class="card-type">${isArticle ? t('article') : t('project')}</span>
         </div>
         <div class="article-content">
             <div class="article-meta">
                 ${meta}
             </div>
-            <h3 class="article-title">${displayItem.title}</h3>
-            <p class="article-excerpt">${description}</p>
+            <h3 class="article-title">${escapeHTML(displayItem.title)}</h3>
+            <p class="article-excerpt">${escapeHTML(description || '')}</p>
             <div class="article-tags" aria-label="${t('tags')}">
                 ${renderTags(displayItem.tags)}
             </div>
@@ -570,6 +622,61 @@ function loadArticles(container = '.articles-grid', articlesList = articles, lim
     applyTagRotation(grid);
 }
 
+function initArticleFilters() {
+    const filters = document.getElementById('articleFilters');
+    const count = document.getElementById('articlesCount');
+    if (!filters) return;
+
+    const tagCounts = new Map();
+    articles.flatMap(article => article.tags || []).forEach(tag => tagCounts.set(tag, (tagCounts.get(tag) || 0) + 1));
+    const tags = [...tagCounts.entries()]
+        .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], currentLang))
+        .slice(0, 12)
+        .map(([tag]) => tag);
+    const render = activeTag => {
+        filters.replaceChildren();
+        const options = [{ label: t('filterAll'), value: '' }, ...tags.map(tag => ({ label: tag, value: tag }))];
+        options.forEach(option => {
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.className = 'tag-filter';
+            button.textContent = option.label;
+            button.setAttribute('aria-pressed', String(option.value === activeTag));
+            button.addEventListener('click', () => render(option.value));
+            filters.appendChild(button);
+        });
+        const filtered = activeTag ? articles.filter(article => article.tags?.includes(activeTag)) : articles;
+        loadArticles('.articles-grid', filtered);
+        if (count) count.textContent = t('articleCount', filtered.length);
+    };
+    const initialTag = new URLSearchParams(window.location.search).get('tag');
+    render(tags.includes(initialTag) ? initialTag : '');
+}
+
+function initBlogRadar() {
+    const latestLink = document.getElementById('radarLatest');
+    if (!latestLink) return;
+    const newest = [...articles].sort((a, b) => new Date(b.date) - new Date(a.date))[0];
+    if (!newest) return;
+    const displayArticle = localizeArticle(newest);
+    latestLink.href = getItemHref({ ...newest, type: 'article' });
+    latestLink.querySelector('strong').textContent = displayArticle.title;
+    latestLink.querySelector('small').textContent = `${displayArticle.date} · ${displayArticle.readTime}`;
+    document.getElementById('radarDate').textContent = newest.date;
+    document.getElementById('radarCount').textContent = t('contentCount', articles.length, projects.length);
+
+    const topicContainer = document.getElementById('radarTopics');
+    const tagCounts = new Map();
+    articles.flatMap(article => article.tags || []).forEach(tag => tagCounts.set(tag, (tagCounts.get(tag) || 0) + 1));
+    [...tagCounts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], currentLang)).slice(0, 4).forEach(([tag, count]) => {
+        const topic = document.createElement('a');
+        topic.className = 'radar-topic';
+        topic.href = withLanguageParam(`articles.html?tag=${encodeURIComponent(tag)}`);
+        topic.innerHTML = `<span>${escapeHTML(tag)}</span><small>${count}</small>`;
+        topicContainer?.appendChild(topic);
+    });
+}
+
 // 加载项目列表
 function loadProjects(container = '.projects-grid', projectsList = projects, limit = null) {
     const grid = document.querySelector(container);
@@ -606,9 +713,7 @@ function loadArticleDetail() {
     const displayArticle = localizeArticle(article);
     document.title = `${displayArticle.title} - Fangwenky の blog`;
     const articleContent = displayArticle.content || article.content;
-    const content = displayArticle.type === 'md' && window.marked
-        ? window.marked.parse(articleContent)
-        : articleContent;
+    const content = renderContentByType(articleContent, displayArticle.type === 'md' ? 'markdown' : 'html');
     const englishSummary = currentLang === 'en' && !displayArticle.hasTranslatedContent
         ? `<div class="translation-note">
                 <h2>${t('englishSummary')}</h2>
@@ -619,7 +724,7 @@ function loadArticleDetail() {
 
     detailContainer.innerHTML = `
         <div class="article-detail-wrapper">
-            <h1 class="article-detail-title">${displayArticle.title}</h1>
+            <h1 class="article-detail-title">${escapeHTML(displayArticle.title)}</h1>
             <div class="article-detail-tags" aria-label="${t('tags')}">
                 ${renderTags(displayArticle.tags)}
             </div>
@@ -627,7 +732,7 @@ function loadArticleDetail() {
                 <span><i class="far fa-calendar" aria-hidden="true"></i> ${displayArticle.date}</span>
                 <span><i class="far fa-clock" aria-hidden="true"></i> ${displayArticle.readTime}</span>
             </div>
-            <img src="${displayArticle.image}" alt="${displayArticle.title}" class="article-detail-image" width="860" height="484" loading="lazy">
+            <img src="${escapeHTML(displayArticle.image)}" alt="${escapeHTML(displayArticle.title)}" class="article-detail-image" width="860" height="484" loading="lazy">
             ${englishSummary}
             <div class="article-detail-content">
                 ${content}
@@ -635,6 +740,7 @@ function loadArticleDetail() {
         </div>
     `;
 
+    enhanceArticleDetail(article, detailContainer);
     window.MathJax?.typesetPromise?.();
 }
 
@@ -657,20 +763,98 @@ function loadProjectDetail() {
     const content = renderContentByType(projectContent, displayProject.contentType || project.contentType);
     detailContainer.innerHTML = `
         <div class="article-detail-wrapper">
-            <h1 class="article-detail-title">${displayProject.title}</h1>
+            <h1 class="article-detail-title">${escapeHTML(displayProject.title)}</h1>
             <div class="article-detail-tags" aria-label="${t('tags')}">
                 ${renderTags(displayProject.tags)}
             </div>
             <div class="article-detail-meta">
                 <span><i class="far fa-calendar" aria-hidden="true"></i> ${displayProject.date}</span>
             </div>
-            <img src="${displayProject.image}" alt="${displayProject.title}" class="article-detail-image" width="860" height="484" loading="lazy">
+            <img src="${escapeHTML(displayProject.image)}" alt="${escapeHTML(displayProject.title)}" class="article-detail-image" width="860" height="484" loading="lazy">
             <div class="article-detail-content">
                 ${content}
             </div>
-            <p><a href="${project.link}" target="_blank" rel="noopener noreferrer" class="button">${t('viewProject')}</a></p>
+            <p><a href="${isSafeContentUrl(project.link, 'href') ? escapeHTML(project.link) : '#'}" target="_blank" rel="noopener noreferrer" class="button">${t('viewProject')}</a></p>
         </div>
     `;
+}
+
+function enhanceArticleDetail(article, detailContainer) {
+    const wrapper = detailContainer.querySelector('.article-detail-wrapper');
+    const content = wrapper?.querySelector('.article-detail-content');
+    if (!wrapper || !content) return;
+
+    const headings = [...content.querySelectorAll('h2, h3')];
+    if (headings.length > 0) {
+        const outline = document.createElement('details');
+        outline.className = 'article-outline';
+        outline.open = window.matchMedia?.('(min-width: 820px)').matches;
+        const summary = document.createElement('summary');
+        summary.textContent = t('tableOfContents');
+        const list = document.createElement('ol');
+        headings.forEach((heading, index) => {
+            heading.id = heading.id || `${article.id}-section-${index + 1}`;
+            const item = document.createElement('li');
+            item.className = heading.tagName === 'H3' ? 'outline-subitem' : '';
+            const link = document.createElement('a');
+            link.href = `#${heading.id}`;
+            link.textContent = heading.textContent;
+            item.appendChild(link);
+            list.appendChild(item);
+        });
+        outline.append(summary, list);
+        wrapper.querySelector('.article-detail-meta')?.after(outline);
+    }
+
+    const shareButton = document.createElement('button');
+    shareButton.type = 'button';
+    shareButton.className = 'share-article button button-secondary';
+    shareButton.innerHTML = `<i class="fa-solid fa-link" aria-hidden="true"></i><span>${t('shareArticle')}</span>`;
+    shareButton.addEventListener('click', async () => {
+        try {
+            await navigator.clipboard.writeText(window.location.href);
+            shareButton.querySelector('span').textContent = t('linkCopied');
+            window.setTimeout(() => { shareButton.querySelector('span').textContent = t('shareArticle'); }, 1800);
+        } catch {
+            window.prompt(t('shareArticle'), window.location.href);
+        }
+    });
+    wrapper.querySelector('.article-detail-meta')?.after(shareButton);
+
+    const related = articles
+        .filter(candidate => candidate.id !== article.id && candidate.tags?.some(tag => article.tags?.includes(tag)))
+        .sort((a, b) => new Date(b.date) - new Date(a.date))
+        .slice(0, 2);
+    if (related.length > 0) {
+        const relatedSection = document.createElement('section');
+        relatedSection.className = 'related-reading';
+        const heading = document.createElement('h2');
+        heading.textContent = t('relatedReading');
+        const grid = document.createElement('div');
+        grid.className = 'related-grid';
+        related.forEach(item => grid.appendChild(createContentCard(item, 'article')));
+        relatedSection.append(heading, grid);
+        wrapper.appendChild(relatedSection);
+    }
+
+    const progress = document.createElement('div');
+    progress.className = 'reading-progress';
+    progress.setAttribute('role', 'progressbar');
+    progress.setAttribute('aria-label', t('readingProgress'));
+    progress.setAttribute('aria-valuemin', '0');
+    progress.setAttribute('aria-valuemax', '100');
+    const progressBar = document.createElement('span');
+    progress.appendChild(progressBar);
+    document.body.appendChild(progress);
+    const updateProgress = () => {
+        const start = content.getBoundingClientRect().top + window.scrollY;
+        const range = Math.max(1, content.offsetHeight - window.innerHeight * 0.55);
+        const value = Math.max(0, Math.min(100, ((window.scrollY - start + window.innerHeight * 0.35) / range) * 100));
+        progressBar.style.transform = `scaleX(${value / 100})`;
+        progress.setAttribute('aria-valuenow', String(Math.round(value)));
+    };
+    window.addEventListener('scroll', updateProgress, { passive: true });
+    updateProgress();
 }
 
 // 加载技能标签
@@ -878,6 +1062,19 @@ function initSearchPage() {
     });
 }
 
+function initQuickSearch() {
+    document.addEventListener('keydown', event => {
+        if (!(event.metaKey || event.ctrlKey) || event.key.toLowerCase() !== 'k') return;
+        event.preventDefault();
+        const input = document.getElementById('searchPageInput');
+        if (input) {
+            input.focus();
+            return;
+        }
+        window.location.href = withLanguageParam('search.html');
+    });
+}
+
 function initSectionObserver() {
     const sections = document.querySelectorAll('section');
     if (prefersReducedMotion || !('IntersectionObserver' in window)) {
@@ -913,14 +1110,16 @@ document.addEventListener('DOMContentLoaded', () => {
     hideLoadingScreen();
     initNavigation();
     initSearchControls();
+    initQuickSearch();
 
     if (document.body.id === 'home-page') {
         initSlider();
         loadArticles('.articles-grid', articles, 3);
         loadProjects('.projects-grid', projects, 2);
         loadAboutMe();
+        initBlogRadar();
     } else if (document.body.id === 'articles-page') {
-        loadArticles('.articles-grid', articles);
+        initArticleFilters();
     } else if (document.body.id === 'projects-page') {
         loadProjects('.projects-grid', projects);
     } else if (document.body.id === 'article-detail-page') {

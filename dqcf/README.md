@@ -37,7 +37,7 @@ npm install
 cp .env.example .env
 ```
 
-然后编辑 `.env` 文件，填入你的MongoDB连接URI和JWT密钥。
+然后编辑 `.env` 文件，填入 MongoDB 连接 URI、长随机 JWT 密钥，以及首次初始化用的管理员密码。不要提交 `.env`，也不要使用示例中的占位值。
 
 4. 启动服务器
 
@@ -124,12 +124,7 @@ npm run dev
 
 ## 初始管理员账户
 
-首次运行系统时，会自动创建一个默认管理员账户：
-
-- 用户名：admin
-- 密码：admin123
-
-请在登录后立即修改默认密码。
+首次执行 `npm run seed` 时，会根据 `.env` 中的 `ADMIN_USERNAME` 与 `ADMIN_PASSWORD` 创建管理员账户。管理员密码必须由部署者自行设置。
 
 ## 许可证
 

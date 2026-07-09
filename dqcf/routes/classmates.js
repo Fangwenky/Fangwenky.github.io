@@ -4,11 +4,12 @@ const Classmate = require('../models/Classmate');
 const Province = require('../models/Province');
 const multer = require('multer');
 const path = require('path');
+const { requireAdmin } = require('../middleware/auth');
 
 // 配置文件上传
 const storage = multer.diskStorage({
   destination: function(req, file, cb) {
-    cb(null, 'images/');
+    cb(null, path.join(__dirname, '..', 'images'));
   },
   filename: function(req, file, cb) {
     cb(null, file.fieldname + '-' + Date.now() + path.extname(file.originalname));
@@ -64,7 +65,7 @@ router.get('/:id', async (req, res) => {
 });
 
 // 创建新同学
-router.post('/', upload.single('image'), async (req, res) => {
+router.post('/', requireAdmin, upload.single('image'), async (req, res) => {
   try {
     // 检查省份是否存在
     const province = await Province.findById(req.body.province);
@@ -88,7 +89,7 @@ router.post('/', upload.single('image'), async (req, res) => {
 });
 
 // 更新同学
-router.patch('/:id', upload.single('image'), async (req, res) => {
+router.patch('/:id', requireAdmin, upload.single('image'), async (req, res) => {
   try {
     const classmate = await Classmate.findById(req.params.id);
     if (!classmate) {
@@ -117,7 +118,7 @@ router.patch('/:id', upload.single('image'), async (req, res) => {
 });
 
 // 删除同学
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', requireAdmin, async (req, res) => {
   try {
     const classmate = await Classmate.findById(req.params.id);
     if (!classmate) {

@@ -10,14 +10,30 @@ dotenv.config();
 
 // 创建Express应用
 const app = express();
+const configuredOrigins = String(process.env.CORS_ORIGIN || '')
+  .split(',')
+  .map(origin => origin.trim())
+  .filter(Boolean);
 
 // 中间件
-app.use(cors());
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(cors({
+  origin(origin, callback) {
+    if (!origin || configuredOrigins.includes(origin)) return callback(null, true);
+    return callback(new Error('Not allowed by CORS'));
+  },
+  methods: ['GET', 'POST', 'PATCH', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
+app.use(bodyParser.json({ limit: '100kb' }));
+app.use(bodyParser.urlencoded({ extended: true, limit: '100kb' }));
+
+// 不将服务端源码或依赖目录作为静态资源暴露。
+app.use(/^\/(?:routes|models|middleware|node_modules)(?:\/|$)|^\/(?:server|seed)\.js$|^\/package(?:-lock)?\.json$/, (req, res) => {
+  res.status(404).end();
+});
 
 // 静态文件服务
-app.use(express.static(path.join(__dirname)));
+app.use(express.static(path.join(__dirname), { dotfiles: 'deny' }));
 
 // 连接MongoDB数据库
 mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/dqcf_memorial', {

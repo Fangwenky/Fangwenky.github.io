@@ -2,6 +2,14 @@ const express = require('express');
 const router = express.Router();
 const Comment = require('../models/Comment');
 const Message = require('../models/Message');
+const { requireAdmin } = require('../middleware/auth');
+
+function plainText(value, maxLength) {
+  return String(value || '')
+    .trim()
+    .slice(0, maxLength)
+    .replace(/[&<>"']/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[character]);
+}
 
 // 获取特定留言的所有显示状态的评论
 router.get('/message/:messageId', async (req, res) => {
@@ -20,7 +28,9 @@ router.get('/message/:messageId', async (req, res) => {
 // 提交新评论
 router.post('/', async (req, res) => {
   // 验证请求数据
-  if (!req.body.author || !req.body.content || !req.body.messageId) {
+  const author = plainText(req.body.author, 60);
+  const content = plainText(req.body.content, 1200);
+  if (!author || !content || !req.body.messageId) {
     return res.status(400).json({ message: '作者、内容和留言ID不能为空' });
   }
   
@@ -33,8 +43,8 @@ router.post('/', async (req, res) => {
     
     const comment = new Comment({
       messageId: req.body.messageId,
-      author: req.body.author,
-      content: req.body.content
+      author,
+      content
     });
 
     const newComment = await comment.save();
@@ -50,13 +60,14 @@ router.post('/', async (req, res) => {
 // 点赞评论
 router.post('/:id/like', async (req, res) => {
   try {
-    const comment = await Comment.findById(req.params.id);
+    const comment = await Comment.findOneAndUpdate(
+      { _id: req.params.id, status: '显示' },
+      { $inc: { likes: 1 } },
+      { new: true }
+    );
     if (!comment) {
       return res.status(404).json({ message: '找不到该评论' });
     }
-    
-    comment.likes += 1;
-    await comment.save();
     
     res.json({ likes: comment.likes });
   } catch (err) {
@@ -65,7 +76,7 @@ router.post('/:id/like', async (req, res) => {
 });
 
 // 管理员获取所有评论
-router.get('/admin/all', async (req, res) => {
+router.get('/admin/all', requireAdmin, async (req, res) => {
   try {
     const comments = await Comment.find().populate('messageId').sort('-createdAt');
     res.json(comments);
@@ -75,7 +86,7 @@ router.get('/admin/all', async (req, res) => {
 });
 
 // 管理员按状态获取评论
-router.get('/admin/status/:status', async (req, res) => {
+router.get('/admin/status/:status', requireAdmin, async (req, res) => {
   try {
     const comments = await Comment.find({ status: req.params.status }).populate('messageId').sort('-createdAt');
     res.json(comments);
@@ -85,7 +96,7 @@ router.get('/admin/status/:status', async (req, res) => {
 });
 
 // 管理员更新评论状态
-router.patch('/admin/:id/status', async (req, res) => {
+router.patch('/admin/:id/status', requireAdmin, async (req, res) => {
   try {
     const comment = await Comment.findById(req.params.id);
     if (!comment) {
@@ -107,7 +118,7 @@ router.patch('/admin/:id/status', async (req, res) => {
 });
 
 // 管理员删除评论
-router.delete('/admin/:id', async (req, res) => {
+router.delete('/admin/:id', requireAdmin, async (req, res) => {
   try {
     const comment = await Comment.findById(req.params.id);
     if (!comment) {

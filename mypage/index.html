@@ -93,6 +93,10 @@
                     <span class="meta-divider" aria-hidden="true"></span>
                     <span id="contentCount"></span>
                 </div>
+                <div class="hero-utilities" aria-label="博客快捷操作">
+                    <a href="search.html" class="utility-link"><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i><span data-copy="heroSearch">搜索整座笔记库</span><kbd>⌘ K</kbd></a>
+                    <a href="archive.html" class="utility-link"><i class="fa-regular fa-clock" aria-hidden="true"></i><span data-copy="heroArchive">按时间探索</span></a>
+                </div>
             </div>
 
             <div class="hero-portrait" aria-label="F_wenky 个人简介">
@@ -161,6 +165,25 @@
             </div>
             <div class="articles-grid"></div>
             <div class="section-footer"><a href="articles.html" class="text-link view-all-btn">查看所有文章 <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a></div>
+        </section>
+
+        <section class="blog-radar" aria-labelledby="blog-radar-title">
+            <div class="radar-copy">
+                <p class="eyebrow">BLOG RADAR</p>
+                <h2 id="blog-radar-title" data-copy="radarTitle">此刻正在生长的笔记库。</h2>
+                <p data-copy="radarDescription">从一个问题出发，把模型、代码和复盘串成一条可回看的学习轨迹。</p>
+                <a href="archive.html" class="text-link"><span data-copy="radarAction">浏览完整时间线</span> <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
+            </div>
+            <div class="radar-panel" aria-live="polite">
+                <div class="radar-panel-header"><span class="radar-status"><i class="fa-solid fa-circle" aria-hidden="true"></i> <span data-copy="radarStatus">LATEST SIGNAL</span></span><span id="radarDate"></span></div>
+                <a id="radarLatest" class="radar-latest" href="articles.html">
+                    <span data-copy="radarLatestLabel">最近发布</span>
+                    <strong>Loading…</strong>
+                    <small></small>
+                </a>
+                <div class="radar-topics" id="radarTopics" aria-label="热门主题"></div>
+                <div class="radar-panel-footer"><span id="radarCount"></span><span data-copy="radarHint">内容持续更新中</span></div>
+            </div>
         </section>
 
         <section class="about-section" id="about">

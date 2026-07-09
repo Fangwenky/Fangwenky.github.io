@@ -2,32 +2,14 @@ const express = require('express');
 const router = express.Router();
 const Admin = require('../models/Admin');
 const jwt = require('jsonwebtoken');
-
-// 中间件：验证管理员令牌
-const authMiddleware = async (req, res, next) => {
-  try {
-    const token = req.header('Authorization')?.replace('Bearer ', '');
-    if (!token) {
-      return res.status(401).json({ message: '请先登录' });
-    }
-    
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your_jwt_secret');
-    const admin = await Admin.findById(decoded.id);
-    
-    if (!admin) {
-      return res.status(401).json({ message: '无效的身份验证' });
-    }
-    
-    req.admin = admin;
-    next();
-  } catch (err) {
-    res.status(401).json({ message: '请先登录' });
-  }
-};
+const { requireAdmin } = require('../middleware/auth');
 
 // 管理员登录
 router.post('/login', async (req, res) => {
   try {
+    if (!process.env.JWT_SECRET) {
+      return res.status(503).json({ message: '服务器尚未配置 JWT_SECRET' });
+    }
     const { username, password } = req.body;
     
     // 验证输入
@@ -50,7 +32,7 @@ router.post('/login', async (req, res) => {
     // 生成JWT令牌
     const token = jwt.sign(
       { id: admin._id },
-      process.env.JWT_SECRET || 'your_jwt_secret',
+      process.env.JWT_SECRET,
       { expiresIn: '24h' }
     );
     
@@ -97,7 +79,7 @@ router.post('/setup', async (req, res) => {
 });
 
 // 获取当前管理员信息
-router.get('/me', authMiddleware, async (req, res) => {
+router.get('/me', requireAdmin, async (req, res) => {
   try {
     res.json({
       id: req.admin._id,
@@ -109,7 +91,7 @@ router.get('/me', authMiddleware, async (req, res) => {
 });
 
 // 修改管理员密码
-router.patch('/change-password', authMiddleware, async (req, res) => {
+router.patch('/change-password', requireAdmin, async (req, res) => {
   try {
     const { currentPassword, newPassword } = req.body;
     

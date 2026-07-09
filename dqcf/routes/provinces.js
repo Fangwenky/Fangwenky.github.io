@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Province = require('../models/Province');
+const { requireAdmin } = require('../middleware/auth');
 
 // 获取所有省份
 router.get('/', async (req, res) => {
@@ -26,7 +27,7 @@ router.get('/:id', async (req, res) => {
 });
 
 // 创建新省份
-router.post('/', async (req, res) => {
+router.post('/', requireAdmin, async (req, res) => {
   const province = new Province({
     name: req.body.name,
     englishName: req.body.englishName,
@@ -43,7 +44,7 @@ router.post('/', async (req, res) => {
 });
 
 // 更新省份
-router.patch('/:id', async (req, res) => {
+router.patch('/:id', requireAdmin, async (req, res) => {
   try {
     const province = await Province.findById(req.params.id);
     if (!province) {
@@ -64,7 +65,7 @@ router.patch('/:id', async (req, res) => {
 });
 
 // 删除省份
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', requireAdmin, async (req, res) => {
   try {
     const province = await Province.findById(req.params.id);
     if (!province) {

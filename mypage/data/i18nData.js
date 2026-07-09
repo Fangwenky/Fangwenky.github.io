@@ -67,7 +67,22 @@ export const uiText = {
         contactEmail: '发送邮件',
         contactGithub: '访问 GitHub',
         contentCount: (articles, projects) => `${articles} 篇文章 · ${projects} 个项目`,
-        scrollHint: '向下浏览作品'
+        scrollHint: '向下浏览作品',
+        heroSearch: '搜索整座笔记库',
+        heroArchive: '按时间探索',
+        radarTitle: '此刻正在生长的笔记库。',
+        radarDescription: '从一个问题出发，把模型、代码和复盘串成一条可回看的学习轨迹。',
+        radarAction: '浏览完整时间线',
+        radarStatus: 'LATEST SIGNAL',
+        radarLatestLabel: '最近发布',
+        radarHint: '内容持续更新中',
+        articleCount: count => `${count} 篇学习笔记`,
+        filterAll: '全部',
+        tableOfContents: '本页目录',
+        shareArticle: '复制文章链接',
+        linkCopied: '链接已复制',
+        relatedReading: '继续阅读',
+        readingProgress: '阅读进度'
     },
     en: {
         siteName: 'F_wenky',
@@ -137,7 +152,22 @@ export const uiText = {
         contactEmail: 'Send an email',
         contactGithub: 'Visit GitHub',
         contentCount: (articles, projects) => `${articles} articles · ${projects} projects`,
-        scrollHint: 'Scroll to explore'
+        scrollHint: 'Scroll to explore',
+        heroSearch: 'Search the note library',
+        heroArchive: 'Explore by time',
+        radarTitle: 'A note library still in motion.',
+        radarDescription: 'Every question becomes a traceable path through models, code, and reflection.',
+        radarAction: 'Browse the full timeline',
+        radarStatus: 'LATEST SIGNAL',
+        radarLatestLabel: 'Most recent',
+        radarHint: 'More notes in progress',
+        articleCount: count => `${count} learning notes`,
+        filterAll: 'All',
+        tableOfContents: 'On this page',
+        shareArticle: 'Copy article link',
+        linkCopied: 'Link copied',
+        relatedReading: 'Keep reading',
+        readingProgress: 'Reading progress'
     }
 };
 

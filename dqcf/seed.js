@@ -12,8 +12,13 @@ const Message = require('./models/Message');
 const Comment = require('./models/Comment');
 const Admin = require('./models/Admin');
 
+const mongoUri = process.env.MONGO_URI;
+if (!mongoUri) {
+  throw new Error('请先在 .env 中配置 MONGO_URI。');
+}
+
 // 连接数据库
-mongoose.connect(process.env.MONGODB_URI, {
+mongoose.connect(mongoUri, {
   useNewUrlParser: true,
   useUnifiedTopology: true
 }).then(() => {
@@ -38,19 +43,19 @@ async function seedData() {
         name: '北京',
         englishName: 'Beijing',
         description: '中国的首都，政治、文化、国际交往中心',
-        mapCoordinates: { x: 116.4, y: 39.9 }
+        position: { x: 116.4, y: 39.9 }
       },
       {
         name: '上海',
         englishName: 'Shanghai',
         description: '中国最大的经济中心城市，国际金融中心',
-        mapCoordinates: { x: 121.5, y: 31.2 }
+        position: { x: 121.5, y: 31.2 }
       },
       {
         name: '广东',
         englishName: 'Guangdong',
         description: '中国南方经济发达省份，改革开放前沿',
-        mapCoordinates: { x: 113.3, y: 23.1 }
+        position: { x: 113.3, y: 23.1 }
       }
     ]);
     
@@ -87,22 +92,22 @@ async function seedData() {
     const messages = await Message.insertMany([
       {
         author: '张三',
-        content: '<p>大家好！我现在在北京大学学习计算机科学，希望以后能成为一名优秀的软件工程师。</p>',
-        status: 'visible',
+        content: '大家好！我现在在北京大学学习计算机科学，希望以后能成为一名优秀的软件工程师。',
+        status: '显示',
         likes: 5,
         isPinned: true
       },
       {
         author: '李四',
-        content: '<p>我在上海复旦大学学习金融，这里的金融环境非常好，学到了很多实用知识。</p>',
-        status: 'visible',
+        content: '我在上海复旦大学学习金融，这里的金融环境非常好，学到了很多实用知识。',
+        status: '显示',
         likes: 3,
         isPinned: false
       },
       {
         author: '王五',
-        content: '<p>广东的天气真的很热，但是这里的美食太棒了！我在中山大学学医，压力很大但是很充实。</p>',
-        status: 'visible',
+        content: '广东的天气真的很热，但是这里的美食太棒了！我在中山大学学医，压力很大但是很充实。',
+        status: '显示',
         likes: 4,
         isPinned: false
       }
@@ -116,21 +121,21 @@ async function seedData() {
         messageId: messages[0]._id,
         author: '李四',
         content: '加油，计算机行业前景很好！',
-        status: 'visible',
+        status: '显示',
         likes: 2
       },
       {
         messageId: messages[0]._id,
         author: '王五',
         content: '北大的计算机专业很厉害，羡慕你！',
-        status: 'visible',
+        status: '显示',
         likes: 1
       },
       {
         messageId: messages[1]._id,
         author: '张三',
         content: '上海的金融业确实发达，你选对了地方！',
-        status: 'visible',
+        status: '显示',
         likes: 2
       }
     ]);
@@ -140,12 +145,15 @@ async function seedData() {
     // 检查是否已有管理员账户
     const adminCount = await Admin.countDocuments();
     if (adminCount === 0) {
-      // 创建默认管理员账户
+      const password = process.env.ADMIN_PASSWORD;
+      if (!password) {
+        throw new Error('首次初始化管理员时必须配置 ADMIN_PASSWORD。');
+      }
       await Admin.create({
-        username: 'admin',
-        password: 'admin123'
+        username: process.env.ADMIN_USERNAME || 'admin',
+        password
       });
-      console.log('默认管理员账户创建成功');
+      console.log('管理员账户创建成功');
     }
     
     console.log('数据初始化完成');

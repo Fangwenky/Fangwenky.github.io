@@ -2,6 +2,14 @@ const express = require('express');
 const router = express.Router();
 const Message = require('../models/Message');
 const Comment = require('../models/Comment');
+const { requireAdmin } = require('../middleware/auth');
+
+function plainText(value, maxLength) {
+  return String(value || '')
+    .trim()
+    .slice(0, maxLength)
+    .replace(/[&<>"']/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[character]);
+}
 
 // 获取所有显示状态的留言
 router.get('/public', async (req, res) => {
@@ -29,7 +37,7 @@ router.get('/pinned', async (req, res) => {
 // 获取单个留言及其评论
 router.get('/:id', async (req, res) => {
   try {
-    const message = await Message.findById(req.params.id);
+    const message = await Message.findOne({ _id: req.params.id, status: '显示' });
     if (!message) {
       return res.status(404).json({ message: '找不到该留言' });
     }
@@ -49,13 +57,15 @@ router.get('/:id', async (req, res) => {
 // 提交新留言
 router.post('/', async (req, res) => {
   // 验证请求数据
-  if (!req.body.author || !req.body.content) {
+  const author = plainText(req.body.author, 60);
+  const content = plainText(req.body.content, 2000);
+  if (!author || !content) {
     return res.status(400).json({ message: '作者和内容不能为空' });
   }
   
   const message = new Message({
-    author: req.body.author,
-    content: req.body.content
+    author,
+    content
   });
 
   try {
@@ -72,13 +82,14 @@ router.post('/', async (req, res) => {
 // 点赞留言
 router.post('/:id/like', async (req, res) => {
   try {
-    const message = await Message.findById(req.params.id);
+    const message = await Message.findOneAndUpdate(
+      { _id: req.params.id, status: '显示' },
+      { $inc: { likes: 1 } },
+      { new: true }
+    );
     if (!message) {
       return res.status(404).json({ message: '找不到该留言' });
     }
-    
-    message.likes += 1;
-    await message.save();
     
     res.json({ likes: message.likes });
   } catch (err) {
@@ -87,7 +98,7 @@ router.post('/:id/like', async (req, res) => {
 });
 
 // 管理员获取所有留言（包括未审核和不显示的）
-router.get('/admin/all', async (req, res) => {
+router.get('/admin/all', requireAdmin, async (req, res) => {
   try {
     const messages = await Message.find().sort('-createdAt');
     res.json(messages);
@@ -97,7 +108,7 @@ router.get('/admin/all', async (req, res) => {
 });
 
 // 管理员按状态获取留言
-router.get('/admin/status/:status', async (req, res) => {
+router.get('/admin/status/:status', requireAdmin, async (req, res) => {
   try {
     const messages = await Message.find({ status: req.params.status }).sort('-createdAt');
     res.json(messages);
@@ -107,7 +118,7 @@ router.get('/admin/status/:status', async (req, res) => {
 });
 
 // 管理员更新留言状态
-router.patch('/admin/:id/status', async (req, res) => {
+router.patch('/admin/:id/status', requireAdmin, async (req, res) => {
   try {
     const message = await Message.findById(req.params.id);
     if (!message) {
@@ -129,7 +140,7 @@ router.patch('/admin/:id/status', async (req, res) => {
 });
 
 // 管理员设置/取消置顶留言
-router.patch('/admin/:id/pin', async (req, res) => {
+router.patch('/admin/:id/pin', requireAdmin, async (req, res) => {
   try {
     // 先将所有留言设为非置顶
     if (req.body.isPinned) {
@@ -152,7 +163,7 @@ router.patch('/admin/:id/pin', async (req, res) => {
 });
 
 // 管理员删除留言
-router.delete('/admin/:id', async (req, res) => {
+router.delete('/admin/:id', requireAdmin, async (req, res) => {
   try {
     const message = await Message.findById(req.params.id);
     if (!message) {
