@@ -6,7 +6,7 @@
     <title>F_wenky | AI 学习、项目与技术写作</title>
     <meta name="description" content="F_wenky 的个人作品集：记录人工智能、深度学习与 LLM 应用的学习过程，展示 PyTorch、ONNX 和 Web AI 项目。">
     <meta name="author" content="F_wenky">
-    <meta name="theme-color" content="#f6f7fb">
+    <meta name="theme-color" content="#f4f7f5">
     <link rel="canonical" href="https://fangwenky.github.io/mypage/">
     <meta property="og:title" content="F_wenky | AI 学习、项目与技术写作">
     <meta property="og:description" content="从模型原理到可运行作品，记录一个 AI 本科生的学习与实践。">
@@ -17,7 +17,7 @@
     <link rel="icon" href="images/avatar.jpg">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600&family=Noto+Sans+SC:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=Manrope:wght@500;600;700;800&family=Noto+Sans+SC:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <script>
@@ -80,12 +80,15 @@
     <main id="main-content">
         <section id="home" class="hero-section visible">
             <div class="hero-copy">
-                <p class="eyebrow" data-copy="heroEyebrow">AI STUDENT · BUILDER · WRITER</p>
+                <div class="hero-kicker-row">
+                    <p class="eyebrow" data-copy="heroEyebrow">AI STUDENT · BUILDER · WRITER</p>
+                    <span class="hero-issue">FIELD LOG / 2026</span>
+                </div>
                 <h1 data-copy="heroTitle">把学到的 AI，做成真正能运行的作品。</h1>
                 <p class="hero-description" data-copy="heroDescription">我是 F_wenky，北京理工大学人工智能专业本科生。这里记录我从模型原理、代码实现到浏览器部署的学习过程。</p>
                 <div class="hero-actions">
-                    <a href="#featured-projects" class="button button-primary" data-copy="heroProjects">查看代表项目</a>
-                    <a href="#latest-articles" class="button button-secondary" data-copy="heroArticles">阅读学习笔记</a>
+                    <a href="#latest-articles" class="button button-primary" data-copy="heroArticles">阅读学习笔记</a>
+                    <a href="#featured-projects" class="button button-secondary" data-copy="heroProjects">查看代表项目</a>
                 </div>
                 <div class="hero-meta">
                     <span class="availability-dot" aria-hidden="true"></span>
@@ -93,55 +96,73 @@
                     <span class="meta-divider" aria-hidden="true"></span>
                     <span id="contentCount"></span>
                 </div>
-                <div class="hero-utilities" aria-label="博客快捷操作">
-                    <a href="search.html" class="utility-link"><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i><span data-copy="heroSearch">搜索整座笔记库</span><kbd>⌘ K</kbd></a>
-                    <a href="archive.html" class="utility-link"><i class="fa-regular fa-clock" aria-hidden="true"></i><span data-copy="heroArchive">按时间探索</span></a>
-                </div>
             </div>
 
-            <div class="hero-portrait" aria-label="F_wenky 个人简介">
-                <div class="portrait-frame">
-                    <img src="images/avatar.jpg" alt="F_wenky 的头像" width="520" height="520">
-                    <span class="portrait-signature">F_wenky</span>
-                </div>
-                <div class="status-card">
-                    <span class="status-label" data-copy="heroStatus">当前关注</span>
-                    <strong data-copy="heroStatusValue">深度学习 · LLM 应用 · AI 工程</strong>
-                </div>
-                <svg class="learning-path" viewBox="0 0 360 170" aria-hidden="true">
-                    <path d="M8 142 C68 151 83 59 145 74 S235 154 351 21" />
-                    <circle cx="8" cy="142" r="5" />
-                    <circle cx="145" cy="74" r="5" />
-                    <circle cx="351" cy="21" r="5" />
+            <div class="knowledge-map" aria-label="F_wenky 的 AI 学习知识星图">
+                <svg class="map-lines" viewBox="0 0 620 520" aria-hidden="true">
+                    <path d="M310 258 C215 220 184 116 92 102" />
+                    <path d="M310 258 C408 190 468 100 548 120" />
+                    <path d="M310 258 C430 284 484 354 556 402" />
+                    <path d="M310 258 C224 326 178 406 92 424" />
+                    <path class="map-line-accent" d="M92 102 C242 40 420 50 548 120" />
                 </svg>
+                <div class="map-core">
+                    <img src="images/avatar.jpg" alt="F_wenky 的头像" width="112" height="112">
+                    <span>F_wenky</span>
+                    <small>AI / BIT</small>
+                </div>
+                <a class="map-node node-models" href="articles.html?tag=%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0"><span>01</span><strong>模型原理</strong><small>Deep Learning</small></a>
+                <a class="map-node node-llm" href="articles.html?tag=%E5%A4%A7%E6%A8%A1%E5%9E%8B"><span>02</span><strong>LLM 应用</strong><small>RAG · Agent</small></a>
+                <a class="map-node node-build" href="projects.html"><span>03</span><strong>可运行作品</strong><small>Web · ONNX</small></a>
+                <a class="map-node node-writing" href="archive.html"><span>04</span><strong>公开写作</strong><small>Notes · Review</small></a>
+                <div class="map-coordinate">39.9042° N / 116.4074° E</div>
             </div>
 
-            <a href="#focus" class="scroll-hint">
-                <span data-copy="scrollHint">向下浏览作品</span>
-                <i class="fa-solid fa-arrow-down" aria-hidden="true"></i>
-            </a>
+            <div class="hero-utilities" aria-label="博客快捷操作">
+                <a href="search.html" class="utility-link"><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i><span data-copy="heroSearch">搜索整座笔记库</span><kbd>⌘ K</kbd></a>
+                <a href="archive.html" class="utility-link"><i class="fa-regular fa-clock" aria-hidden="true"></i><span data-copy="heroArchive">按时间探索</span></a>
+                <span class="utility-status"><i aria-hidden="true"></i><span data-copy="heroStatus">当前关注</span>：<strong data-copy="heroStatusValue">深度学习 · LLM 应用 · AI 工程</strong></span>
+            </div>
+        </section>
+
+        <section id="latest-articles" class="articles-section home-editorial-section">
+            <div class="section-heading editorial-heading">
+                <div><p class="eyebrow" data-copy="sectionArticlesKicker">LEARNING IN PUBLIC</p><h2>最新文章</h2></div>
+                <p data-copy="radarDescription">从一个问题出发，把模型、代码和复盘串成一条可回看的学习轨迹。</p>
+            </div>
+            <div class="articles-grid"></div>
+            <div class="section-footer"><a href="articles.html" class="text-link view-all-btn">查看所有文章 <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a></div>
+        </section>
+
+        <section id="featured-projects" class="projects-section home-editorial-section">
+            <div class="section-heading editorial-heading">
+                <div><p class="eyebrow" data-copy="sectionProjectsKicker">SELECTED WORK</p><h2>精选项目</h2></div>
+                <p data-copy="focusBuildText">把训练、推理与前端连接起来，让想法成为可体验的应用。</p>
+            </div>
+            <div class="projects-grid featured-grid"></div>
+            <div class="section-footer"><a href="projects.html" class="text-link view-all-btn">查看所有项目 <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a></div>
         </section>
 
         <section id="focus" class="focus-section">
             <div class="section-heading split-heading">
-                <div><p class="eyebrow">PROCESS</p><h2 data-copy="focusTitle">我的工作方式</h2></div>
+                <div><p class="eyebrow">WORKING LOOP</p><h2 data-copy="focusTitle">我的工作方式</h2></div>
                 <p data-copy="focusDescription">不只收藏知识点，而是通过实现、复现和写作把它们变成自己的能力。</p>
             </div>
             <div class="focus-grid">
                 <article class="focus-card">
-                    <span class="focus-index">01</span>
+                    <span class="focus-index">OBSERVE</span>
                     <div class="focus-icon"><i class="fa-solid fa-compass-drafting" aria-hidden="true"></i></div>
                     <h3 data-copy="focusLearn">理解原理</h3>
                     <p data-copy="focusLearnText">从数学直觉和最小实现开始，弄清模型为什么有效。</p>
                 </article>
                 <article class="focus-card">
-                    <span class="focus-index">02</span>
+                    <span class="focus-index">BUILD</span>
                     <div class="focus-icon"><i class="fa-solid fa-code" aria-hidden="true"></i></div>
                     <h3 data-copy="focusBuild">做成作品</h3>
                     <p data-copy="focusBuildText">把训练、推理与前端连接起来，让想法成为可体验的应用。</p>
                 </article>
                 <article class="focus-card">
-                    <span class="focus-index">03</span>
+                    <span class="focus-index">REFLECT</span>
                     <div class="focus-icon"><i class="fa-solid fa-pen-nib" aria-hidden="true"></i></div>
                     <h3 data-copy="focusShare">公开记录</h3>
                     <p data-copy="focusShareText">整理实验过程、失败经验和技术判断，形成可复用的学习笔记。</p>
@@ -149,38 +170,16 @@
             </div>
         </section>
 
-        <section id="featured-projects" class="projects-section">
-            <div class="section-heading">
-                <p class="eyebrow" data-copy="sectionProjectsKicker">SELECTED WORK</p>
-                <h2>精选项目</h2>
-            </div>
-            <div class="projects-grid featured-grid"></div>
-            <div class="section-footer"><a href="projects.html" class="text-link view-all-btn">查看所有项目 <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a></div>
-        </section>
-
-        <section id="latest-articles" class="articles-section">
-            <div class="section-heading">
-                <p class="eyebrow" data-copy="sectionArticlesKicker">LEARNING IN PUBLIC</p>
-                <h2>最新文章</h2>
-            </div>
-            <div class="articles-grid"></div>
-            <div class="section-footer"><a href="articles.html" class="text-link view-all-btn">查看所有文章 <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a></div>
-        </section>
-
         <section class="blog-radar" aria-labelledby="blog-radar-title">
             <div class="radar-copy">
-                <p class="eyebrow">BLOG RADAR</p>
+                <p class="eyebrow">KNOWLEDGE SIGNAL</p>
                 <h2 id="blog-radar-title" data-copy="radarTitle">此刻正在生长的笔记库。</h2>
                 <p data-copy="radarDescription">从一个问题出发，把模型、代码和复盘串成一条可回看的学习轨迹。</p>
                 <a href="archive.html" class="text-link"><span data-copy="radarAction">浏览完整时间线</span> <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
             </div>
             <div class="radar-panel" aria-live="polite">
                 <div class="radar-panel-header"><span class="radar-status"><i class="fa-solid fa-circle" aria-hidden="true"></i> <span data-copy="radarStatus">LATEST SIGNAL</span></span><span id="radarDate"></span></div>
-                <a id="radarLatest" class="radar-latest" href="articles.html">
-                    <span data-copy="radarLatestLabel">最近发布</span>
-                    <strong>Loading…</strong>
-                    <small></small>
-                </a>
+                <a id="radarLatest" class="radar-latest" href="articles.html"><span data-copy="radarLatestLabel">最近发布</span><strong>Loading…</strong><small></small></a>
                 <div class="radar-topics" id="radarTopics" aria-label="热门主题"></div>
                 <div class="radar-panel-footer"><span id="radarCount"></span><span data-copy="radarHint">内容持续更新中</span></div>
             </div>
@@ -197,7 +196,7 @@
 
         <section class="contact-section" aria-labelledby="contact-title">
             <div class="contact-copy">
-                <p class="eyebrow">LET'S CONNECT</p>
+                <p class="eyebrow">OPEN CHANNEL</p>
                 <h2 id="contact-title" data-copy="contactTitle">对我的项目或学习方向感兴趣？</h2>
                 <p data-copy="contactDescription">欢迎查看源码、交流 AI 学习，或者聊聊可以一起完成的项目。</p>
             </div>

@@ -411,7 +411,7 @@ function initThemeToggle() {
         button.innerHTML = `<i class="fa-solid ${isDark ? 'fa-sun' : 'fa-moon'}" aria-hidden="true"></i>`;
         button.setAttribute('aria-label', isDark ? t('themeLight') : t('themeDark'));
         button.setAttribute('title', isDark ? t('themeLight') : t('themeDark'));
-        document.querySelector('meta[name="theme-color"]')?.setAttribute('content', isDark ? '#10131d' : '#f6f7fb');
+        document.querySelector('meta[name="theme-color"]')?.setAttribute('content', isDark ? '#0b1020' : '#f4f7f5');
     };
 
     button.addEventListener('click', () => {
@@ -674,6 +674,23 @@ function initBlogRadar() {
         topic.href = withLanguageParam(`articles.html?tag=${encodeURIComponent(tag)}`);
         topic.innerHTML = `<span>${escapeHTML(tag)}</span><small>${count}</small>`;
         topicContainer?.appendChild(topic);
+    });
+}
+
+function initKnowledgeMap() {
+    const map = document.querySelector('.knowledge-map');
+    if (!map || prefersReducedMotion || window.matchMedia?.('(pointer: coarse)').matches) return;
+
+    map.addEventListener('pointermove', event => {
+        const rect = map.getBoundingClientRect();
+        const x = (event.clientX - rect.left) / rect.width - 0.5;
+        const y = (event.clientY - rect.top) / rect.height - 0.5;
+        map.style.setProperty('--tilt-x', `${x * 3.6}deg`);
+        map.style.setProperty('--tilt-y', `${y * -3.1}deg`);
+    });
+    map.addEventListener('pointerleave', () => {
+        map.style.setProperty('--tilt-x', '0deg');
+        map.style.setProperty('--tilt-y', '0deg');
     });
 }
 
@@ -1118,6 +1135,7 @@ document.addEventListener('DOMContentLoaded', () => {
         loadProjects('.projects-grid', projects, 2);
         loadAboutMe();
         initBlogRadar();
+        initKnowledgeMap();
     } else if (document.body.id === 'articles-page') {
         initArticleFilters();
     } else if (document.body.id === 'projects-page') {
