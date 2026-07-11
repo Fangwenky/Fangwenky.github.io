@@ -926,9 +926,20 @@ function loadAboutMe() {
 
     if (aboutTextDiv) {
         const headingTag = document.body.id === 'about-page' ? 'h1' : 'h2';
+        const academicProfile = document.body.id === 'about-page' && aboutMe.academicProfile
+            ? `<address class="academic-profile about-academic-profile" aria-label="Academic profile">
+                    <div class="academic-profile-main">
+                        <strong>${escapeHTML(aboutMe.academicProfile.name)}</strong>
+                        <span>${escapeHTML(aboutMe.academicProfile.role)}</span>
+                        <span>${escapeHTML(aboutMe.academicProfile.institution)}</span>
+                    </div>
+                    <a href="mailto:${escapeHTML(aboutMe.academicProfile.email)}"><span>Email:</span> ${escapeHTML(aboutMe.academicProfile.email)}</a>
+                </address>`
+            : '';
         aboutTextDiv.innerHTML = `
             <${headingTag}>${displayAbout.name}</${headingTag}>
             <p>${displayAbout.bio}</p>
+            ${academicProfile}
             <div class="social-links">
                 ${renderSocialLinks()}
             </div>

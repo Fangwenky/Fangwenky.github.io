@@ -899,6 +899,26 @@ body:not(#home-page) main > section > h2:first-child { margin-bottom: 38px; }
 #home-page .hero-copy h1::after { display: none; }
 #home-page .hero-copy h1::first-letter { color: var(--primary); }
 #home-page .hero-description { max-width: 610px; color: var(--ink-soft); font-size: clamp(1rem, 1.25vw, 1.17rem); line-height: 1.85; }
+.academic-profile {
+    display: grid;
+    max-width: 610px;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: end;
+    gap: 18px;
+    margin-top: 23px;
+    padding: 15px 0;
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+    color: var(--ink-soft);
+    font-style: normal;
+}
+.academic-profile-main { display: grid; gap: 1px; }
+.academic-profile-main strong { color: var(--ink); font-family: var(--font-display); font-size: 1rem; font-weight: 800; letter-spacing: -0.025em; }
+.academic-profile-main span { font-size: 0.74rem; line-height: 1.55; }
+.academic-profile > a { color: var(--primary-strong); font-family: var(--font-mono); font-size: 0.65rem; font-weight: 600; white-space: nowrap; }
+.academic-profile > a span { color: var(--ink-faint); }
+.academic-profile > a:hover { text-decoration: underline; text-underline-offset: 3px; }
+.about-academic-profile { max-width: none; margin: 20px 0; }
 #home-page .hero-actions { margin-top: 32px; }
 
 #home-page .button { min-height: 50px; padding: 13px 21px; border-radius: 10px; font-size: 0.86rem; }
@@ -1110,6 +1130,8 @@ body:not(#home-page) main > section > h2:first-child { margin-bottom: 38px; }
     #home-page .hero-section { row-gap: 26px; padding-top: 40px; }
     .hero-kicker-row { align-items: flex-start; flex-direction: column; gap: 7px; }
     #home-page .hero-copy h1 { font-size: clamp(2.8rem, 15.4vw, 4.25rem); }
+    .academic-profile { grid-template-columns: 1fr; align-items: start; gap: 11px; }
+    .academic-profile > a { white-space: normal; overflow-wrap: anywhere; }
     #home-page .hero-actions { align-items: stretch; flex-direction: column; }
     #home-page .hero-actions .button { width: 100%; }
     .knowledge-map { min-height: 460px; border-radius: 22px; box-shadow: inset 0 0 0 7px color-mix(in srgb, var(--surface) 42%, transparent), var(--shadow-md); }
