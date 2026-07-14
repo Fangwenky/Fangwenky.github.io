@@ -1,10 +1,10 @@
 # mypage-admin
 
-本地文章管理后台，用来维护 `mypage` 静态个人主页的文章内容。
+本地内容管理后台，用来维护 `mypage` 静态个人主页的文章和项目。
 
 ## 一键启动（macOS）
 
-在仓库根目录双击 `start-mypage-admin.command`。启动器会检查本机命令、按需安装依赖、启动只监听 `127.0.0.1` 的后台，并自动打开带一次性口令的浏览器页面。
+在仓库根目录双击 `start-mypage-admin.command`。启动器会检查本机命令、按需安装依赖、启动只监听 `127.0.0.1` 的后台，并自动打开带一次性口令的浏览器页面。`ssh` 和 `rsync` 仅在发布时需要，缺少它们不会阻止本地编辑。
 
 编辑期间保持终端窗口打开，按 `Control-C` 停止后台。
 
@@ -12,7 +12,7 @@
 
 ```bash
 cd tools/mypage-admin
-npm install
+npm ci
 npm run dev
 ```
 
@@ -58,7 +58,7 @@ updatedAt: '2026-05-25T00:00:00.000Z'
 ```bash
 npm run migrate   # 从旧 articlesData.js 迁移到 Markdown 目录
 npm run generate  # 从 Markdown 重新生成静态数据
-npm run audit     # 检查文章源文件、生成数据、封面路径一致性
+npm run audit     # 检查文章与项目数据、生成结果、图片路径一致性
 npm run check     # 语法检查后台和生成脚本
 npm run dev       # 启动本地后台
 ```

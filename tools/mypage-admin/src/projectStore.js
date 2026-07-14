@@ -58,6 +58,10 @@ function validateProject(project) {
     if (!/^[a-zA-Z0-9_-]+$/.test(project.id)) {
         throw new Error('Project id can only contain letters, numbers, hyphen, and underscore.');
     }
+    const imageExtension = path.extname(project.image).toLowerCase();
+    if (!/^images\/[^/]+$/.test(project.image) || !projectImageExtensions.has(imageExtension)) {
+        throw new Error('Project image must be a supported file inside the public images directory.');
+    }
     if (project.link && project.link !== '#' && !project.link.startsWith('/') && !project.link.startsWith('./')) {
         try {
             const url = new URL(project.link);
@@ -156,10 +160,15 @@ export async function saveProjectImage(fileName, buffer, options = {}) {
     const root = options.mypageRoot || mypageRoot;
     const dir = imagesRoot(root);
     await fs.mkdir(dir, { recursive: true });
-    await fs.writeFile(path.join(dir, fileName), buffer);
+    const safeName = path.basename(fileName);
+    const extension = path.extname(safeName).toLowerCase();
+    if (safeName !== fileName || !projectImageExtensions.has(extension)) {
+        throw new Error('Project image filename is invalid.');
+    }
+    await fs.writeFile(path.join(dir, safeName), buffer);
     return {
-        name: fileName,
-        path: `images/${fileName}`,
-        url: `/mypage/images/${encodeURIComponent(fileName)}`
+        name: safeName,
+        path: `images/${safeName}`,
+        url: `/mypage/images/${encodeURIComponent(safeName)}`
     };
 }

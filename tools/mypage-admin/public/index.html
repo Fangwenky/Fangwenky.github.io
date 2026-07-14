@@ -73,12 +73,12 @@
                 <details class="metadata-panel" open>
                     <summary><span><strong id="metaTitle">文章信息</strong><small id="metaSubtitle">标题、分类、封面与发布状态</small></span><span class="summary-action">展开 / 收起</span></summary>
                     <div class="meta-grid">
-                        <label>文章 ID <span class="required">必填</span><input id="articleId" required autocomplete="off" pattern="[A-Za-z0-9_-]+" aria-describedby="articleIdHelp"><small id="articleIdHelp">首次保存后锁定，用作目录名和链接。</small></label>
+                        <label><span id="contentIdLabel">文章 ID</span> <span class="required">必填</span><input id="articleId" required autocomplete="off" pattern="[A-Za-z0-9_-]+" aria-describedby="articleIdHelp"><small id="articleIdHelp">首次保存后锁定，用作目录名和链接。</small></label>
                         <label>发布日期 <span class="required">必填</span><input id="articleDate" type="date" required></label>
                         <label>分类 <span class="required">必填</span><input id="articleCategory" required autocomplete="off"></label>
                         <label>发布状态<select id="articleStatus"><option value="draft">草稿（仅本机）</option><option value="published">已发布</option></select></label>
                         <label class="wide">封面路径 <span class="required">必填</span><span class="input-with-action"><input id="articleCover" required autocomplete="off" placeholder="images/example.svg"><button id="chooseCover" type="button">选择</button></span></label>
-                        <label>阅读时长 <span class="required">必填</span><input id="articleReadTime" required autocomplete="off"><span class="inline-option"><input id="autoReadTime" type="checkbox" checked> 自动计算</span></label>
+                        <label>阅读时长 <span class="required">必填</span><input id="articleReadTime" required autocomplete="off"><span class="inline-option"><input id="autoReadTime" type="checkbox" aria-label="自动计算阅读时长" checked> 自动计算</span></label>
                         <label class="check-card"><input id="articleFeatured" type="checkbox"><span><strong>精选文章</strong><small>可用于首页推荐排序</small></span></label>
                         <label class="wide article-field">中文标题 <span class="required">必填</span><input id="zhTitle" required autocomplete="off"></label>
                         <label class="wide article-field">英文标题<input id="enTitle" autocomplete="off"></label>

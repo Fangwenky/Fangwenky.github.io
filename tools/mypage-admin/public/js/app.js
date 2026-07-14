@@ -704,6 +704,11 @@ function updateModeUi() {
     $('#newArticle').setAttribute('title', projectMode ? '新建项目' : '新建文章');
     $('#metaTitle').textContent = projectMode ? '项目信息' : '文章信息';
     $('#metaSubtitle').textContent = projectMode ? '标题、简介、封面、链接与详情' : '标题、分类、封面与发布状态';
+    $('#contentIdLabel').textContent = projectMode ? '项目 ID' : '文章 ID';
+    $('#articleIdHelp').textContent = projectMode ? '首次保存后锁定，用作项目标识和详情链接。' : '首次保存后锁定，用作目录名和链接。';
+    $('#collapseSidebar').setAttribute('aria-label', projectMode ? '收起项目库' : '收起文章库');
+    $('#collapseSidebar').setAttribute('title', projectMode ? '收起项目库' : '收起文章库');
+    $('#assetDialog h2').textContent = projectMode ? '选择项目图片' : '选择文章图片';
     $('#saveArticle').textContent = projectMode ? '保存项目源码' : '保存到源码';
     $('#publishArticle').textContent = '准备发布';
     $('#deleteArticle').textContent = projectMode ? '删除项目' : '删除';

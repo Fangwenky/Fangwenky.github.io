@@ -769,6 +769,7 @@ body:not(#home-page) main > section > h2:first-child { margin-bottom: 38px; }
 
 @media (max-width: 780px) {
     :root { --header-height: 68px; }
+    body.nav-open { overflow: hidden; }
     .nav-links {
         position: fixed;
         top: var(--header-height);
@@ -783,9 +784,10 @@ body:not(#home-page) main > section > h2:first-child { margin-bottom: 38px; }
         opacity: 0;
         pointer-events: none;
         transform: translateY(-10px);
+        visibility: hidden;
         transition: opacity 180ms ease, transform 180ms var(--ease);
     }
-    .nav-links.active { opacity: 1; pointer-events: auto; transform: none; }
+    .nav-links.active { opacity: 1; pointer-events: auto; transform: none; visibility: visible; }
     .nav-links a { width: 100%; padding: 11px 14px; }
     .nav-links a::after { right: auto; left: 14px; width: 28px; }
     .nav-toggle { display: block; }
@@ -928,13 +930,15 @@ body:not(#home-page) main > section > h2:first-child { margin-bottom: 38px; }
 #home-page .hero-meta { font-family: var(--font-mono); font-size: 0.68rem; letter-spacing: 0.02em; }
 
 .knowledge-map {
+    --pointer-x: 50%;
+    --pointer-y: 50%;
     position: relative;
     min-height: 560px;
     isolation: isolate;
     border: 1px solid var(--line);
     border-radius: 32px;
     background:
-        radial-gradient(circle at center, color-mix(in srgb, var(--primary) 12%, transparent), transparent 33%),
+        radial-gradient(circle at var(--pointer-x) var(--pointer-y), color-mix(in srgb, var(--primary) 17%, transparent), transparent 31%),
         linear-gradient(color-mix(in srgb, var(--line) 45%, transparent) 1px, transparent 1px),
         linear-gradient(90deg, color-mix(in srgb, var(--line) 45%, transparent) 1px, transparent 1px),
         color-mix(in srgb, var(--surface) 78%, transparent);
@@ -949,9 +953,49 @@ body:not(#home-page) main > section > h2:first-child { margin-bottom: 38px; }
 .knowledge-map::after { content: ""; position: absolute; z-index: -1; pointer-events: none; }
 .knowledge-map::before { inset: 18px; border: 1px dashed color-mix(in srgb, var(--primary) 28%, transparent); border-radius: 22px; }
 .knowledge-map::after { width: 170px; height: 170px; right: -55px; top: -55px; border: 24px solid color-mix(in srgb, var(--coral) 13%, transparent); border-radius: 50%; }
+.map-readout {
+    position: absolute;
+    top: 23px;
+    left: 50%;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    color: var(--ink-faint);
+    font-family: var(--font-mono);
+    font-size: 0.51rem;
+    letter-spacing: 0.08em;
+    white-space: nowrap;
+    transform: translateX(-50%);
+}
+.map-readout span { display: inline-flex; align-items: center; gap: 4px; }
+.map-readout strong { color: var(--ink); font-size: 0.58rem; }
+.map-live { color: var(--success); }
+.map-live i { width: 5px; height: 5px; border-radius: 50%; background: currentColor; box-shadow: 0 0 0 4px color-mix(in srgb, currentColor 12%, transparent); }
+.map-scan {
+    position: absolute;
+    z-index: 1;
+    top: 34px;
+    right: 22px;
+    left: 22px;
+    height: 78px;
+    border-top: 1px solid color-mix(in srgb, var(--cyan) 48%, transparent);
+    background: linear-gradient(to bottom, color-mix(in srgb, var(--cyan) 8%, transparent), transparent);
+    opacity: 0.55;
+    pointer-events: none;
+    animation: mapScan 8s var(--ease) infinite;
+}
 .map-lines { position: absolute; inset: 18px; width: calc(100% - 36px); height: calc(100% - 36px); overflow: visible; pointer-events: none; }
-.map-lines path { fill: none; stroke: color-mix(in srgb, var(--primary) 68%, var(--line)); stroke-width: 1.7; stroke-dasharray: 6 7; }
-.map-lines .map-line-accent { stroke: color-mix(in srgb, var(--coral) 65%, var(--line)); stroke-dasharray: 2 9; }
+.map-lines path { fill: none; stroke: color-mix(in srgb, var(--primary) 68%, var(--line)); stroke-width: 1.7; stroke-dasharray: 6 7; animation: mapSignal 18s linear infinite; }
+.map-lines .map-line-accent { stroke: color-mix(in srgb, var(--coral) 65%, var(--line)); stroke-dasharray: 2 9; animation-direction: reverse; animation-duration: 24s; }
+
+@keyframes mapScan {
+    0%, 12% { opacity: 0; transform: translateY(0); }
+    25% { opacity: 0.55; }
+    76% { opacity: 0.35; }
+    88%, 100% { opacity: 0; transform: translateY(430px); }
+}
+@keyframes mapSignal { to { stroke-dashoffset: -130; } }
 
 .map-core {
     position: absolute;
@@ -991,6 +1035,7 @@ body:not(#home-page) main > section > h2:first-child { margin-bottom: 38px; }
     transition: border-color 180ms ease, transform 220ms var(--ease), box-shadow 180ms ease;
 }
 .map-node:hover { z-index: 4; border-color: var(--primary); box-shadow: var(--shadow-md); transform: translateZ(38px) translateY(-4px); }
+.map-node::after { content: ""; position: absolute; top: 9px; right: 9px; width: 4px; height: 4px; border-radius: 50%; background: var(--cyan); opacity: 0.62; }
 .map-node > span { color: var(--coral); font-family: var(--font-mono); font-size: 0.56rem; }
 .map-node strong { font-family: var(--font-display); font-size: 0.82rem; letter-spacing: -0.02em; }
 .map-node small { color: var(--ink-faint); font-family: var(--font-mono); font-size: 0.55rem; }
@@ -999,6 +1044,27 @@ body:not(#home-page) main > section > h2:first-child { margin-bottom: 38px; }
 .node-build { right: 4%; bottom: 12%; }
 .node-writing { left: 5%; bottom: 10%; }
 .map-coordinate { position: absolute; right: 26px; bottom: 18px; color: var(--ink-faint); font-family: var(--font-mono); font-size: 0.54rem; letter-spacing: 0.08em; writing-mode: vertical-rl; }
+
+@keyframes fieldEnter {
+    from { opacity: 0; transform: translateY(18px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+@keyframes mapEnter {
+    from { opacity: 0; transform: perspective(1100px) rotateX(2deg) rotateY(-2deg) translateY(22px) scale(0.985); }
+    to { opacity: 1; transform: perspective(1100px) rotateX(var(--tilt-y)) rotateY(var(--tilt-x)) translateY(0) scale(1); }
+}
+.site-ready#home-page .hero-kicker-row,
+.site-ready#home-page .hero-copy h1,
+.site-ready#home-page .hero-description,
+.site-ready#home-page .academic-profile,
+.site-ready#home-page .hero-actions,
+.site-ready#home-page .hero-meta { animation: fieldEnter 720ms var(--ease) both; }
+.site-ready#home-page .hero-copy h1 { animation-delay: 70ms; }
+.site-ready#home-page .hero-description { animation-delay: 130ms; }
+.site-ready#home-page .academic-profile { animation-delay: 180ms; }
+.site-ready#home-page .hero-actions { animation-delay: 230ms; }
+.site-ready#home-page .hero-meta { animation-delay: 280ms; }
+.site-ready#home-page .knowledge-map { animation: mapEnter 900ms var(--ease) 150ms both; }
 
 #home-page .hero-utilities {
     grid-column: 1 / -1;
@@ -1129,13 +1195,16 @@ body:not(#home-page) main > section > h2:first-child { margin-bottom: 38px; }
     #home-page section { width: min(calc(100% - 24px), var(--container)); padding-block: 62px; }
     #home-page .hero-section { row-gap: 26px; padding-top: 40px; }
     .hero-kicker-row { align-items: flex-start; flex-direction: column; gap: 7px; }
-    #home-page .hero-copy h1 { font-size: clamp(2.8rem, 15.4vw, 4.25rem); }
+    #home-page .hero-copy h1 { max-width: 11ch; font-size: clamp(2.65rem, 13.2vw, 3.65rem); line-height: 1; letter-spacing: -0.06em; }
     .academic-profile { grid-template-columns: 1fr; align-items: start; gap: 11px; }
     .academic-profile > a { white-space: normal; overflow-wrap: anywhere; }
     #home-page .hero-actions { align-items: stretch; flex-direction: column; }
     #home-page .hero-actions .button { width: 100%; }
     .knowledge-map { min-height: 460px; border-radius: 22px; box-shadow: inset 0 0 0 7px color-mix(in srgb, var(--surface) 42%, transparent), var(--shadow-md); }
     .knowledge-map::before { inset: 12px; }
+    .map-readout { top: 18px; gap: 8px; }
+    .map-live { display: none; }
+    .map-scan { top: 30px; right: 15px; left: 15px; }
     .map-core { width: 132px; min-height: 148px; padding: 14px; }
     .map-core img { width: 68px; height: 68px; }
     .map-node { min-width: 105px; padding: 9px 10px; }
@@ -1173,7 +1242,14 @@ body:not(#home-page) main > section > h2:first-child { margin-bottom: 38px; }
     *, *::before, *::after { scroll-behavior: auto !important; animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
     section { opacity: 1; transform: none; }
     .portrait-frame, .status-card, .knowledge-map { transform: none; }
-    .map-core::after { animation: none; }
+    .map-core::after, .map-lines path, .map-scan { animation: none; }
+    .site-ready#home-page .hero-kicker-row,
+    .site-ready#home-page .hero-copy h1,
+    .site-ready#home-page .hero-description,
+    .site-ready#home-page .academic-profile,
+    .site-ready#home-page .hero-actions,
+    .site-ready#home-page .hero-meta,
+    .site-ready#home-page .knowledge-map { animation: none; }
 }
 
 @media print {

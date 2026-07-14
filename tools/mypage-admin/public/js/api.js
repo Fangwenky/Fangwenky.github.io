@@ -1,6 +1,9 @@
 const params = new URLSearchParams(location.search);
 const token = params.get('token') || sessionStorage.getItem('mypageAdminToken') || window.prompt('输入本次后台口令');
-if (token) sessionStorage.setItem('mypageAdminToken', token);
+if (token) {
+    sessionStorage.setItem('mypageAdminToken', token);
+    if (params.has('token')) history.replaceState(null, '', `${location.pathname}${location.hash}`);
+}
 
 export async function api(url, options = {}) {
     const headers = { 'x-admin-token': token, ...(options.headers || {}) };

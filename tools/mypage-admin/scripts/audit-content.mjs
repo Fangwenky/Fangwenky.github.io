@@ -3,10 +3,12 @@ import path from 'node:path';
 import { parseFrontmatter } from '../src/frontmatter.js';
 import { articles } from '../../../mypage/data/articlesData.js';
 import { articleTranslations } from '../../../mypage/data/i18nData.js';
+import { projects } from '../../../mypage/data/projectsData.js';
 import { articlesRoot, mypageRoot } from '../src/config.js';
 
 const issues = [];
 const ids = new Set();
+const projectIds = new Set();
 const dirs = (await fs.readdir(articlesRoot, { withFileTypes: true }))
     .filter(entry => entry.isDirectory())
     .map(entry => entry.name)
@@ -62,9 +64,43 @@ for (const key of Object.keys(articleTranslations.en || {})) {
     }
 }
 
+for (const project of projects) {
+    if (projectIds.has(project.id)) issues.push(`Duplicate project id: ${project.id}`);
+    projectIds.add(project.id);
+
+    for (const field of ['id', 'title', 'description', 'image', 'category', 'date', 'content']) {
+        if (!String(project[field] || '').trim()) issues.push(`Missing project field "${field}": ${project.id || '(unknown id)'}`);
+    }
+
+    if (project.id && !/^[a-zA-Z0-9_-]+$/.test(project.id)) {
+        issues.push(`Invalid project id: ${project.id}`);
+    }
+    if (!['html', 'markdown'].includes(project.contentType)) {
+        issues.push(`Invalid project content type for ${project.id}: ${project.contentType}`);
+    }
+    if (!/^images\/[^/]+\.(png|jpe?g|webp|gif|svg)$/i.test(project.image || '')) {
+        issues.push(`Invalid project image path for ${project.id}: ${project.image}`);
+    }
+
+    try {
+        await fs.access(path.join(mypageRoot, project.image));
+    } catch {
+        issues.push(`Missing project image for ${project.id}: ${project.image}`);
+    }
+
+    if (project.link && project.link !== '#' && !project.link.startsWith('/') && !project.link.startsWith('./')) {
+        try {
+            const url = new URL(project.link);
+            if (!['http:', 'https:'].includes(url.protocol)) throw new Error('invalid protocol');
+        } catch {
+            issues.push(`Invalid project link for ${project.id}: ${project.link}`);
+        }
+    }
+}
+
 if (issues.length > 0) {
     console.error(issues.join('\n'));
     process.exitCode = 1;
 } else {
-    console.log(`Content audit passed: ${articles.length} generated articles, ${dirs.length} source folders.`);
+    console.log(`Content audit passed: ${articles.length} generated articles, ${dirs.length} source folders, ${projects.length} projects.`);
 }

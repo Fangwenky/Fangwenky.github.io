@@ -214,13 +214,16 @@ function createContentCard(item, type) {
 
 function hideLoadingScreen() {
     const loadingScreen = document.querySelector('.loading-screen');
+    document.body.classList.add('site-ready');
     if (!loadingScreen) return;
 
     const hide = () => {
         loadingScreen.style.opacity = '0';
-        setTimeout(() => {
+        const finish = () => {
             loadingScreen.style.display = 'none';
-        }, prefersReducedMotion ? 0 : 500);
+        };
+        loadingScreen.addEventListener('transitionend', finish, { once: true });
+        setTimeout(finish, prefersReducedMotion ? 0 : 260);
     };
 
     if (prefersReducedMotion) {
@@ -228,7 +231,7 @@ function hideLoadingScreen() {
         return;
     }
 
-    setTimeout(hide, 180);
+    requestAnimationFrame(() => setTimeout(hide, 80));
 }
 
 function setText(selector, value) {
@@ -563,20 +566,41 @@ function initNavigation() {
         updateHeader();
     }
 
-    navToggle?.addEventListener('click', () => {
-        const isOpen = navLinks?.classList.toggle('active') || false;
+    const mobileNavigation = window.matchMedia('(max-width: 780px)');
+    const setNavOpen = (isOpen, { restoreFocus = false } = {}) => {
+        if (!navLinks || !navToggle) return;
+        navLinks.classList.toggle('active', isOpen);
         navToggle.classList.toggle('active', isOpen);
         navToggle.setAttribute('aria-expanded', String(isOpen));
         navToggle.setAttribute('aria-label', isOpen ? t('closeNav') : t('openNav'));
+        document.body.classList.toggle('nav-open', isOpen && mobileNavigation.matches);
+        if (restoreFocus) navToggle.focus();
+    };
+
+    navToggle?.addEventListener('click', () => {
+        setNavOpen(!navLinks?.classList.contains('active'));
     });
 
     navLinks?.querySelectorAll('a').forEach(link => {
+        if (link.classList.contains('active')) link.setAttribute('aria-current', 'page');
         link.addEventListener('click', () => {
-            navLinks.classList.remove('active');
-            navToggle?.classList.remove('active');
-            navToggle?.setAttribute('aria-expanded', 'false');
-            navToggle?.setAttribute('aria-label', t('openNav'));
+            setNavOpen(false);
         });
+    });
+
+    document.addEventListener('keydown', event => {
+        if (event.key === 'Escape' && navLinks?.classList.contains('active')) {
+            setNavOpen(false, { restoreFocus: true });
+        }
+    });
+
+    document.addEventListener('pointerdown', event => {
+        if (!mobileNavigation.matches || !navLinks?.classList.contains('active')) return;
+        if (!header?.contains(event.target)) setNavOpen(false);
+    });
+
+    mobileNavigation.addEventListener?.('change', event => {
+        if (!event.matches) setNavOpen(false);
     });
 
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
@@ -679,7 +703,14 @@ function initBlogRadar() {
 
 function initKnowledgeMap() {
     const map = document.querySelector('.knowledge-map');
-    if (!map || prefersReducedMotion || window.matchMedia?.('(pointer: coarse)').matches) return;
+    if (!map) return;
+
+    const articleCount = document.getElementById('mapArticleCount');
+    const projectCount = document.getElementById('mapProjectCount');
+    if (articleCount) articleCount.textContent = String(articles.length);
+    if (projectCount) projectCount.textContent = String(projects.length);
+
+    if (prefersReducedMotion || window.matchMedia?.('(pointer: coarse)').matches) return;
 
     map.addEventListener('pointermove', event => {
         const rect = map.getBoundingClientRect();
@@ -687,10 +718,14 @@ function initKnowledgeMap() {
         const y = (event.clientY - rect.top) / rect.height - 0.5;
         map.style.setProperty('--tilt-x', `${x * 3.6}deg`);
         map.style.setProperty('--tilt-y', `${y * -3.1}deg`);
+        map.style.setProperty('--pointer-x', `${(x + 0.5) * 100}%`);
+        map.style.setProperty('--pointer-y', `${(y + 0.5) * 100}%`);
     });
     map.addEventListener('pointerleave', () => {
         map.style.setProperty('--tilt-x', '0deg');
         map.style.setProperty('--tilt-y', '0deg');
+        map.style.setProperty('--pointer-x', '50%');
+        map.style.setProperty('--pointer-y', '50%');
     });
 }
 
