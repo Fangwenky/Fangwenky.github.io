@@ -57,4 +57,6 @@ test('uploads, activates, and verifies both public targets', async t => {
     assert(calls.some(call => call[0] === 'rsync'));
     assert(calls.some(call => call[0] === 'ssh' && call.at(-1).includes('chmod 0755')));
     assert(calls.some(call => call[0] === 'ssh' && call.at(-1).includes('deploy-manifest.json')));
+    assert(calls.some(call => call[0] === 'ssh' && call.at(-1).includes('SERVED_TREE_HASH')));
+    assert(calls.some(call => call[0] === 'ssh' && call.at(-1).includes('sleep 1')));
 });
