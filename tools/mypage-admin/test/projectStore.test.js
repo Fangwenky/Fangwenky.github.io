@@ -84,7 +84,7 @@ test('validates required fields and lists public images', async t => {
     await fs.writeFile(path.join(imageRoot, 'notes.txt'), 'txt');
 
     await assert.rejects(saveProject({ ...project('bad-project'), title: '' }, { dataRoot }), /title/);
-    await assert.rejects(saveProject({ ...project('bad-cover'), image: '../private.png' }, { dataRoot }), /public images directory/);
+    await assert.rejects(saveProject({ ...project('bad-cover'), image: '../private.png' }, { dataRoot }), /supported public image/);
     await assert.rejects(saveProject({ ...project('bad-link'), link: 'javascript:alert(1)' }, { dataRoot }), /HTTP\(S\)/);
     const images = await listProjectImages({ mypageRoot: root });
     assert.deepEqual(images.map(image => image.path), ['images/cover.png']);

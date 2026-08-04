@@ -1,11 +1,13 @@
 import crypto from 'node:crypto';
 import fs from 'node:fs/promises';
+import os from 'node:os';
 import path from 'node:path';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { deployConfig, mypageRoot, repoRoot } from './config.js';
 
 const execFileAsync = promisify(execFile);
+const treeHashCommand = `find . -type f ! -name deploy-manifest.json ! -name .DS_Store -print0 | sort -z | xargs -0 sha256sum | sed 's#  \\./#  #' | sha256sum | awk '{print $1}'`;
 
 function shellQuote(value) {
     return `'${String(value).replaceAll("'", "'\\''")}'`;
@@ -48,6 +50,29 @@ async function createDeploymentManifest(root, sha) {
     return { version: 1, sha, treeHash, files };
 }
 
+async function createGitSnapshot(sha, options = {}) {
+    const run = options.run || ((command, args) => execFileAsync(command, args, {
+        cwd: options.repoRoot || repoRoot,
+        maxBuffer: 20 * 1024 * 1024
+    }));
+    const tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'mypage-deploy-'));
+    const archivePath = path.join(tempRoot, 'mypage.tar');
+    const snapshotRoot = path.join(tempRoot, 'site');
+    try {
+        await fs.mkdir(snapshotRoot);
+        await run('git', ['archive', '--format=tar', '--output', archivePath, sha, 'mypage']);
+        await run('tar', ['-xf', archivePath, '-C', snapshotRoot, '--strip-components=1']);
+        await fs.rm(archivePath, { force: true });
+        return {
+            root: snapshotRoot,
+            cleanup: () => fs.rm(tempRoot, { recursive: true, force: true })
+        };
+    } catch (error) {
+        await fs.rm(tempRoot, { recursive: true, force: true });
+        throw error;
+    }
+}
+
 function publicFileUrl(baseUrl, filePath, sha) {
     const encodedPath = filePath.split('/').map(part => encodeURIComponent(part)).join('/');
     return `${baseUrl.replace(/\/$/, '')}/${encodedPath}?commit=${encodeURIComponent(sha)}`;
@@ -80,9 +105,28 @@ export function createDeployService(options = {}) {
     const sleep = options.sleep || delay;
     const verificationTimeoutMs = options.verificationTimeoutMs || 180_000;
     const verificationIntervalMs = options.verificationIntervalMs || 5_000;
+    const deploymentLockWaitSeconds = options.deploymentLockWaitSeconds || 360;
+    const deploymentLockStaleSeconds = options.deploymentLockStaleSeconds || 900;
+
+    async function createCommitSnapshot(sha) {
+        if (options.snapshotFactory) return options.snapshotFactory(sha);
+        return createGitSnapshot(sha, { run });
+    }
 
     async function remote(script) {
         return run('ssh', ['-o', 'BatchMode=yes', config.sshHost, script]);
+    }
+
+    async function acquireDeploymentLock(token) {
+        const base = config.deployRoot;
+        const script = `set -eu; base=${shellQuote(base)}; token=${shellQuote(token)}; wait_limit=${shellQuote(deploymentLockWaitSeconds)}; stale_after=${shellQuote(deploymentLockStaleSeconds)}; lock="$base/.deploy-lock"; mkdir -p "$base"; i=0; while ! mkdir "$lock" 2>/dev/null; do now=$(date +%s); updated=$(stat -c %Y "$lock" 2>/dev/null || printf 0); if [ "$updated" -gt 0 ] && [ $((now - updated)) -gt "$stale_after" ]; then stale="$base/.deploy-lock.stale.$token"; if mv "$lock" "$stale" 2>/dev/null; then rm -f "$stale/owner"; rmdir "$stale" 2>/dev/null || true; continue; fi; fi; if [ "$i" -ge "$wait_limit" ]; then owner=$(cat "$lock/owner" 2>/dev/null || printf unknown); printf 'VPS_DEPLOY_LOCK_TIMEOUT owner=%s\n' "$owner" >&2; exit 1; fi; i=$((i + 1)); sleep 1; done; printf '%s\n' "$token" > "$lock/owner"; printf 'VPS_DEPLOY_LOCK=%s\n' "$token"`;
+        await remote(script);
+    }
+
+    async function releaseDeploymentLock(token) {
+        const base = config.deployRoot;
+        const script = `set -eu; base=${shellQuote(base)}; token=${shellQuote(token)}; lock="$base/.deploy-lock"; if [ -f "$lock/owner" ] && [ "$(cat "$lock/owner")" = "$token" ]; then rm -f "$lock/owner"; rmdir "$lock"; fi`;
+        await remote(script);
     }
 
     async function fetchHash(url) {
@@ -178,22 +222,42 @@ export function createDeployService(options = {}) {
         return { oldTarget, releasePath };
     }
 
-    async function rollback(oldTarget) {
+    async function rollback(oldTarget, expectedCurrent = '') {
         if (!oldTarget) return;
         const base = config.deployRoot;
-        await remote(`set -eu; base=${shellQuote(base)}; old=${shellQuote(oldTarget)}; test -d "$old"; ln -sfn "$old" "$base/current.rollback"; mv -Tf "$base/current.rollback" "$base/current"`);
+        await remote(`set -eu; base=${shellQuote(base)}; old=${shellQuote(oldTarget)}; expected=${shellQuote(expectedCurrent)}; test -d "$old"; current=$(readlink -f "$base/current" || true); if [ -n "$expected" ] && [ "$current" != "$expected" ]; then printf 'ROLLBACK_SKIPPED_CURRENT=%s\n' "$current"; exit 0; fi; ln -sfn "$old" "$base/current.rollback"; mv -Tf "$base/current.rollback" "$base/current"`);
     }
 
-    async function deployVps(sha, manifest, onStep = () => {}) {
-        const releaseName = `${timestamp()}-${sha.slice(0, 8)}`;
+    async function remoteTreeHash(releasePath) {
+        const { stdout } = await remote(`set -eu; release=${shellQuote(releasePath)}; test -d "$release"; actual=$(cd "$release" && ${treeHashCommand}); printf 'REMOTE_TREE_HASH=%s\n' "$actual"`);
+        return stdout.split('\n').find(line => line.startsWith('REMOTE_TREE_HASH='))?.slice(17) || '';
+    }
+
+    async function syncRelease(uploadRoot, releasePath, checksum = false) {
+        const args = ['-rlptz', '--delete', '--exclude', '.DS_Store'];
+        if (checksum) args.push('--checksum');
+        args.push(
+            `${uploadRoot.replace(/\/$/, '')}/`,
+            `${config.sshHost}:${releasePath}/`
+        );
+        await run('rsync', args);
+    }
+
+    async function deployVps(sha, manifest, onStep = () => {}, uploadRoot = sourceRoot) {
+        const releaseName = `${timestamp()}-${sha.slice(0, 8)}-${crypto.randomBytes(4).toString('hex')}`;
         const releasePath = `${config.deployRoot}/releases/${releaseName}`;
         onStep('vps-upload', 'running', `Uploading ${releaseName}`);
-        await remote(`mkdir -p ${shellQuote(releasePath)}`);
-        await run('rsync', [
-            '-rlptz', '--delete', '--exclude', '.DS_Store',
-            `${sourceRoot.replace(/\/$/, '')}/`,
-            `${config.sshHost}:${releasePath}/`
-        ]);
+        await remote(`set -eu; releases=${shellQuote(`${config.deployRoot}/releases`)}; release=${shellQuote(releasePath)}; mkdir -p "$releases"; mkdir "$release"`);
+        await syncRelease(uploadRoot, releasePath);
+        let actualTreeHash = await remoteTreeHash(releasePath);
+        if (actualTreeHash !== manifest.treeHash) {
+            onStep('vps-upload', 'running', `Hash mismatch; retrying ${releaseName} with checksum verification`);
+            await syncRelease(uploadRoot, releasePath, true);
+            actualTreeHash = await remoteTreeHash(releasePath);
+        }
+        if (actualTreeHash !== manifest.treeHash) {
+            throw new Error(`Uploaded VPS release hash mismatch: expected ${manifest.treeHash}, got ${actualTreeHash || 'empty hash'}.`);
+        }
         await remote(`printf %s ${shellQuote(`${JSON.stringify(manifest, null, 2)}\n`)} > ${shellQuote(`${releasePath}/deploy-manifest.json`)}`);
         onStep('vps-upload', 'success', releasePath);
         onStep('vps-activate', 'running', 'Verifying and switching current release');
@@ -203,28 +267,51 @@ export function createDeployService(options = {}) {
     }
 
     async function deploy(sha, onStep = () => {}) {
-        const manifest = await createDeploymentManifest(sourceRoot, sha);
-        const activation = await deployVps(sha, manifest, onStep);
-
+        const snapshot = await createCommitSnapshot(sha);
         try {
+            const manifest = await createDeploymentManifest(snapshot.root, sha);
+            const lockToken = `${sha.slice(0, 12)}-${crypto.randomUUID()}`;
+            let lockHeld = false;
+            let deploymentError = null;
+            let activation;
+            let vps;
+            try {
+                onStep('vps-upload', 'running', 'Waiting for the VPS deployment lock');
+                await acquireDeploymentLock(lockToken);
+                lockHeld = true;
+                activation = await deployVps(sha, manifest, onStep, snapshot.root);
+                onStep('vps-verify', 'running', 'Checking public VPS URL');
+                try {
+                    vps = await waitForManifest(config.vpsUrl, manifest, 45_000);
+                    onStep('vps-verify', 'success', vps.url);
+                } catch (error) {
+                    await rollback(activation.oldTarget, activation.releasePath);
+                    onStep('vps-verify', 'error', `${error.message} Previous release restored.`);
+                    throw error;
+                }
+            } catch (error) {
+                deploymentError = error;
+                throw error;
+            } finally {
+                if (lockHeld) {
+                    try {
+                        await releaseDeploymentLock(lockToken);
+                    } catch (lockError) {
+                        if (!deploymentError) throw lockError;
+                    }
+                }
+            }
+
             onStep('github-verify', 'running', 'Waiting for GitHub Pages');
             const github = await waitForFileSet(config.githubPagesUrl, githubPagesManifest(manifest));
             onStep('github-verify', 'success', github.url);
-
-            onStep('vps-verify', 'running', 'Checking public VPS URL');
-            const vps = await waitForManifest(config.vpsUrl, manifest, 45_000);
-            onStep('vps-verify', 'success', vps.url);
             return { sha, release: activation.releasePath, github, vps };
-        } catch (error) {
-            if (String(error.message).includes(config.vpsUrl)) {
-                await rollback(activation.oldTarget);
-                onStep('vps-verify', 'error', `${error.message} Previous release restored.`);
-            }
-            throw error;
+        } finally {
+            await snapshot.cleanup();
         }
     }
 
     return { config, deploy, deployVps, waitForHash, waitForFileSet, waitForManifest, rollback };
 }
 
-export { createDeploymentManifest, shellQuote, sha256 };
+export { createDeploymentManifest, createGitSnapshot, shellQuote, sha256 };

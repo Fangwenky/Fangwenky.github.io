@@ -241,6 +241,7 @@ input:invalid:not(:placeholder-shown), textarea:invalid:not(:placeholder-shown) 
 .article-item i { flex: none; padding: 2px 5px; border-radius: 4px; background: var(--warning-soft); color: var(--warning); font-size: 0.62rem; font-style: normal; }
 .article-item > span:not(.article-item-top), .article-item small { display: block; margin-top: 4px; color: var(--ink-faint); font-size: 0.7rem; font-weight: 500; }
 .sidebar-refresh { width: 100%; margin-top: 16px; }
+.import-folder-button { min-height: 34px; padding: 6px 10px; border-style: dashed; color: var(--primary-strong); font-size: 0.72rem; }
 .quiet-button { border-style: dashed; background: transparent; color: var(--ink-soft); }
 .empty-state { padding: 18px; border: 1px dashed var(--line-strong); border-radius: var(--radius-sm); color: var(--ink-faint); text-align: center; }
 

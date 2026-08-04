@@ -9,6 +9,14 @@ import { articlesRoot, mypageRoot } from '../src/config.js';
 const issues = [];
 const ids = new Set();
 const projectIds = new Set();
+const publicFilePath = value => {
+    const decoded = decodeURIComponent(String(value || ''));
+    const resolved = path.resolve(mypageRoot, decoded);
+    if (resolved !== mypageRoot && !resolved.startsWith(`${mypageRoot}${path.sep}`)) {
+        throw new Error('Path escapes the public site root.');
+    }
+    return { decoded, resolved };
+};
 const dirs = (await fs.readdir(articlesRoot, { withFileTypes: true }))
     .filter(entry => entry.isDirectory())
     .map(entry => entry.name)
@@ -18,7 +26,7 @@ for (const article of articles) {
     if (ids.has(article.id)) issues.push(`Duplicate generated article id: ${article.id}`);
     ids.add(article.id);
     try {
-        await fs.access(path.join(mypageRoot, article.image));
+        await fs.access(publicFilePath(article.image).resolved);
     } catch {
         issues.push(`Missing cover for ${article.id}: ${article.image}`);
     }
@@ -78,12 +86,23 @@ for (const project of projects) {
     if (!['html', 'markdown'].includes(project.contentType)) {
         issues.push(`Invalid project content type for ${project.id}: ${project.contentType}`);
     }
-    if (!/^images\/[^/]+\.(png|jpe?g|webp|gif|svg)$/i.test(project.image || '')) {
+    let projectImage;
+    try {
+        projectImage = publicFilePath(project.image);
+    } catch {
+        projectImage = { decoded: '', resolved: '' };
+    }
+    const sharedImage = /^images\/[^/]+\.(png|jpe?g|webp|gif|svg)$/i.test(projectImage.decoded);
+    const privatePrefix = `content/projects/${project.id}/assets/`;
+    const privateRelative = projectImage.decoded.startsWith(privatePrefix) ? projectImage.decoded.slice(privatePrefix.length) : '';
+    const privateImage = /\.(png|jpe?g|webp|gif|svg)$/i.test(privateRelative)
+        && privateRelative.split('/').every(segment => segment && segment !== '.' && segment !== '..');
+    if (!sharedImage && !privateImage) {
         issues.push(`Invalid project image path for ${project.id}: ${project.image}`);
     }
 
     try {
-        await fs.access(path.join(mypageRoot, project.image));
+        await fs.access(projectImage.resolved);
     } catch {
         issues.push(`Missing project image for ${project.id}: ${project.image}`);
     }

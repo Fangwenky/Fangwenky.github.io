@@ -1,4 +1,4 @@
-import { api, uploadArticleImage, uploadProjectImage } from './api.js';
+import { api, importContentFolder, uploadArticleImage, uploadProjectImage } from './api.js';
 import { clearRecovery, listRecoveries, loadRecovery, saveRecovery } from './drafts.js';
 import { applyMarkdownCommand, insertAtCursor, previewDocument, projectPreviewDocument } from './editor.js';
 import { PublishingController } from './publish.js';
@@ -531,6 +531,36 @@ async function saveCurrent() {
     return state.mode === 'project' ? saveProject() : saveArticle();
 }
 
+async function handleFolderImport(fileList) {
+    const files = [...fileList];
+    if (!files.length) return;
+    if (!files.every(file => file.webkitRelativePath)) {
+        throw new Error('浏览器没有提供文件夹结构，请使用“导入”按钮重新选择整个文件夹。');
+    }
+    const mode = state.mode;
+    const kind = mode === 'project' ? '项目' : '草稿文章';
+    if (!window.confirm(`将这个文件夹创建为新的${kind}并写入本地源码，是否继续？`)) return;
+
+    const button = $('#importFolder');
+    button.disabled = true;
+    button.textContent = '导入中…';
+    message(`正在读取文件夹并创建${kind}…`);
+    try {
+        const result = await importContentFolder(mode, files);
+        state.dirty = false;
+        if (state.mode !== mode) await switchContentMode(mode);
+        await Promise.all([mode === 'project' ? loadProjects() : loadArticles(), refreshWorkspace()]);
+        if (mode === 'project') await loadProject(result.id);
+        else await loadArticle(result.id);
+        const detail = `${result.assetCount} 个图片或附件`;
+        message(`已导入${kind}：${result.title} · ${detail}`);
+        notify(result.warnings?.[0] || `文件夹已导入，共 ${detail}`, result.warnings?.length ? 'warning' : 'success');
+    } finally {
+        button.disabled = false;
+        button.textContent = '导入';
+    }
+}
+
 function persistRecovery() {
     if (!state.current || !state.dirty || !state.recoveryId) return;
     saveRecovery(state.recoveryId, { payload: currentPayload(), sourceUpdatedAt: state.sourceUpdatedAt }, state.mode === 'project' ? projectRecoveryNamespace : '');
@@ -702,6 +732,8 @@ function updateModeUi() {
     $('#refreshArticles').textContent = projectMode ? '刷新项目库' : '刷新文章库';
     $('#newArticle').setAttribute('aria-label', projectMode ? '新建项目' : '新建文章');
     $('#newArticle').setAttribute('title', projectMode ? '新建项目' : '新建文章');
+    $('#importFolder').setAttribute('aria-label', projectMode ? '导入项目文件夹' : '导入文章文件夹');
+    $('#importFolder').setAttribute('title', projectMode ? '导入项目文件夹' : '导入文章文件夹');
     $('#metaTitle').textContent = projectMode ? '项目信息' : '文章信息';
     $('#metaSubtitle').textContent = projectMode ? '标题、简介、封面、链接与详情' : '标题、分类、封面与发布状态';
     $('#contentIdLabel').textContent = projectMode ? '项目 ID' : '文章 ID';
@@ -733,7 +765,7 @@ function openDeleteDialog() {
     const projectMode = state.mode === 'project';
     $('#deleteDialog h2').textContent = projectMode ? '删除这个项目？' : '删除这篇文章？';
     $('#deleteMessage').textContent = projectMode
-        ? '项目记录会从 projectsData.js 移除。共享图片不会自动删除，下一次发布后网站同步移除这个项目。'
+        ? '项目记录和专属导入附件会一起删除；共享图片不会自动删除。下一次发布后网站同步移除这个项目。'
         : '文章源码和专属图片目录都会删除。已发布文章会在下一次发布时从网站移除。';
     $('#deleteDialog').showModal();
 }
@@ -816,6 +848,18 @@ $('#newArticle').addEventListener('click', async () => {
     if (!(await confirmDiscardCurrent())) return;
     if (state.mode === 'project') newProject();
     else newArticle();
+});
+$('#importFolder').addEventListener('click', () => {
+    if (state.dirty) {
+        persistRecovery();
+        if (!window.confirm('当前修改尚未写入源码，已保存为浏览器恢复稿。继续选择导入文件夹？')) return;
+    }
+    $('#folderUpload').click();
+});
+$('#folderUpload').addEventListener('change', event => {
+    handleFolderImport(event.target.files)
+        .catch(error => notify(error.message, 'error'))
+        .finally(() => { event.target.value = ''; });
 });
 $('#collapseSidebar').addEventListener('click', () => setDesktopSidebar(true));
 $('#sidebarToggle').addEventListener('click', () => {

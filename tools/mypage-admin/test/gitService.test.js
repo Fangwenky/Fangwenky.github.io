@@ -58,6 +58,8 @@ test('publishes public article changes but excludes pure drafts and unrelated fi
     await fs.writeFile(path.join(root, 'mypage/data/articlesData.js'), 'new\n');
     await fs.writeFile(path.join(root, 'mypage/data/projectsData.js'), 'project change\n');
     await fs.writeFile(path.join(root, 'mypage/images/new-project.png'), 'image');
+    await fs.mkdir(path.join(root, 'mypage/content/projects/new-project/assets'), { recursive: true });
+    await fs.writeFile(path.join(root, 'mypage/content/projects/new-project/assets/guide.pdf'), 'attachment');
 
     const service = createGitService({ repoRoot: root });
     const status = await service.workspaceStatus();
@@ -65,6 +67,7 @@ test('publishes public article changes but excludes pure drafts and unrelated fi
     assert(status.publishableFiles.some(file => file.file.includes('public-note')));
     assert(status.publishableFiles.some(file => file.file === 'mypage/data/projectsData.js'));
     assert(status.publishableFiles.some(file => file.file === 'mypage/images/new-project.png'));
+    assert(status.publishableFiles.some(file => file.file === 'mypage/content/projects/new-project/assets/guide.pdf'));
     assert(status.draftFiles.some(file => file.file.includes('existing-draft')));
     assert(!status.publishableFiles.some(file => file.file.includes('.claude')));
 

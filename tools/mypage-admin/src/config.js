@@ -27,6 +27,7 @@ export const managedPaths = [
     'mypage/data/articlesData.js',
     'mypage/data/i18nData.js',
     'mypage/data/projectsData.js',
+    'mypage/content/projects',
     'mypage/images'
 ];
 
@@ -37,5 +38,6 @@ export const generatedPaths = [
 
 export const projectPaths = [
     'mypage/data/projectsData.js',
+    'mypage/content/projects',
     'mypage/images'
 ];

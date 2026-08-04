@@ -15,6 +15,13 @@ export function imagesRoot(root = mypageRoot) {
     return path.join(root, 'images');
 }
 
+export function projectAssetsDir(id, root = mypageRoot) {
+    if (!/^[a-zA-Z0-9_-]+$/.test(id)) {
+        throw new Error('Project id can only contain letters, numbers, hyphen, and underscore.');
+    }
+    return path.join(root, 'content', 'projects', id, 'assets');
+}
+
 export function normalizeProjectId(value = '') {
     return slugify(value);
 }
@@ -58,9 +65,21 @@ function validateProject(project) {
     if (!/^[a-zA-Z0-9_-]+$/.test(project.id)) {
         throw new Error('Project id can only contain letters, numbers, hyphen, and underscore.');
     }
-    const imageExtension = path.extname(project.image).toLowerCase();
-    if (!/^images\/[^/]+$/.test(project.image) || !projectImageExtensions.has(imageExtension)) {
-        throw new Error('Project image must be a supported file inside the public images directory.');
+    let decodedImage = project.image;
+    try {
+        decodedImage = decodeURIComponent(project.image);
+    } catch (error) {
+        throw new Error('Project image path contains invalid URL encoding.');
+    }
+    const imageExtension = path.extname(decodedImage).toLowerCase();
+    const sharedImage = /^images\/[^/]+$/.test(decodedImage);
+    const importedPrefix = `content/projects/${project.id}/assets/`;
+    const importedRelative = decodedImage.startsWith(importedPrefix) ? decodedImage.slice(importedPrefix.length) : '';
+    const importedImage = Boolean(importedRelative)
+        && !importedRelative.includes('\\')
+        && importedRelative.split('/').every(segment => segment && segment !== '.' && segment !== '..');
+    if ((!sharedImage && !importedImage) || !projectImageExtensions.has(imageExtension)) {
+        throw new Error('Project image must be a supported public image for this project.');
     }
     if (project.link && project.link !== '#' && !project.link.startsWith('/') && !project.link.startsWith('./')) {
         try {
@@ -140,6 +159,7 @@ export async function deleteProject(id, options = {}) {
     const nextProjects = projects.filter(project => project.id !== id);
     if (nextProjects.length === projects.length) throw new Error(`Project ${id} was not found.`);
     await writeProjects(nextProjects, options);
+    await fs.rm(projectAssetsDir(id, options.mypageRoot || mypageRoot), { recursive: true, force: true });
 }
 
 export async function listProjectImages(options = {}) {

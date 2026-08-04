@@ -36,8 +36,8 @@ export function createPublishService(options = {}) {
             { id: 'git-push', label: '推送 GitHub', state: 'pending' },
             { id: 'vps-upload', label: '上传 VPS release', state: 'pending' },
             { id: 'vps-activate', label: '切换 VPS', state: 'pending' },
-            { id: 'github-verify', label: '验证 GitHub Pages', state: 'pending' },
-            { id: 'vps-verify', label: '验证 VPS', state: 'pending' }
+            { id: 'vps-verify', label: '验证 VPS', state: 'pending' },
+            { id: 'github-verify', label: '验证 GitHub Pages', state: 'pending' }
         ];
     }
 

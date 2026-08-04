@@ -23,6 +23,7 @@ import {
 } from './contentStore.js';
 import { createDeployService } from './deployService.js';
 import { createGitService } from './gitService.js';
+import { importContentFolder } from './folderImportService.js';
 import {
     deleteProject,
     listProjectImages,
@@ -37,6 +38,10 @@ import { generateStaticData } from './staticGenerator.js';
 
 const app = express();
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 8 * 1024 * 1024 } });
+const folderUpload = multer({
+    storage: multer.memoryStorage(),
+    limits: { fileSize: 25 * 1024 * 1024, files: 201, fields: 4 }
+});
 const allowedImageTypes = new Map([
     ['image/png', ['.png']],
     ['image/jpeg', ['.jpg', '.jpeg']],
@@ -121,6 +126,20 @@ app.get('/api/session', requireToken, asyncHandler(async (req, res) => {
 
 app.get('/api/workspace/status', requireToken, asyncHandler(async (req, res) => {
     res.json(await gitService.workspaceStatus({ fetch: req.query.fetch === '1' }));
+}));
+
+app.post('/api/import/folder', requireToken, folderUpload.array('files', 201), asyncHandler(async (req, res) => {
+    let relativePaths;
+    try {
+        relativePaths = JSON.parse(String(req.body.relativePaths || '[]'));
+    } catch (error) {
+        throw new Error('The folder path manifest is invalid.');
+    }
+    if (!Array.isArray(relativePaths) || relativePaths.length !== req.files.length) {
+        throw new Error('The folder path manifest does not match the uploaded files.');
+    }
+    const files = req.files.map((file, index) => ({ ...file, relativePath: relativePaths[index] }));
+    res.json(await importContentFolder(String(req.body.mode || ''), files));
 }));
 
 app.get('/api/articles', requireToken, asyncHandler(async (req, res) => {

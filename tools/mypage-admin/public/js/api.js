@@ -26,4 +26,16 @@ export async function uploadProjectImage(file) {
     return api('/api/projects/upload', { method: 'POST', body: form });
 }
 
+export async function importContentFolder(mode, files) {
+    const form = new FormData();
+    const relativePaths = [];
+    for (const file of files) {
+        form.append('files', file, file.name);
+        relativePaths.push(file.webkitRelativePath || file.name);
+    }
+    form.append('mode', mode);
+    form.append('relativePaths', JSON.stringify(relativePaths));
+    return api('/api/import/folder', { method: 'POST', body: form });
+}
+
 export { token };

@@ -53,6 +53,24 @@ featured: false
 updatedAt: '2026-05-25T00:00:00.000Z'
 ```
 
+## 从文件夹导入
+
+在文章库或项目库顶部点击“导入”，选择整个文件夹。文件夹格式为：
+
+```text
+任意文件夹名/
+  任意名称.md
+  图片和附件/
+    cover.png
+    reference.pdf
+```
+
+顶层必须只有一个 Markdown 文件，其他文件必须放进“图片和附件”。Markdown 中继续使用相对路径，例如 `![封面](<图片和附件/cover.png>)` 或 `[下载附件](图片和附件/reference.pdf)`；后台会复制附件并自动改写为网站路径。
+
+导入文章会创建为本地草稿，导入项目会写入本地项目源码，两者都不会自动发布。Markdown 可用 YAML Frontmatter 提供 `id`、`title`、`excerpt` 或 `description`、`date`、`tags`、`category`、`cover` 或 `image`、`link` 等字段；缺少的字段会从文件名、一级标题和首段推断。若没有图片，会暂时使用头像作为封面，导入后可在编辑器中更换。
+
+附件支持 PNG、JPG、WebP、GIF、PDF、Office 文档、压缩包、常见音视频、TXT 和 CSV，单文件不超过 25 MB，整个文件夹不超过 100 MB。为避免同源脚本风险，不接受 HTML、JavaScript 和 SVG 附件。
+
 ## 常用命令
 
 ```bash
@@ -66,6 +84,8 @@ npm run dev       # 启动本地后台
 后台里的“保存到源码”只写 Markdown 文件。浏览器会每 2 秒保留未保存恢复稿，但不会自动改源码。
 
 “准备发布”会先生成静态数据、运行内容审计并展示准确的 Git 差异；确认后才提交并推送 `origin/main`，随后部署 VPS。纯草稿只保留在本机，不会被提交到公开 GitHub 仓库。
+
+VPS 部署始终从刚刚推送的 Git 提交创建只读快照，不直接上传仍可能变化的工作区，因此不会夹带本地草稿或未跟踪文件。上传使用跨后台进程的 VPS 部署锁和唯一 release 名；远端树哈希不一致时会自动使用 checksum 重传一次，只有哈希、权限和公网 manifest 全部验证通过后才完成切换。部署进程异常退出后，超过 15 分钟的锁会被下一次任务安全接管。
 
 发布前要求当前分支为 `main`、本地与 `origin/main` 同步、没有旧的待推送提交且暂存区为空。无关的未暂存或未跟踪文件不会阻止文章发布，也不会被后台提交。
 
@@ -84,4 +104,4 @@ MYPAGE_GITHUB_PAGES_URL=https://fangwenky.github.io/mypage
 - 文章 ID 统一使用 `kebab-case`，目录名、Frontmatter `id`、生成数据和英文翻译 key 必须一致。
 - 英文文件可以只包含标题、摘要、标签等元信息；后台会区分“EN元信息”和“EN正文”。
 - 上传图片仅允许 PNG、JPG、WebP、GIF。SVG 作为全站资源可以手动维护，但不通过后台上传。
-- 发布文章只会 stage `mypage/content/articles` 和生成后的 `mypage/data/articlesData.js`、`mypage/data/i18nData.js`，后台工具本身的改动需要手动提交。
+- 发布内容只会 stage 文章源码、项目数据、项目专属附件、共享图片和生成后的静态数据，后台工具本身的改动需要手动提交。
