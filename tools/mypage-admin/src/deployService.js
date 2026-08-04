@@ -55,8 +55,7 @@ function publicFileUrl(baseUrl, filePath, sha) {
 
 function githubPagesManifest(manifest) {
     const publicExtensions = new Set([
-        '.html', '.css', '.js', '.json', '.png', '.jpg', '.jpeg', '.svg',
-        '.webp', '.gif', '.ico', '.txt', '.woff', '.woff2'
+        '.html', '.css', '.js', '.json', '.txt'
     ]);
     return {
         ...manifest,
