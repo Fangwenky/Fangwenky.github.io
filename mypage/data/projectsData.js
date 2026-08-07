@@ -55,7 +55,7 @@ export const projects = [
         "tags": [
             "导入"
         ],
-        "link": "",
+        "link": "https://dy.fangwenky.dpdns.org/",
         "category": "项目",
         "date": "2026-08-04",
         "contentType": "markdown",
