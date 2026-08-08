@@ -107,10 +107,32 @@ export function createDeployService(options = {}) {
     const verificationIntervalMs = options.verificationIntervalMs || 5_000;
     const deploymentLockWaitSeconds = options.deploymentLockWaitSeconds || 360;
     const deploymentLockStaleSeconds = options.deploymentLockStaleSeconds || 900;
+    const uploadHashAttempts = options.uploadHashAttempts || 30;
+    const uploadHashIntervalMs = options.uploadHashIntervalMs || 1_000;
 
     async function createCommitSnapshot(sha) {
         if (options.snapshotFactory) return options.snapshotFactory(sha);
         return createGitSnapshot(sha, { run });
+    }
+
+    async function createTransferArchive(snapshotRoot) {
+        if (options.archiveFactory) return options.archiveFactory(snapshotRoot);
+        const tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'mypage-upload-'));
+        const archivePath = path.join(tempRoot, 'mypage.tar.gz');
+        try {
+            await run('tar', ['--no-xattrs', '-czf', archivePath, '-C', snapshotRoot, '.'], {
+                // macOS tar otherwise adds AppleDouble `._*` files for Finder metadata.
+                env: { ...process.env, COPYFILE_DISABLE: '1' }
+            });
+            return {
+                path: archivePath,
+                sha256: await sha256(archivePath),
+                cleanup: () => fs.rm(tempRoot, { recursive: true, force: true })
+            };
+        } catch (error) {
+            await fs.rm(tempRoot, { recursive: true, force: true });
+            throw error;
+        }
     }
 
     async function remote(script) {
@@ -233,33 +255,113 @@ export function createDeployService(options = {}) {
         return stdout.split('\n').find(line => line.startsWith('REMOTE_TREE_HASH='))?.slice(17) || '';
     }
 
-    async function syncRelease(uploadRoot, releasePath, checksum = false) {
-        const args = ['-rlptz', '--delete', '--exclude', '.DS_Store'];
-        if (checksum) args.push('--checksum');
-        args.push(
-            `${uploadRoot.replace(/\/$/, '')}/`,
-            `${config.sshHost}:${releasePath}/`
-        );
-        await run('rsync', args);
+    async function waitForRemoteTreeHash(releasePath, expectedTreeHash) {
+        let actualTreeHash = '';
+        for (let attempt = 1; attempt <= uploadHashAttempts; attempt += 1) {
+            actualTreeHash = await remoteTreeHash(releasePath);
+            if (actualTreeHash === expectedTreeHash) return { actualTreeHash, attempts: attempt };
+            if (attempt < uploadHashAttempts) await sleep(uploadHashIntervalMs);
+        }
+        return { actualTreeHash, attempts: uploadHashAttempts };
+    }
+
+    async function remoteArchiveHash(archivePath) {
+        const { stdout } = await remote(`set -eu; archive=${shellQuote(archivePath)}; test -f "$archive"; actual=$(sha256sum "$archive" | awk '{print $1}'); printf 'REMOTE_ARCHIVE_HASH=%s\n' "$actual"`);
+        return stdout.split('\n').find(line => line.startsWith('REMOTE_ARCHIVE_HASH='))?.slice(20) || '';
+    }
+
+    async function uploadArchive(localPath, remotePath) {
+        await run('scp', [
+            '-q', '-o', 'BatchMode=yes',
+            localPath,
+            `${config.sshHost}:${remotePath}`
+        ]);
+    }
+
+    async function extractArchive(archivePath, releasePath, reset = false) {
+        const resetCommand = reset
+            ? 'test -d "$release"; find "$release" -mindepth 1 -delete'
+            : 'test ! -e "$release"; mkdir "$release"';
+        await remote(`set -eu; archive=${shellQuote(archivePath)}; release=${shellQuote(releasePath)}; test -f "$archive"; ${resetCommand}; tar -xzf "$archive" -C "$release" --no-same-owner; find "$release" -type f -name '._*' -delete; find "$release" -type f -name .DS_Store -delete`);
+    }
+
+    async function remoteFileHashes(releasePath) {
+        const { stdout } = await remote(`set -eu; release=${shellQuote(releasePath)}; cd "$release"; find . -type f ! -name deploy-manifest.json ! -name .DS_Store -print0 | sort -z | xargs -0 sha256sum`);
+        const hashes = new Map();
+        for (const line of stdout.split('\n')) {
+            const match = line.match(/^([a-f0-9]{64})  \.\/(.*)$/);
+            if (match) hashes.set(match[2], match[1]);
+        }
+        return hashes;
+    }
+
+    function mismatchDetails(manifest, actualHashes) {
+        const expectedHashes = new Map(manifest.files.map(file => [file.path, file.sha256]));
+        const missing = [...expectedHashes.keys()].filter(file => !actualHashes.has(file));
+        const unexpected = [...actualHashes.keys()].filter(file => !expectedHashes.has(file));
+        const changed = [...expectedHashes.keys()].filter(file => actualHashes.has(file) && actualHashes.get(file) !== expectedHashes.get(file));
+        const format = (label, files) => files.length ? `${label}=${files.slice(0, 5).join(',')}${files.length > 5 ? ` (+${files.length - 5} more)` : ''}` : '';
+        return [format('missing', missing), format('unexpected', unexpected), format('changed', changed)].filter(Boolean).join('; ') || 'no per-file difference detected';
+    }
+
+    async function writeRemoteManifest(releasePath, manifest) {
+        await remote(`printf %s ${shellQuote(`${JSON.stringify(manifest, null, 2)}\n`)} > ${shellQuote(`${releasePath}/deploy-manifest.json`)}`);
     }
 
     async function deployVps(sha, manifest, onStep = () => {}, uploadRoot = sourceRoot) {
         const releaseName = `${timestamp()}-${sha.slice(0, 8)}-${crypto.randomBytes(4).toString('hex')}`;
         const releasePath = `${config.deployRoot}/releases/${releaseName}`;
-        onStep('vps-upload', 'running', `Uploading ${releaseName}`);
-        await remote(`set -eu; releases=${shellQuote(`${config.deployRoot}/releases`)}; release=${shellQuote(releasePath)}; mkdir -p "$releases"; mkdir "$release"`);
-        await syncRelease(uploadRoot, releasePath);
-        let actualTreeHash = await remoteTreeHash(releasePath);
-        if (actualTreeHash !== manifest.treeHash) {
-            onStep('vps-upload', 'running', `Hash mismatch; retrying ${releaseName} with checksum verification`);
-            await syncRelease(uploadRoot, releasePath, true);
-            actualTreeHash = await remoteTreeHash(releasePath);
+        const remoteArchivePath = `${config.deployRoot}/uploads/${releaseName}.tar.gz`;
+        const archive = await createTransferArchive(uploadRoot);
+        let remotePrepared = false;
+        let releaseReady = false;
+        let uploadError = null;
+        let verification;
+        try {
+            onStep('vps-upload', 'running', `Uploading immutable package ${releaseName}`);
+            await remote(`set -eu; releases=${shellQuote(`${config.deployRoot}/releases`)}; uploads=${shellQuote(`${config.deployRoot}/uploads`)}; release=${shellQuote(releasePath)}; archive=${shellQuote(remoteArchivePath)}; mkdir -p "$releases" "$uploads"; test ! -e "$release"; test ! -e "$archive"`);
+            remotePrepared = true;
+            await uploadArchive(archive.path, remoteArchivePath);
+            let archiveHash = await remoteArchiveHash(remoteArchivePath);
+            if (archiveHash !== archive.sha256) {
+                onStep('vps-upload', 'running', `Package hash mismatch; retransmitting ${releaseName}`);
+                await uploadArchive(archive.path, remoteArchivePath);
+                archiveHash = await remoteArchiveHash(remoteArchivePath);
+            }
+            if (archiveHash !== archive.sha256) {
+                throw new Error(`Uploaded VPS package hash mismatch: expected ${archive.sha256}, got ${archiveHash || 'empty hash'}.`);
+            }
+
+            await extractArchive(remoteArchivePath, releasePath);
+            verification = await waitForRemoteTreeHash(releasePath, manifest.treeHash);
+            if (verification.actualTreeHash !== manifest.treeHash) {
+                onStep('vps-upload', 'running', `Release tree did not stabilize; extracting ${releaseName} again`);
+                await extractArchive(remoteArchivePath, releasePath, true);
+                verification = await waitForRemoteTreeHash(releasePath, manifest.treeHash);
+            }
+            if (verification.actualTreeHash !== manifest.treeHash) {
+                await writeRemoteManifest(releasePath, manifest);
+                const details = mismatchDetails(manifest, await remoteFileHashes(releasePath));
+                throw new Error(`Extracted VPS release hash mismatch: expected ${manifest.treeHash}, got ${verification.actualTreeHash || 'empty hash'}; ${details}.`);
+            }
+            await writeRemoteManifest(releasePath, manifest);
+            releaseReady = true;
+        } catch (error) {
+            uploadError = error;
+            throw error;
+        } finally {
+            try {
+                if (remotePrepared) {
+                    const discardRelease = releaseReady ? '' : 'rm -rf -- "$release"; ';
+                    await remote(`archive=${shellQuote(remoteArchivePath)}; release=${shellQuote(releasePath)}; rm -f "$archive"; ${discardRelease}`);
+                }
+            } catch (cleanupError) {
+                if (!uploadError) throw cleanupError;
+            } finally {
+                await archive.cleanup();
+            }
         }
-        if (actualTreeHash !== manifest.treeHash) {
-            throw new Error(`Uploaded VPS release hash mismatch: expected ${manifest.treeHash}, got ${actualTreeHash || 'empty hash'}.`);
-        }
-        await remote(`printf %s ${shellQuote(`${JSON.stringify(manifest, null, 2)}\n`)} > ${shellQuote(`${releasePath}/deploy-manifest.json`)}`);
-        onStep('vps-upload', 'success', releasePath);
+        onStep('vps-upload', 'success', `${releasePath} (stable after ${verification.attempts} check${verification.attempts === 1 ? '' : 's'})`);
         onStep('vps-activate', 'running', 'Verifying and switching current release');
         const activation = await activateRelease(releasePath, manifest.treeHash, sha);
         onStep('vps-activate', 'success', releasePath);

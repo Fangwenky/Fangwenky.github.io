@@ -13,7 +13,7 @@ for command_name in node npm git; do
     fi
 done
 
-for command_name in ssh rsync; do
+for command_name in ssh scp tar; do
     if ! command -v "$command_name" >/dev/null 2>&1; then
         echo "Warning: $command_name is unavailable. Editing works, but VPS deployment will be disabled."
     fi
