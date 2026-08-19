@@ -1,6 +1,7 @@
 import { api, importContentFolder, uploadArticleImage, uploadProjectImage } from './api.js';
 import { clearRecovery, listRecoveries, loadRecovery, saveRecovery } from './drafts.js';
 import { applyMarkdownCommand, insertAtCursor, previewDocument, projectPreviewDocument } from './editor.js';
+import { escapeHTML } from './html.js';
 import { PublishingController } from './publish.js';
 
 const $ = selector => document.querySelector(selector);
@@ -249,10 +250,10 @@ function renderList() {
             .filter(project => !query || [project.title, project.description, project.category, ...(project.tags || [])].join(' ').toLowerCase().includes(query));
         list.innerHTML = filteredProjects.map(project => {
             const active = state.originalId === project.id;
-            return `<button type="button" class="article-item ${active ? 'active' : ''}" data-id="${project.id}">
-                <span class="article-item-top"><strong>${project.title}</strong>${active && state.dirty ? '<i>未保存</i>' : ''}</span>
-                <span>${project.date || '无日期'} · ${project.category || '未分类'}</span>
-                <small>${(project.tags || []).join(', ') || '无标签'}</small>
+            return `<button type="button" class="article-item ${active ? 'active' : ''}" data-id="${escapeHTML(project.id)}">
+                <span class="article-item-top"><strong>${escapeHTML(project.title)}</strong>${active && state.dirty ? '<i>未保存</i>' : ''}</span>
+                <span>${escapeHTML(project.date || '无日期')} · ${escapeHTML(project.category || '未分类')}</span>
+                <small>${escapeHTML((project.tags || []).join(', ') || '无标签')}</small>
             </button>`;
         }).join('') || '<p class="empty-state">没有符合条件的项目。</p>';
         list.querySelectorAll('[data-id]').forEach(button => button.addEventListener('click', () => loadProject(button.dataset.id)));
@@ -264,10 +265,10 @@ function renderList() {
     list.innerHTML = filtered.map(article => {
         const active = state.originalId === article.id;
         const english = article.hasEnglish ? '中英正文' : article.hasEnglishMeta ? '英文元信息' : '仅中文';
-        return `<button type="button" class="article-item ${active ? 'active' : ''}" data-id="${article.id}">
-            <span class="article-item-top"><strong>${article.title}</strong>${active && state.dirty ? '<i>未保存</i>' : ''}</span>
-            <span>${article.date || '无日期'} · ${statusText(article.status)}</span>
-            <small>${article.category || '未分类'} · ${english}</small>
+        return `<button type="button" class="article-item ${active ? 'active' : ''}" data-id="${escapeHTML(article.id)}">
+            <span class="article-item-top"><strong>${escapeHTML(article.title)}</strong>${active && state.dirty ? '<i>未保存</i>' : ''}</span>
+            <span>${escapeHTML(article.date || '无日期')} · ${escapeHTML(statusText(article.status))}</span>
+            <small>${escapeHTML(article.category || '未分类')} · ${escapeHTML(english)}</small>
         </button>`;
     }).join('') || '<p class="empty-state">没有符合条件的文章。</p>';
     list.querySelectorAll('[data-id]').forEach(button => button.addEventListener('click', () => loadArticle(button.dataset.id)));
@@ -278,7 +279,7 @@ function renderRecoveries() {
     const label = state.mode === 'project' ? '未写入源码的项目恢复稿' : '未写入源码的恢复稿';
     $('#recoveryList').innerHTML = recoveries.length ? `
         <p class="list-label">${label}</p>
-        ${recoveries.map(item => `<div class="recovery-row"><button type="button" class="recovery-item" data-recovery="${item.id}"><strong>${item.payload?.title || item.payload?.zh?.frontmatter?.title || '未命名内容'}</strong><span>${new Date(item.savedAt).toLocaleString()}</span></button><button type="button" class="discard-recovery" data-discard-recovery="${item.id}" aria-label="丢弃恢复稿">×</button></div>`).join('')}
+        ${recoveries.map(item => `<div class="recovery-row"><button type="button" class="recovery-item" data-recovery="${escapeHTML(item.id)}"><strong>${escapeHTML(item.payload?.title || item.payload?.zh?.frontmatter?.title || '未命名内容')}</strong><span>${escapeHTML(new Date(item.savedAt).toLocaleString())}</span></button><button type="button" class="discard-recovery" data-discard-recovery="${escapeHTML(item.id)}" aria-label="丢弃恢复稿">×</button></div>`).join('')}
     ` : '';
     document.querySelectorAll('[data-recovery]').forEach(button => button.addEventListener('click', () => openRecoveryDraft(button.dataset.recovery)));
     document.querySelectorAll('[data-discard-recovery]').forEach(button => button.addEventListener('click', () => {
@@ -598,7 +599,7 @@ async function openAssets() {
     if (state.mode === 'project') {
         const assets = await api('/api/projects/assets');
         $('#assetGrid').innerHTML = assets.length ? assets.map(asset => `
-            <button type="button" data-asset-path="${asset.path}"><img src="${asset.url}" alt=""><span>${asset.name}</span></button>
+            <button type="button" data-asset-path="${escapeHTML(asset.path)}"><img src="${escapeHTML(asset.url)}" alt=""><span>${escapeHTML(asset.name)}</span></button>
         `).join('') : '<p class="empty-state">还没有可选的项目图片。</p>';
         $('#assetGrid').querySelectorAll('[data-asset-path]').forEach(button => button.addEventListener('click', () => {
             $('#articleCover').value = button.dataset.assetPath;
@@ -611,7 +612,7 @@ async function openAssets() {
     if (!state.originalId) throw new Error('请先保存文章，再选择文章图片。');
     const assets = await api(`/api/articles/${encodeURIComponent(state.originalId)}/assets`);
     $('#assetGrid').innerHTML = assets.length ? assets.map(asset => `
-        <button type="button" data-asset-path="${asset.path}"><img src="${asset.url}" alt=""><span>${asset.name}</span></button>
+        <button type="button" data-asset-path="${escapeHTML(asset.path)}"><img src="${escapeHTML(asset.url)}" alt=""><span>${escapeHTML(asset.name)}</span></button>
     `).join('') : '<p class="empty-state">这篇文章还没有上传图片。</p>';
     $('#assetGrid').querySelectorAll('[data-asset-path]').forEach(button => button.addEventListener('click', () => {
         $('#articleCover').value = button.dataset.assetPath;

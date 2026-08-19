@@ -21,8 +21,13 @@ function parsePorcelain(raw = '') {
         if (!chunk) continue;
         const status = chunk.slice(0, 2);
         const file = normalizePath(chunk.slice(3));
-        entries.push({ status, file });
-        if (status.includes('R') || status.includes('C')) index += 1;
+        if (status.includes('R') || status.includes('C')) {
+            const originalFile = normalizePath(chunks[index + 1]);
+            entries.push({ status, file, originalFile });
+            index += 1;
+        } else {
+            entries.push({ status, file });
+        }
     }
     return entries;
 }
@@ -102,12 +107,17 @@ export function createGitService(options = {}) {
         const publishPaths = [...articlePaths, ...generatedPaths, ...projectPaths];
         const isWithin = (file, roots) => roots.some(root => file === root || file.startsWith(`${root}/`));
 
+        const publishableFiles = entries.filter(entry => isWithin(entry.file, publishPaths));
+        const publishFiles = [...new Set(publishableFiles.flatMap(entry => [entry.file, entry.originalFile])
+            .filter(file => file && isWithin(file, publishPaths)))];
+
         return {
             publishIds,
             draftIds,
             publishPaths,
+            publishFiles,
             draftPaths,
-            publishableFiles: entries.filter(entry => isWithin(entry.file, publishPaths)),
+            publishableFiles,
             draftFiles: entries.filter(entry => isWithin(entry.file, draftPaths))
         };
     }

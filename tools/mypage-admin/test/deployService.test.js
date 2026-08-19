@@ -27,6 +27,7 @@ test('uploads, activates, and verifies both public targets', async t => {
     const calls = [];
     const run = async (command, args) => {
         calls.push([command, ...args]);
+        if (command === 'scp') await new Promise(resolve => setTimeout(resolve, 12));
         if (command === 'ssh' && args.at(-1).includes('REMOTE_ARCHIVE_HASH=')) {
             return { stdout: `REMOTE_ARCHIVE_HASH=${archiveHash}\n`, stderr: '' };
         }
@@ -57,6 +58,7 @@ test('uploads, activates, and verifies both public targets', async t => {
         sleep: async () => {},
         verificationTimeoutMs: 20,
         verificationIntervalMs: 1,
+        deploymentLockHeartbeatMs: 2,
         snapshotFactory: async () => ({ root, cleanup: async () => {} }),
         archiveFactory: async () => ({ path: '/tmp/fake-site.tar.gz', sha256: archiveHash, cleanup: async () => {} }),
         config: {
@@ -75,7 +77,9 @@ test('uploads, activates, and verifies both public targets', async t => {
     assert(calls.some(call => call[0] === 'ssh' && call.at(-1).includes('SERVED_TREE_HASH')));
     assert(calls.some(call => call[0] === 'ssh' && call.at(-1).includes('sleep 1')));
     assert(calls.some(call => call[0] === 'ssh' && call.at(-1).includes('VPS_DEPLOY_LOCK=')));
+    assert(calls.some(call => call[0] === 'ssh' && call.at(-1).includes('VPS_DEPLOY_LOCK_HEARTBEAT=')));
     assert(calls.some(call => call[0] === 'ssh' && call.at(-1).includes('rmdir "$lock"')));
+    assert(calls.some(call => call[0] === 'ssh' && call.at(-1).includes('find "$releases"') && call.at(-1).includes('deploy-manifest.json')));
     const scpTarget = calls.find(call => call[0] === 'scp').at(-1);
     assert.match(scpTarget, /uploads\/\d{14}-12345678-[a-f0-9]{8}\.tar\.gz$/);
 });

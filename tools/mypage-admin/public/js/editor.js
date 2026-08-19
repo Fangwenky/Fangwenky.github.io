@@ -1,3 +1,5 @@
+import { escapeHTML } from './html.js';
+
 function replaceSelection(textarea, replacement, selectionStart = null, selectionEnd = null) {
     const start = textarea.selectionStart;
     const end = textarea.selectionEnd;
@@ -68,10 +70,10 @@ export function previewDocument(html) {
 }
 
 export function projectPreviewDocument(project = {}) {
-    const title = project.title || '未命名项目';
-    const description = project.description || '';
-    const image = project.image || 'images/avatar.jpg';
-    const tags = (project.tags || []).map(tag => `<span class="tag">${tag}</span>`).join('');
+    const title = escapeHTML(project.title || '未命名项目');
+    const description = escapeHTML(project.description || '');
+    const image = escapeHTML(project.image || 'images/avatar.jpg');
+    const tags = (project.tags || []).map(tag => `<span class="tag">${escapeHTML(tag)}</span>`).join('');
     return `<!DOCTYPE html>
 <html lang="zh-CN">
 <head>

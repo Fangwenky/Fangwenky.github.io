@@ -9,6 +9,7 @@ function workspace() {
         branch: 'main',
         publishIds: ['note'],
         publishPaths: ['mypage/content/articles/note', 'mypage/data/articlesData.js'],
+        publishFiles: ['mypage/content/articles/note/index.zh.md', 'mypage/data/articlesData.js'],
         publishableFiles: [{ status: ' M', file: 'mypage/content/articles/note/index.zh.md' }],
         draftFiles: [{ status: ' M', file: 'mypage/content/articles/draft/index.zh.md' }]
     };
@@ -44,6 +45,7 @@ test('prepares a fingerprinted release and runs commit, push, deploy in order', 
     const job = await waitForJob(service, started.id);
     assert.equal(job.state, 'success');
     assert.deepEqual(calls.map(call => call[0]), ['stage', 'commit', 'push', 'deploy']);
+    assert.deepEqual(calls[0][1], workspace().publishFiles);
 });
 
 test('rejects a confirmation when files changed after preview', async () => {
@@ -84,5 +86,5 @@ test('unstages the exact publishing scope when commit fails', async () => {
     const started = service.startPublish({ confirmationId: prepared.confirmationId, title: 'Broken' });
     const job = await waitForJob(service, started.id);
     assert.equal(job.state, 'error');
-    assert.deepEqual(unstaged, workspace().publishPaths);
+    assert.deepEqual(unstaged, workspace().publishFiles);
 });

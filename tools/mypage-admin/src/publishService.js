@@ -89,7 +89,7 @@ export function createPublishService(options = {}) {
             confirmationId,
             expiresAt,
             fingerprint,
-            publishPaths: workspace.publishPaths,
+            publishFiles: workspace.publishFiles,
             files
         });
 
@@ -126,13 +126,13 @@ export function createPublishService(options = {}) {
         try {
             const { confirmation, workspace } = await validateConfirmation(confirmationId);
             updateStep(job, 'git-commit', 'running', 'Staging published article changes');
-            const stagedFiles = await git.stage(confirmation.publishPaths);
-            stagedPaths = confirmation.publishPaths;
+            const stagedFiles = await git.stage(confirmation.publishFiles);
+            stagedPaths = confirmation.publishFiles;
             if (!stagedFiles.length) throw new Error('No files were staged for publishing.');
-            const allowed = file => confirmation.publishPaths.some(root => file === root || file.startsWith(`${root}/`));
-            const unexpected = stagedFiles.filter(file => !allowed(file));
+            const allowedFiles = new Set(confirmation.publishFiles);
+            const unexpected = stagedFiles.filter(file => !allowedFiles.has(file));
             if (unexpected.length) {
-                await git.unstage(confirmation.publishPaths);
+                await git.unstage(confirmation.publishFiles);
                 throw new Error(`Unexpected staged files: ${unexpected.join(', ')}`);
             }
 

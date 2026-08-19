@@ -1,4 +1,5 @@
 import { api } from './api.js';
+import { escapeHTML } from './html.js';
 
 const terminalStates = new Set(['success', 'error']);
 
@@ -67,7 +68,7 @@ export class PublishingController {
         this.dialog.querySelector('#publishFiles').innerHTML = this.preparation.files.map(file => `
             <li>
                 <span class="change-kind">${statusLabel(file.status)}</span>
-                <code>${file.file}</code>
+                <code>${escapeHTML(file.file)}</code>
                 <span class="diff-stat">+${file.added} / -${file.deleted}</span>
             </li>
         `).join('');
@@ -82,7 +83,7 @@ export class PublishingController {
             container.innerHTML = '<p>没有被排除的本地草稿。</p>';
             return;
         }
-        container.innerHTML = `<p>${drafts.length} 个草稿文件仅保留在本机：</p><ul>${drafts.map(file => `<li><code>${file.file}</code></li>`).join('')}</ul>`;
+        container.innerHTML = `<p>${drafts.length} 个草稿文件仅保留在本机：</p><ul>${drafts.map(file => `<li><code>${escapeHTML(file.file)}</code></li>`).join('')}</ul>`;
     }
 
     async start() {
@@ -107,7 +108,7 @@ export class PublishingController {
         this.dialog.querySelector('#publishSteps').innerHTML = this.job.steps.map(step => `
             <li data-state="${step.state}">
                 <span class="step-indicator" aria-hidden="true"></span>
-                <div><strong>${step.label}</strong><small>${step.detail || step.state}</small></div>
+                <div><strong>${escapeHTML(step.label)}</strong><small>${escapeHTML(step.detail || step.state)}</small></div>
             </li>
         `).join('');
         if (this.job.state === 'success') {

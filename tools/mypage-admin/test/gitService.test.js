@@ -43,9 +43,10 @@ async function makeRepository(t) {
 }
 
 test('parses nul-delimited porcelain output', () => {
-    assert.deepEqual(parsePorcelain(' M file.txt\0?? new.txt\0'), [
+    assert.deepEqual(parsePorcelain(' M file.txt\0?? new.txt\0R  renamed.txt\0original.txt\0'), [
         { status: ' M', file: 'file.txt' },
-        { status: '??', file: 'new.txt' }
+        { status: '??', file: 'new.txt' },
+        { status: 'R ', file: 'renamed.txt', originalFile: 'original.txt' }
     ]);
 });
 
@@ -68,6 +69,8 @@ test('publishes public article changes but excludes pure drafts and unrelated fi
     assert(status.publishableFiles.some(file => file.file === 'mypage/data/projectsData.js'));
     assert(status.publishableFiles.some(file => file.file === 'mypage/images/new-project.png'));
     assert(status.publishableFiles.some(file => file.file === 'mypage/content/projects/new-project/assets/guide.pdf'));
+    assert(status.publishFiles.includes('mypage/content/articles/public-note/index.zh.md'));
+    assert(!status.publishFiles.some(file => file.includes('existing-draft')));
     assert(status.draftFiles.some(file => file.file.includes('existing-draft')));
     assert(!status.publishableFiles.some(file => file.file.includes('.claude')));
 

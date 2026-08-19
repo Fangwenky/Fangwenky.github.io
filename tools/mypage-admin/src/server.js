@@ -1,3 +1,4 @@
+import fsSync from 'node:fs';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { execFile } from 'node:child_process';
@@ -10,7 +11,8 @@ import {
     deployConfig,
     mypageRoot,
     openBrowser,
-    publicRoot
+    publicRoot,
+    sessionFile
 } from './config.js';
 import {
     assetsDir,
@@ -35,13 +37,11 @@ import {
 import { renderMarkdown } from './markdown.js';
 import { createPublishService } from './publishService.js';
 import { generateStaticData } from './staticGenerator.js';
+import { cleanupFolderFiles, createFolderUpload, materializeFolderFiles } from './uploadService.js';
 
 const app = express();
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 8 * 1024 * 1024 } });
-const folderUpload = multer({
-    storage: multer.memoryStorage(),
-    limits: { fileSize: 25 * 1024 * 1024, files: 201, fields: 4 }
-});
+const folderUpload = createFolderUpload();
 const allowedImageTypes = new Map([
     ['image/png', ['.png']],
     ['image/jpeg', ['.jpg', '.jpeg']],
@@ -129,17 +129,22 @@ app.get('/api/workspace/status', requireToken, asyncHandler(async (req, res) => 
 }));
 
 app.post('/api/import/folder', requireToken, folderUpload.array('files', 201), asyncHandler(async (req, res) => {
-    let relativePaths;
     try {
-        relativePaths = JSON.parse(String(req.body.relativePaths || '[]'));
-    } catch (error) {
-        throw new Error('The folder path manifest is invalid.');
+        let relativePaths;
+        try {
+            relativePaths = JSON.parse(String(req.body.relativePaths || '[]'));
+        } catch (error) {
+            throw new Error('The folder path manifest is invalid.');
+        }
+        if (!Array.isArray(relativePaths) || relativePaths.length !== req.files.length) {
+            throw new Error('The folder path manifest does not match the uploaded files.');
+        }
+        const materialized = await materializeFolderFiles(req.files);
+        const files = materialized.map((file, index) => ({ ...file, relativePath: relativePaths[index] }));
+        res.json(await importContentFolder(String(req.body.mode || ''), files));
+    } finally {
+        await cleanupFolderFiles(req.files);
     }
-    if (!Array.isArray(relativePaths) || relativePaths.length !== req.files.length) {
-        throw new Error('The folder path manifest does not match the uploaded files.');
-    }
-    const files = req.files.map((file, index) => ({ ...file, relativePath: relativePaths[index] }));
-    res.json(await importContentFolder(String(req.body.mode || ''), files));
 }));
 
 app.get('/api/articles', requireToken, asyncHandler(async (req, res) => {
@@ -261,13 +266,39 @@ app.use((error, req, res, next) => {
 
 const server = app.listen(defaultPort, defaultHost, () => {
     const url = `http://${defaultHost}:${defaultPort}/?token=${adminToken}`;
+    fsSync.mkdirSync(path.dirname(sessionFile), { recursive: true, mode: 0o700 });
+    const temporarySessionFile = `${sessionFile}.${process.pid}.tmp`;
+    fsSync.writeFileSync(temporarySessionFile, `${JSON.stringify({ pid: process.pid, url })}\n`, { mode: 0o600 });
+    fsSync.renameSync(temporarySessionFile, sessionFile);
     console.log(`mypage admin: ${url}`);
-    console.log(`one-time token: ${adminToken}`);
+    console.log(`session token: ${adminToken}`);
     if (openBrowser && process.platform === 'darwin') {
         execFile('open', [url], error => {
             if (error) console.error(`Could not open browser: ${error.message}`);
         });
     }
 });
+
+function cleanupSessionFile() {
+    try {
+        const session = JSON.parse(fsSync.readFileSync(sessionFile, 'utf8'));
+        if (session.pid === process.pid) fsSync.rmSync(sessionFile, { force: true });
+    } catch (error) {
+        if (error.code !== 'ENOENT') console.error(`Could not clean admin session file: ${error.message}`);
+    }
+}
+
+server.on('close', cleanupSessionFile);
+process.on('exit', cleanupSessionFile);
+
+function shutdown() {
+    cleanupSessionFile();
+    server.close(error => {
+        process.exitCode = error ? 1 : 0;
+    });
+}
+
+process.once('SIGINT', shutdown);
+process.once('SIGTERM', shutdown);
 
 export { app, server, validateImageUpload };

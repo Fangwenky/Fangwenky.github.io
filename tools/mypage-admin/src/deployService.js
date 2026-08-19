@@ -107,6 +107,7 @@ export function createDeployService(options = {}) {
     const verificationIntervalMs = options.verificationIntervalMs || 5_000;
     const deploymentLockWaitSeconds = options.deploymentLockWaitSeconds || 360;
     const deploymentLockStaleSeconds = options.deploymentLockStaleSeconds || 900;
+    const deploymentLockHeartbeatMs = options.deploymentLockHeartbeatMs || 60_000;
     const uploadHashAttempts = options.uploadHashAttempts || 30;
     const uploadHashIntervalMs = options.uploadHashIntervalMs || 1_000;
 
@@ -148,6 +149,22 @@ export function createDeployService(options = {}) {
     async function releaseDeploymentLock(token) {
         const base = config.deployRoot;
         const script = `set -eu; base=${shellQuote(base)}; token=${shellQuote(token)}; lock="$base/.deploy-lock"; if [ -f "$lock/owner" ] && [ "$(cat "$lock/owner")" = "$token" ]; then rm -f "$lock/owner"; rmdir "$lock"; fi`;
+        await remote(script);
+    }
+
+    function startDeploymentLockHeartbeat(token) {
+        const base = config.deployRoot;
+        const timer = setInterval(() => {
+            void remote(`base=${shellQuote(base)}; token=${shellQuote(token)}; lock="$base/.deploy-lock"; if [ -f "$lock/owner" ] && [ "$(cat "$lock/owner")" = "$token" ]; then touch "$lock"; printf 'VPS_DEPLOY_LOCK_HEARTBEAT=%s\n' "$token"; fi`).catch(() => {});
+        }, deploymentLockHeartbeatMs);
+        timer.unref?.();
+        return () => clearInterval(timer);
+    }
+
+    async function pruneReleases() {
+        const base = config.deployRoot;
+        const keep = Number.isInteger(config.keepReleases) ? config.keepReleases : 5;
+        const script = `set -eu; base=${shellQuote(base)}; keep=${shellQuote(keep)}; releases="$base/releases"; current=$(readlink -f "$base/current" || true); kept=0; test -d "$releases" || exit 0; find "$releases" -mindepth 1 -maxdepth 1 -type d -printf '%T@ %p\n' | sort -rn | cut -d' ' -f2- | while IFS= read -r candidate; do [ -n "$candidate" ] || continue; [ "$candidate" = "$current" ] && continue; case "$candidate" in "$releases"/*) ;; *) printf 'REFUSED_RELEASE_CLEANUP=%s\n' "$candidate" >&2; exit 1 ;; esac; if [ ! -f "$candidate/deploy-manifest.json" ]; then rm -rf -- "$candidate"; continue; fi; kept=$((kept + 1)); if [ "$kept" -ge "$keep" ]; then rm -rf -- "$candidate"; fi; done`;
         await remote(script);
     }
 
@@ -375,17 +392,25 @@ export function createDeployService(options = {}) {
             const lockToken = `${sha.slice(0, 12)}-${crypto.randomUUID()}`;
             let lockHeld = false;
             let deploymentError = null;
+            let stopLockHeartbeat = () => {};
             let activation;
             let vps;
             try {
                 onStep('vps-upload', 'running', 'Waiting for the VPS deployment lock');
                 await acquireDeploymentLock(lockToken);
                 lockHeld = true;
+                stopLockHeartbeat = startDeploymentLockHeartbeat(lockToken);
                 activation = await deployVps(sha, manifest, onStep, snapshot.root);
                 onStep('vps-verify', 'running', 'Checking public VPS URL');
                 try {
                     vps = await waitForManifest(config.vpsUrl, manifest, 45_000);
-                    onStep('vps-verify', 'success', vps.url);
+                    let cleanupNote = '';
+                    try {
+                        await pruneReleases();
+                    } catch (cleanupError) {
+                        cleanupNote = ` Release cleanup warning: ${cleanupError.message}`;
+                    }
+                    onStep('vps-verify', 'success', `${vps.url}${cleanupNote}`);
                 } catch (error) {
                     await rollback(activation.oldTarget, activation.releasePath);
                     onStep('vps-verify', 'error', `${error.message} Previous release restored.`);
@@ -396,6 +421,7 @@ export function createDeployService(options = {}) {
                 throw error;
             } finally {
                 if (lockHeld) {
+                    stopLockHeartbeat();
                     try {
                         await releaseDeploymentLock(lockToken);
                     } catch (lockError) {
