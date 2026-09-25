@@ -1,9 +1,9 @@
-import { articles } from './data/articlesData.js';
-import { projects } from './data/projectsData.js';
-import { skills } from './data/skillsData.js';
-import { aboutMe } from './data/aboutMeData.js';
-import { createTimeline } from './data/archiveData.js';
-import { uiText, articleTranslations, projectTranslations, aboutTranslations } from './data/i18nData.js';
+import { articles } from './data/articlesData.js?v=20260925-1';
+import { projects } from './data/projectsData.js?v=20260925-1';
+import { skills } from './data/skillsData.js?v=20260925-1';
+import { aboutMe } from './data/aboutMeData.js?v=20260925-1';
+import { createTimeline } from './data/archiveData.js?v=20260925-1';
+import { uiText, articleTranslations, projectTranslations, aboutTranslations } from './data/i18nData.js?v=20260925-1';
 
 const prefersReducedMotion = window.matchMedia
     ? window.matchMedia('(prefers-reduced-motion: reduce)').matches

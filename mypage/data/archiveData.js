@@ -1,5 +1,5 @@
-import { articles } from './articlesData.js';
-import { projects } from './projectsData.js';
+import { articles } from './articlesData.js?v=20260925-1';
+import { projects } from './projectsData.js?v=20260925-1';
 
 function groupAndSortByYear(items) {
     const grouped = {};
