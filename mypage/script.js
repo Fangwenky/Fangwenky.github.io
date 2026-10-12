@@ -752,6 +752,50 @@ function initHomeCardReveal() {
     });
 }
 
+function initHomeStory() {
+    const progress = document.querySelector('.home-reading-progress span');
+    if (!progress) return;
+
+    const motionEnabled = !prefersReducedMotion && 'IntersectionObserver' in window;
+    const scenes = motionEnabled
+        ? document.querySelectorAll('#home, #latest-articles, #featured-projects, #focus, .blog-radar, #about, .contact-section')
+        : [];
+    const focus = document.getElementById('focus');
+    if (motionEnabled) document.body.classList.add('story-motion');
+
+    let frame = 0;
+    const update = () => {
+        frame = 0;
+        const scrollable = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
+        progress.style.transform = `scaleX(${Math.min(1, window.scrollY / scrollable)})`;
+        if (!motionEnabled) return;
+
+        const viewportHeight = window.innerHeight;
+        scenes.forEach(section => {
+            const rect = section.getBoundingClientRect();
+            if (rect.bottom < -100 || rect.top > viewportHeight + 100) return;
+            const distance = (rect.top + rect.height / 2 - viewportHeight / 2)
+                / (rect.height / 2 + viewportHeight / 2);
+            const shift = Math.max(-1, Math.min(1, distance)) * 26;
+            section.style.setProperty('--scene-shift', `${shift.toFixed(1)}px`);
+            section.style.setProperty('--scene-shift-back', `${(-shift * 0.55).toFixed(1)}px`);
+        });
+
+        if (focus) {
+            const rect = focus.getBoundingClientRect();
+            const drawn = (viewportHeight * 0.72 - rect.top) / Math.max(1, rect.height * 0.7);
+            focus.style.setProperty('--thread-progress', Math.max(0, Math.min(1, drawn)).toFixed(3));
+        }
+    };
+    const schedule = () => {
+        if (!frame) frame = window.requestAnimationFrame(update);
+    };
+
+    window.addEventListener('scroll', schedule, { passive: true });
+    window.addEventListener('resize', schedule);
+    update();
+}
+
 // 加载项目列表
 function loadProjects(container = '.projects-grid', projectsList = projects, limit = null) {
     const grid = document.querySelector(container);
@@ -1229,5 +1273,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     loadFooterSocialLinks();
     updateInternalLinks();
+    if (document.body.id === 'home-page') initHomeStory();
     initSectionObserver();
 });
