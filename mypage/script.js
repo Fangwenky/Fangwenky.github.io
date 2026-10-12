@@ -720,12 +720,35 @@ function initKnowledgeMap() {
         map.style.setProperty('--tilt-y', `${y * -3.1}deg`);
         map.style.setProperty('--pointer-x', `${(x + 0.5) * 100}%`);
         map.style.setProperty('--pointer-y', `${(y + 0.5) * 100}%`);
+        map.style.setProperty('--scene-x', `${x * 11}px`);
+        map.style.setProperty('--scene-y', `${y * 11}px`);
     });
     map.addEventListener('pointerleave', () => {
         map.style.setProperty('--tilt-x', '0deg');
         map.style.setProperty('--tilt-y', '0deg');
         map.style.setProperty('--pointer-x', '50%');
         map.style.setProperty('--pointer-y', '50%');
+        map.style.setProperty('--scene-x', '0px');
+        map.style.setProperty('--scene-y', '0px');
+    });
+}
+
+function initHomeCardReveal() {
+    if (prefersReducedMotion || !('IntersectionObserver' in window)) return;
+
+    const cards = document.querySelectorAll('#latest-articles .article-card, #featured-projects .article-card');
+    const observer = new IntersectionObserver(entries => {
+        entries.forEach(entry => {
+            if (!entry.isIntersecting) return;
+            entry.target.classList.add('motion-visible');
+            observer.unobserve(entry.target);
+        });
+    }, { threshold: 0.12, rootMargin: '0px 0px 60px 0px' });
+
+    cards.forEach((card, index) => {
+        card.style.setProperty('--reveal-delay', `${(index % 3) * 90}ms`);
+        card.classList.add('motion-pending');
+        observer.observe(card);
     });
 }
 
@@ -1182,6 +1205,7 @@ document.addEventListener('DOMContentLoaded', () => {
         loadAboutMe();
         initBlogRadar();
         initKnowledgeMap();
+        initHomeCardReveal();
     } else if (document.body.id === 'articles-page') {
         initArticleFilters();
     } else if (document.body.id === 'projects-page') {
