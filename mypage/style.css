@@ -1665,8 +1665,9 @@ h1, h2, h3, h4 { letter-spacing: -0.035em; }
 #home-page .radar-topic small { background: rgba(255, 208, 198, 0.14); color: #ffd0c6; }
 
 #home-page .about-section { border: 2px solid var(--line); border-radius: 30px 30px 30px 10px; background: var(--surface); }
-#home-page .about-avatar { border-radius: 50% 50% 44% 44%; filter: saturate(0.96); }
-#home-page .about-image::after { border-color: var(--primary); border-radius: 50% 50% 44% 44%; }
+#home-page .about-image { --portrait-size: 210px; width: var(--portrait-size); }
+#home-page .about-avatar { width: var(--portrait-size); height: var(--portrait-size); border-radius: 50%; filter: saturate(0.96); }
+#home-page .about-image::after { inset: 10px auto auto 10px; width: var(--portrait-size); aspect-ratio: 1; border-color: var(--primary); border-radius: 50%; }
 #home-page .contact-section { border-radius: 10px 30px 30px 30px; background: var(--primary); }
 
 .footer { background: color-mix(in srgb, var(--bg-soft) 92%, transparent); }
@@ -1680,6 +1681,7 @@ h1, h2, h3, h4 { letter-spacing: -0.035em; }
 @media (max-width: 860px) {
     #home-page .hero-section { grid-template-columns: 1fr; }
     .profile-card.knowledge-map { order: 1; width: min(100%, 560px); min-height: 650px; justify-self: center; }
+    #home-page .about-image { --portrait-size: 160px; }
 }
 
 @media (max-width: 600px) {
@@ -1699,6 +1701,7 @@ h1, h2, h3, h4 { letter-spacing: -0.035em; }
     .sticker-apple { top: 66px; right: -9px; width: 48px; height: 48px; font-size: 1.5rem; }
     .sticker-sparkle { top: 158px; left: -8px; font-size: 1.7rem; }
     .profile-handnote { right: 18px; font-size: 0.78rem; }
+    #home-page .about-image { --portrait-size: 150px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
