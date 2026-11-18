@@ -1,10 +1,10 @@
 import { articles } from './data/articlesData.js?v=20260925-1';
 import { projects } from './data/projectsData.js?v=20260925-1';
 import { skills } from './data/skillsData.js?v=20260925-1';
-import { aboutMe } from './data/aboutMeData.js?v=20261118-3';
+import { aboutMe } from './data/aboutMeData.js?v=20261118-5';
 import { createTimeline } from './data/archiveData.js?v=20260925-1';
 import { friends, siteLinkInfo } from './data/friendsData.js?v=20261118-3';
-import { uiText, articleTranslations, projectTranslations, aboutTranslations } from './data/i18nData.js?v=20261118-4';
+import { uiText, articleTranslations, projectTranslations, aboutTranslations } from './data/i18nData.js?v=20261118-5';
 
 const prefersReducedMotion = window.matchMedia
     ? window.matchMedia('(prefers-reduced-motion: reduce)').matches

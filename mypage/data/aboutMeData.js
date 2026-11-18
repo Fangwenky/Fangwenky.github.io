@@ -33,10 +33,10 @@ export const aboutMe = {
             description: '学习机器学习、深度学习与数学基础，并通过课程笔记、论文阅读和可运行项目持续验证理解。'
         },
         {
-            title: 'AI 学习与项目实践',
-            company: '个人长期计划',
-            duration: '持续进行',
-            description: '从 NumPy 手写模型到 PyTorch、CNN、Transformer 与 LLM 应用，把学习过程沉淀为双语技术文章和开源项目。'
+            title: 'AI Agent 开发实习',
+            company: '中科创达Thundersoft',
+            duration: '2026.10-至今',
+            description: '作为 FDE 参与 HR 部门 AI 提效部署，负责 TalentOS——HR 部门一站式工作 Agent 的产品设计与开发。'
         }
     ],
     interests: [

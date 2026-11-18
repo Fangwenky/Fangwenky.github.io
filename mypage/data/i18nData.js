@@ -217,10 +217,10 @@ export const aboutTranslations = {
                 description: 'Studying machine learning, deep learning, and mathematical foundations while validating ideas through course notes, paper reading, and working projects.'
             },
             {
-                title: 'AI Learning and Project Practice',
-                company: 'Personal long-term track',
-                duration: 'Ongoing',
-                description: 'Moving from NumPy implementations to PyTorch, CNNs, Transformers, and LLM applications, with bilingual notes and open projects along the way.'
+                title: 'AI Agent Engineering Intern',
+                company: 'ThunderSoft',
+                duration: 'Oct 2026 - Present',
+                description: 'Working as a Forward Deployed Engineer (FDE) on AI productivity deployment for HR, leading product design and development of TalentOS — an all-in-one workspace Agent for HR teams.'
             }
         ],
         interests: ['AI models and engineering', 'Technical writing', 'Web and interaction design', 'Games and visual media'],
