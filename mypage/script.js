@@ -1,9 +1,10 @@
 import { articles } from './data/articlesData.js?v=20260925-1';
 import { projects } from './data/projectsData.js?v=20260925-1';
 import { skills } from './data/skillsData.js?v=20260925-1';
-import { aboutMe } from './data/aboutMeData.js?v=20260925-1';
+import { aboutMe } from './data/aboutMeData.js?v=20261118-3';
 import { createTimeline } from './data/archiveData.js?v=20260925-1';
-import { uiText, articleTranslations, projectTranslations, aboutTranslations } from './data/i18nData.js?v=20260925-1';
+import { friends, siteLinkInfo } from './data/friendsData.js?v=20261118-3';
+import { uiText, articleTranslations, projectTranslations, aboutTranslations } from './data/i18nData.js?v=20261118-4';
 
 const prefersReducedMotion = window.matchMedia
     ? window.matchMedia('(prefers-reduced-motion: reduce)').matches
@@ -245,6 +246,7 @@ function updateNavLinks() {
         { match: href => href === 'articles.html', label: t('articles') },
         { match: href => href === 'projects.html', label: t('projects') },
         { match: href => href === 'archive.html', label: t('archive') },
+        { match: href => href === 'friends.html', label: t('friends') },
         { match: href => href === 'about.html' || href === '#about', label: t('about') },
         { match: href => href === 'search.html', label: t('search') }
     ];
@@ -257,6 +259,7 @@ function updateNavLinks() {
         if (link.closest('.footer-section')) {
             if (href === 'articles.html') link.textContent = t('allArticlesLink');
             else if (href === 'projects.html') link.textContent = t('projectsShowcase');
+            else if (href === 'friends.html') link.textContent = t('friendsLink');
             else link.textContent = t('about');
             return;
         }
@@ -267,14 +270,15 @@ function updateNavLinks() {
 
 function updateDocumentTitle() {
     const titles = {
-        'home-page': currentLang === 'en' ? 'F_wenky | AI Projects and Technical Writing' : 'F_wenky | AI 学习、项目与技术写作',
-        'articles-page': `${t('allArticles')} | F_wenky`,
-        'projects-page': `${t('allProjects')} | F_wenky`,
-        'archive-page': `${t('archive')} | F_wenky`,
-        'about-page': `${t('about')} | F_wenky`,
-        'search-page': `${t('search')} | F_wenky`,
-        'article-detail-page': `${t('article')} | F_wenky`,
-        'project-detail-page': `${t('project')} | F_wenky`
+        'home-page': currentLang === 'en' ? "FangWenkyのblog | Wenky's waypoint for exploring the world" : 'FangWenkyのblog | 晚七探索世界的传送锚点——记录思考、项目、作品的个人站',
+        'articles-page': `${t('allArticles')} | FangWenkyのblog`,
+        'projects-page': `${t('allProjects')} | FangWenkyのblog`,
+        'archive-page': `${t('archive')} | FangWenkyのblog`,
+        'friends-page': `${t('friendsTitle')} | FangWenkyのblog`,
+        'about-page': `${t('about')} | FangWenkyのblog`,
+        'search-page': `${t('search')} | FangWenkyのblog`,
+        'article-detail-page': `${t('article')} | FangWenkyのblog`,
+        'project-detail-page': `${t('project')} | FangWenkyのblog`
     };
     document.title = titles[document.body.id] || document.title;
 }
@@ -282,6 +286,8 @@ function updateDocumentTitle() {
 function applyStaticTranslations() {
     document.documentElement.lang = currentLang === 'en' ? 'en' : 'zh-CN';
     setText('.logo-link span', t('siteName'));
+    setText('.footer-brand strong', t('siteName'));
+    setText('.footer-brand p', t('footerSlogan'));
     setText('#latest-articles h2', t('latestArticles'));
     setText('#featured-projects h2', t('featuredProjects'));
     setText('#articles-list .page-title', t('allArticles'));
@@ -830,7 +836,7 @@ function loadArticleDetail() {
     }
 
     const displayArticle = localizeArticle(article);
-    document.title = `${displayArticle.title} - Fangwenky の blog`;
+    document.title = `${displayArticle.title} | FangWenkyのblog`;
     const articleContent = displayArticle.content || article.content;
     const content = renderContentByType(articleContent, displayArticle.type === 'md' ? 'markdown' : 'html');
     const englishSummary = currentLang === 'en' && !displayArticle.hasTranslatedContent
@@ -877,7 +883,7 @@ function loadProjectDetail() {
     }
 
     const displayProject = localizeProject(project);
-    document.title = `${displayProject.title} - Fangwenky の blog`;
+    document.title = `${displayProject.title} | FangWenkyのblog`;
     const projectContent = displayProject.content || project.content;
     const content = renderContentByType(projectContent, displayProject.contentType || project.contentType);
     detailContainer.innerHTML = `
@@ -1232,6 +1238,162 @@ function loadFooterSocialLinks() {
     }
 }
 
+function getFriendDomain(rawUrl = '') {
+    try {
+        return new URL(rawUrl).hostname.replace(/^www\./, '');
+    } catch {
+        return rawUrl;
+    }
+}
+
+function loadFriends(friendsList = friends) {
+    const grid = document.getElementById('friendsGrid');
+    if (!grid) return;
+
+    grid.replaceChildren();
+    friendsList.forEach(friend => {
+        const isEn = currentLang === 'en';
+        const description = isEn ? (friend.descriptionEn || friend.description) : friend.description;
+        const tags = isEn ? (friend.tagsEn || friend.tags || []) : (friend.tags || []);
+        const safeHref = isSafeContentUrl(friend.url, 'href') ? friend.url : '#';
+        const safeAvatar = isSafeContentUrl(friend.avatar, 'src') ? friend.avatar : '';
+        const initial = (friend.name || friend.author || '?').trim().charAt(0).toUpperCase();
+
+        const card = document.createElement('a');
+        card.className = 'friend-card';
+        card.href = safeHref;
+        if (safeHref !== '#') {
+            card.target = '_blank';
+            card.rel = 'noopener noreferrer';
+        }
+
+        const head = document.createElement('div');
+        head.className = 'friend-card-head';
+
+        const avatarWrap = document.createElement('div');
+        avatarWrap.className = 'friend-avatar-wrap';
+        const fallback = document.createElement('span');
+        fallback.className = 'friend-avatar-fallback';
+        fallback.textContent = initial;
+
+        if (safeAvatar) {
+            const img = document.createElement('img');
+            img.className = 'friend-avatar';
+            img.src = safeAvatar;
+            img.alt = friend.name || '';
+            img.width = 52;
+            img.height = 52;
+            img.loading = 'lazy';
+            img.addEventListener('error', () => {
+                img.remove();
+                avatarWrap.appendChild(fallback);
+            });
+            avatarWrap.appendChild(img);
+        } else {
+            avatarWrap.appendChild(fallback);
+        }
+
+        const titleGroup = document.createElement('div');
+        titleGroup.className = 'friend-title-group';
+        titleGroup.innerHTML = `
+            <div class="friend-name-row">
+                <h2 class="friend-name">${escapeHTML(friend.name)}</h2>
+                ${friend.author ? `<span class="friend-author">${escapeHTML(friend.author)}</span>` : ''}
+            </div>
+            <span class="friend-domain">${escapeHTML(getFriendDomain(friend.url))}</span>
+        `;
+
+        const extIcon = document.createElement('span');
+        extIcon.className = 'friend-ext-icon';
+        extIcon.setAttribute('aria-hidden', 'true');
+        extIcon.innerHTML = '<i class="fa-solid fa-arrow-up-right-from-square"></i>';
+
+        head.append(avatarWrap, titleGroup, extIcon);
+
+        const descEl = document.createElement('p');
+        descEl.className = 'friend-desc';
+        descEl.textContent = description || '';
+
+        const tagsEl = document.createElement('div');
+        tagsEl.className = 'article-tags';
+        tagsEl.setAttribute('aria-label', t('tags'));
+        tagsEl.innerHTML = renderTags(tags);
+
+        card.append(head, descEl, tagsEl);
+        grid.appendChild(card);
+    });
+}
+
+function initFriendsPage() {
+    const filters = document.getElementById('friendFilters');
+    const countEl = document.getElementById('friendsCount');
+    const specEl = document.getElementById('friendsSiteSpec');
+    const copyBtn = document.getElementById('copyFriendInfoBtn');
+
+    const getTags = item => (currentLang === 'en' ? (item.tagsEn || item.tags || []) : (item.tags || []));
+    const tagCounts = new Map();
+    friends.flatMap(getTags).forEach(tag => tagCounts.set(tag, (tagCounts.get(tag) || 0) + 1));
+    const tags = [...tagCounts.entries()]
+        .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], currentLang))
+        .slice(0, 10)
+        .map(([tag]) => tag);
+
+    const render = activeTag => {
+        if (filters) {
+            filters.replaceChildren();
+            if (tags.length > 0) {
+                const options = [{ label: t('filterAll'), value: '' }, ...tags.map(tag => ({ label: tag, value: tag }))];
+                options.forEach(option => {
+                    const button = document.createElement('button');
+                    button.type = 'button';
+                    button.className = 'tag-filter';
+                    button.textContent = option.label;
+                    button.setAttribute('aria-pressed', String(option.value === activeTag));
+                    button.addEventListener('click', () => render(option.value));
+                    filters.appendChild(button);
+                });
+            }
+        }
+        const filtered = activeTag ? friends.filter(item => getTags(item).includes(activeTag)) : friends;
+        loadFriends(filtered);
+        if (countEl) countEl.textContent = t('friendsCount', filtered.length);
+    };
+
+    render('');
+
+    const desc = currentLang === 'en' ? siteLinkInfo.descriptionEn : siteLinkInfo.description;
+    if (specEl) {
+        specEl.innerHTML = `
+            <div><dt>${t('siteNameLabel')}</dt><dd>${escapeHTML(siteLinkInfo.name)}</dd></div>
+            <div><dt>${t('siteUrlLabel')}</dt><dd>${escapeHTML(siteLinkInfo.url)}</dd></div>
+            <div><dt>${t('siteDescLabel')}</dt><dd>${escapeHTML(desc)}</dd></div>
+            <div><dt>${t('siteAvatarLabel')}</dt><dd>${escapeHTML(siteLinkInfo.avatar)}</dd></div>
+        `;
+    }
+
+    if (copyBtn) {
+        const labelSpan = copyBtn.querySelector('span');
+        const snippet = [
+            `${t('siteNameLabel')}: ${siteLinkInfo.name}`,
+            `${t('siteUrlLabel')}: ${siteLinkInfo.url}`,
+            `${t('siteDescLabel')}: ${desc}`,
+            `${t('siteAvatarLabel')}: ${siteLinkInfo.avatar}`
+        ].join('\n');
+
+        copyBtn.addEventListener('click', async () => {
+            try {
+                await navigator.clipboard.writeText(snippet);
+                if (labelSpan) labelSpan.textContent = t('friendInfoCopied');
+                window.setTimeout(() => {
+                    if (labelSpan) labelSpan.textContent = t('copyFriendInfo');
+                }, 1800);
+            } catch {
+                window.prompt(t('copyFriendInfo'), snippet);
+            }
+        });
+    }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     initAccessibilityShell();
     applyStaticTranslations();
@@ -1269,6 +1431,8 @@ document.addEventListener('DOMContentLoaded', () => {
             getItemHref,
             labels: { tags: t('tags') }
         });
+    } else if (document.body.id === 'friends-page') {
+        initFriendsPage();
     }
 
     loadFooterSocialLinks();

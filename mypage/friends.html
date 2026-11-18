@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>友情链接 | FangWenkyのblog</title>
+    <meta name="description" content="FangWenkyのblog 的友情链接，收录同路技术创作者、独立开发者与友好博主的个人网站。">
+    <meta name="theme-color" content="#fff8f2">
+    <meta property="og:title" content="友情链接 | FangWenkyのblog">
+    <meta property="og:description" content="晚七探索世界的传送锚点——记录思考、项目、作品的个人站">
+    <meta property="og:image" content="https://fangwenky.github.io/mypage/images/avatar.jpg">
+    <meta property="og:url" content="https://fangwenky.github.io/mypage/friends.html">
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary">
+    <link rel="canonical" href="https://fangwenky.github.io/mypage/friends.html">
+    <link rel="icon" href="images/avatar.jpg">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=Nunito:wght@600;700;800;900&family=Noto+Sans+SC:wght@400;500;600;700;800&family=ZCOOL+KuaiLe&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css?v=20261118-3">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <script>
+        (() => {
+            try {
+                const saved = localStorage.getItem('siteTheme');
+                const theme = saved || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+                document.documentElement.dataset.theme = theme;
+            } catch (error) {
+                document.documentElement.dataset.theme = 'light';
+            }
+        })();
+    </script>
+</head>
+<body id="friends-page">
+    <a class="skip-link" href="#main-content">跳到主要内容</a>
+    <div class="loading-screen" aria-hidden="true"><div class="loader"></div></div>
+
+    <header class="header">
+        <nav class="nav" aria-label="主导航">
+            <div class="nav-logo">
+                <a href="index.html" class="logo-link" aria-label="FangWenkyのblog 首页">
+                    <img src="images/avatar.jpg" alt="" class="avatar" width="42" height="42">
+                    <span>FangWenkyのblog</span>
+                </a>
+            </div>
+            <div class="nav-links" id="primaryNav">
+                <a href="index.html">首页</a>
+                <a href="articles.html">文章</a>
+                <a href="projects.html">项目</a>
+                <a href="archive.html">归档</a>
+                <a href="friends.html" class="active">友链</a>
+                <a href="about.html">关于我</a>
+                <a href="search.html">搜索</a>
+            </div>
+            <div class="nav-actions"></div>
+            <button class="nav-toggle" type="button" aria-label="打开导航菜单" aria-expanded="false" aria-controls="primaryNav">
+                <span></span><span></span><span></span>
+            </button>
+        </nav>
+    </header>
+
+    <main id="main-content">
+        <section id="friends-list" class="friends-section">
+            <div class="section-heading friends-heading">
+                <div>
+                    <p class="eyebrow" data-copy="friendsKicker">FRIENDS &amp; BLOGROLL</p>
+                    <h1 class="page-title" data-copy="friendsTitle">友情链接</h1>
+                </div>
+                <p data-copy="friendsSubtitle">一些同样在折腾 AI、代码、工具和个人网站的友好博主，欢迎顺着这些传送门去串门。</p>
+            </div>
+            <div class="collection-toolbar">
+                <p id="friendsCount" class="collection-count" aria-live="polite"></p>
+                <div class="tag-filters" id="friendFilters" aria-label="友链标签筛选"></div>
+            </div>
+            <div class="friends-grid" id="friendsGrid"></div>
+
+            <aside class="friends-exchange-card" aria-labelledby="friends-exchange-title">
+                <div class="friends-exchange-copy">
+                    <p class="eyebrow" data-copy="friendsExchangeKicker">EXCHANGE LINKS</p>
+                    <h2 id="friends-exchange-title" data-copy="friendsExchangeTitle">欢迎交换友链</h2>
+                    <p data-copy="friendsExchangeDesc">如果你也有自己的独立博客、个人主页或实验室小站，欢迎来信交换链接。下面是我的站点信息，方便直接复制。</p>
+                    <div class="friends-exchange-actions">
+                        <button type="button" class="button button-primary" id="copyFriendInfoBtn">
+                            <i class="fa-regular fa-copy" aria-hidden="true"></i>
+                            <span data-copy="copyFriendInfo">复制本站信息</span>
+                        </button>
+                        <a href="mailto:fangmierui@gmail.com?subject=%E7%94%B3%E8%AF%B7%E4%BA%A4%E6%8D%A2%E5%8F%8B%E9%93%BE" class="button button-secondary">
+                            <i class="fa-regular fa-envelope" aria-hidden="true"></i>
+                            <span data-copy="applyFriendEmail">发邮件交换友链</span>
+                        </a>
+                    </div>
+                </div>
+                <dl class="friends-site-spec" id="friendsSiteSpec"></dl>
+            </aside>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-brand"><strong>FangWenkyのblog</strong><p>晚七探索世界的传送锚点——记录思考、项目、作品的个人站</p></div>
+            <div class="footer-section"><h3>联系方式</h3><div class="social-links"></div></div>
+            <div class="footer-section"><h3>快速链接</h3><ul><li><a href="articles.html">所有文章</a></li><li><a href="projects.html">项目展示</a></li><li><a href="friends.html">友情链接</a></li><li><a href="about.html">关于我</a></li></ul></div>
+        </div>
+        <div class="footer-bottom"><p>&copy; FangWenkyのblog. All rights reserved.</p></div>
+    </footer>
+
+    <div class="search-overlay" id="searchOverlay">
+        <div class="search-container">
+            <div class="search-header">
+                <h2>搜索结果</h2>
+                <button class="close-search" id="closeSearch" type="button" aria-label="关闭搜索结果">&times;</button>
+            </div>
+            <div class="search-results" id="searchResults"></div>
+        </div>
+    </div>
+
+    <script type="module" src="script.js?v=20261118-4"></script>
+</body>
+</html>

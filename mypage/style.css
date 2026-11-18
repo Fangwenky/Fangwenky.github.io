@@ -1336,7 +1336,7 @@ body::before {
 .header.is-scrolled { box-shadow: 0 8px 30px rgba(91, 52, 45, 0.08); }
 .avatar { width: 38px; height: 38px; border: 2px solid var(--surface); border-radius: 50%; box-shadow: 0 0 0 2px var(--primary-soft); }
 .logo-link { font-size: 0.96rem; }
-.logo-link::after { content: "の LOG"; color: var(--primary); font-family: var(--font-hand); font-size: 0.72rem; letter-spacing: 0; }
+.logo-link::after { content: none; }
 .nav-links a::after { background: var(--coral); }
 .language-toggle, .theme-toggle { border-radius: 50%; background: var(--surface); }
 
@@ -1714,4 +1714,230 @@ h1, h2, h3, h4 { letter-spacing: -0.035em; }
 @media print {
     body { background-image: none; }
     .profile-sticker, .profile-handnote { display: none; }
+}
+
+/* Friends / Blogroll page */
+.friends-heading {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(260px, 0.6fr);
+    align-items: end;
+    gap: 28px;
+    margin-bottom: 34px;
+}
+
+.friends-heading .page-title {
+    margin-bottom: 0;
+}
+
+.friends-heading > p {
+    margin: 0 0 6px;
+    color: var(--ink-soft);
+}
+
+.friends-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 20px;
+}
+
+.friend-card {
+    position: relative;
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: 14px;
+    padding: 22px;
+    border: 1px solid var(--line);
+    border-radius: 22px 22px 22px 8px;
+    background: color-mix(in srgb, var(--surface) 94%, transparent);
+    box-shadow: var(--shadow-sm);
+    transition: transform 220ms var(--ease), border-color 200ms ease, box-shadow 220ms ease;
+}
+
+.friend-card:hover {
+    border-color: var(--primary);
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-md);
+}
+
+.friend-card-head {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    min-width: 0;
+}
+
+.friend-avatar-wrap {
+    position: relative;
+    width: 52px;
+    height: 52px;
+    flex: 0 0 52px;
+    border-radius: 14px;
+    overflow: hidden;
+    border: 1px solid var(--line);
+    background: var(--primary-soft);
+    display: grid;
+    place-items: center;
+}
+
+.friend-avatar {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.friend-avatar-fallback {
+    font-family: var(--font-display);
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: var(--primary-strong);
+}
+
+.friend-title-group {
+    min-width: 0;
+    flex: 1;
+}
+
+.friend-name-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 8px;
+}
+
+.friend-name {
+    margin: 0;
+    font-size: 1.16rem;
+    font-weight: 800;
+    line-height: 1.25;
+}
+
+.friend-author {
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: var(--bg-soft);
+    color: var(--ink-soft);
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    font-weight: 600;
+}
+
+.friend-domain {
+    display: block;
+    margin-top: 3px;
+    color: var(--ink-faint);
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.friend-ext-icon {
+    color: var(--ink-faint);
+    font-size: 0.85rem;
+    transition: transform 180ms var(--ease), color 180ms ease;
+}
+
+.friend-card:hover .friend-ext-icon {
+    color: var(--primary);
+    transform: translate(2px, -2px);
+}
+
+.friend-desc {
+    margin: 0;
+    color: var(--ink-soft);
+    font-size: 0.92rem;
+    line-height: 1.65;
+}
+
+.friends-exchange-card {
+    display: grid;
+    grid-template-columns: minmax(0, 1.05fr) minmax(280px, 0.95fr);
+    gap: 32px;
+    align-items: center;
+    margin-top: 48px;
+    padding: clamp(24px, 4vw, 40px);
+    border: 1px dashed var(--line-strong);
+    border-radius: 26px 26px 26px 10px;
+    background: color-mix(in srgb, var(--surface) 90%, transparent);
+    box-shadow: var(--shadow-sm);
+}
+
+.friends-exchange-copy h2 {
+    margin: 6px 0 12px;
+    font-size: clamp(1.5rem, 2.8vw, 2.1rem);
+}
+
+.friends-exchange-copy p:not(.eyebrow) {
+    color: var(--ink-soft);
+    max-width: 54ch;
+}
+
+.friends-exchange-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 22px;
+}
+
+.friends-site-spec {
+    display: grid;
+    gap: 10px;
+    margin: 0;
+    padding: 18px 20px;
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    background: var(--bg-soft);
+}
+
+.friends-site-spec div {
+    display: grid;
+    grid-template-columns: 78px minmax(0, 1fr);
+    gap: 12px;
+    align-items: baseline;
+    font-size: 0.86rem;
+}
+
+.friends-site-spec dt {
+    color: var(--ink-faint);
+    font-weight: 700;
+}
+
+.friends-site-spec dd {
+    margin: 0;
+    color: var(--ink);
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    overflow-wrap: anywhere;
+}
+
+@media (max-width: 980px) {
+    .friends-heading,
+    .friends-exchange-card {
+        grid-template-columns: 1fr;
+    }
+
+    .friends-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 580px) {
+    .friends-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .friends-exchange-actions {
+        flex-direction: column;
+    }
+
+    .friends-exchange-actions .button {
+        width: 100%;
+    }
+
+    .friends-site-spec div {
+        grid-template-columns: 1fr;
+        gap: 2px;
+    }
 }

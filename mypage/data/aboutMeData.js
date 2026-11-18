@@ -6,7 +6,7 @@ export const aboutMe = {
         name: 'Jinheng Fang',
         role: 'B.S. Student in Artificial Intelligence',
         institution: 'Beijing Institute of Technology',
-        email: 'fangjinheng@bit.edu.cn'
+        email: 'fangmierui@gmail.com'
     },
     socialLinks: [
     // GitHub 链接
@@ -21,7 +21,7 @@ export const aboutMe = {
     },
     // 谷歌邮箱（Gmail）链接
     { 
-        url: 'mailto:fangjinheng@bit.edu.cn',  // 邮箱链接格式（点击直接唤起邮件客户端）
+        url: 'mailto:fangmierui@gmail.com',  // 邮箱链接格式（点击直接唤起邮件客户端）
         icon: 'fas fa-envelope'  // 邮件图标类名（Font Awesome 内置，代表邮箱功能）
     }
     ],
