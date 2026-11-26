@@ -1,10 +1,10 @@
 import { articles } from './data/articlesData.js?v=20260925-1';
 import { projects } from './data/projectsData.js?v=20260925-1';
 import { skills } from './data/skillsData.js?v=20260925-1';
-import { aboutMe } from './data/aboutMeData.js?v=20261118-5';
+import { aboutMe } from './data/aboutMeData.js?v=20261126-1';
 import { createTimeline } from './data/archiveData.js?v=20260925-1';
 import { friends, siteLinkInfo } from './data/friendsData.js?v=20261118-3';
-import { uiText, articleTranslations, projectTranslations, aboutTranslations } from './data/i18nData.js?v=20261118-5';
+import { uiText, articleTranslations, projectTranslations, aboutTranslations } from './data/i18nData.js?v=20261126-1';
 
 const prefersReducedMotion = window.matchMedia
     ? window.matchMedia('(prefers-reduced-motion: reduce)').matches
@@ -149,6 +149,7 @@ function getSocialLabel(link) {
     if (link.url.startsWith('mailto:')) return 'Email';
     if (link.url.includes('github.com')) return 'GitHub';
     if (link.url.includes('bilibili.com')) return 'Bilibili';
+    if (link.url.includes('box.fangwenky.dpdns.org')) return currentLang === 'en' ? 'Anonymous Question Box' : '匿名提问箱';
     return currentLang === 'en' ? 'Social link' : '社交链接';
 }
 
@@ -1007,8 +1008,9 @@ function renderSocialLinks() {
         const externalAttrs = link.url.startsWith('mailto:')
             ? ''
             : ' target="_blank" rel="noopener noreferrer"';
+        const label = getSocialLabel(link);
         return `
-        <a href="${link.url}"${externalAttrs} class="social-link" aria-label="${getSocialLabel(link)}">
+        <a href="${link.url}"${externalAttrs} class="social-link" aria-label="${label}" title="${label}">
             <i class="${link.icon}" aria-hidden="true"></i>
         </a>
     `;

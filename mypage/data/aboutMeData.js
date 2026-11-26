@@ -23,6 +23,11 @@ export const aboutMe = {
     { 
         url: 'mailto:fangmierui@gmail.com',  // 邮箱链接格式（点击直接唤起邮件客户端）
         icon: 'fas fa-envelope'  // 邮件图标类名（Font Awesome 内置，代表邮箱功能）
+    },
+    // 匿名提问箱（NekoBox）链接
+    {
+        url: 'https://box.fangwenky.dpdns.org/_/wenky',
+        icon: 'fas fa-comment-dots'
     }
     ],
     experience: [

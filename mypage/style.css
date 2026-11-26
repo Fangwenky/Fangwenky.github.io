@@ -1072,7 +1072,7 @@ body:not(#home-page) main > section > h2:first-child { margin-bottom: 38px; }
 #home-page .hero-utilities {
     grid-column: 1 / -1;
     display: grid;
-    grid-template-columns: auto auto minmax(0, 1fr);
+    grid-template-columns: auto auto auto minmax(0, 1fr);
     align-items: center;
     gap: 0;
     margin-top: 0;
@@ -1180,7 +1180,7 @@ body:not(#home-page) main > section > h2:first-child { margin-bottom: 38px; }
     #home-page .hero-section { grid-template-columns: 1fr; padding-top: 54px; }
     #home-page .hero-copy { order: 0; max-width: 760px; }
     .knowledge-map { order: 1; width: min(100%, 660px); min-height: 560px; justify-self: center; }
-    #home-page .hero-utilities { order: 2; grid-template-columns: 1fr 1fr; }
+    #home-page .hero-utilities { order: 2; grid-template-columns: repeat(3, minmax(0, 1fr)); }
     .utility-status { grid-column: 1 / -1; justify-content: flex-start; border-top: 1px solid var(--line); }
     .editorial-heading { grid-template-columns: 1fr; gap: 4px; }
     .editorial-heading > p { max-width: 620px; }
